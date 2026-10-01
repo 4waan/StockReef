@@ -73,12 +73,12 @@ def borrow_limit(lt_wad: int) -> int:
     return min(wad(B_OPEN), lt_wad - wad(BORROW_GAP))
 
 
-def worked_example() -> dict:
-    """Spec §5: V = 10,000 USDG, D = 7,200 USDG, Friday 16:00 close (EXTENDED class)."""
+def worked_example(collateral_raw: int = 25 * TOKEN, debt: int = 7_200 * USDG) -> dict:
+    """Spec §5: V = 10,000 USDG, D = 7,200 USDG, Friday 16:00 close (EXTENDED class).
+
+    The testnet demo uses the same case scaled by 1/100 (appendix R7)."""
     price = F(400)  # USDG per whole TSLA token
-    collateral_raw = 25 * TOKEN
-    value = floor(F(collateral_raw) * price * USDG / TOKEN)  # 10,000 USDG
-    debt = 7_200 * USDG
+    value = floor(F(collateral_raw) * price * USDG / TOKEN)
     cls = CLASSES["EXTENDED"]
     target = cls["target"]
     b = BONUS_SCHEDULING
@@ -105,8 +105,9 @@ def worked_example() -> dict:
     def shortfall(d, v):
         return max(F(0), F(d) - F(v) * (1 - gap) / (1 + BONUS_DISTRESS))
     x_units = x_exact / USDG
-    trimmed_exact = shortfall(F(7200) - x_units, F(10000) - x_units * (1 + b))
-    unmanaged_exact = shortfall(F(7200), F(10000))
+    d_units, v_units = F(debt, USDG), F(value, USDG)
+    trimmed_exact = shortfall(d_units - x_units, v_units - x_units * (1 + b))
+    unmanaged_exact = shortfall(d_units, v_units)
 
     return {
         "price_wad": str(wad(price)),
@@ -180,6 +181,7 @@ def build() -> dict:
             "final_seconds": FINAL,
         },
         "worked_example": worked_example(),
+        "demo_example": worked_example(collateral_raw=TOKEN // 4, debt=72 * USDG),
         "ramp": ramp_points(),
         "interest": interest(),
         "valuation": valuation(),

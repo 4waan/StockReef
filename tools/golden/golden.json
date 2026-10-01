@@ -34,6 +34,27 @@
   "gap35_shortfall_trimmed_usdg_2dp": "243.95",
   "gap35_shortfall_unmanaged_usdg_2dp": "1009.52"
  },
+ "demo_example": {
+  "price_wad": "400000000000000000000",
+  "collateral_raw": "250000000000000000",
+  "value_usdg": "100000000",
+  "debt_usdg": "72000000",
+  "target_wad": "650000000000000000",
+  "bonus_wad": "20000000000000000",
+  "cash_required_usdg": "7000000",
+  "add_collateral_value_usdg": "10769231",
+  "trim_repay_usdg": "20771514",
+  "trim_seized_raw": "52967360700000000",
+  "trim_seized_value_usdg_exact": "21.18694428",
+  "debt_after_trim_usdg": "51228486",
+  "collateral_after_trim_raw": "197032639300000000",
+  "value_after_trim_usdg": "78813055",
+  "ltv_after_trim_wad_floor": "650000003172063308",
+  "lt_at_1515_wad": "716666666666666666",
+  "eligible_at_1515": true,
+  "gap35_shortfall_trimmed_usdg_2dp": "2.44",
+  "gap35_shortfall_unmanaged_usdg_2dp": "10.10"
+ },
  "ramp": {
   "EXTENDED": {
    "lt_final_wad": "700000000000000000",
