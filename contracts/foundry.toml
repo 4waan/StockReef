@@ -42,3 +42,6 @@ robinhood_testnet = "https://rpc.testnet.chain.robinhood.com"
 
 [fmt]
 line_length = 120
+
+[lint]
+lint_on_build = false
