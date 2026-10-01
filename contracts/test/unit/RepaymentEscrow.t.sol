@@ -188,6 +188,21 @@ contract RepaymentEscrowTest is MarketFixture {
         escrow.withdraw(1, alice);
     }
 
+    function test_commitment_priceOutageOrGuardianStopNeverFreezesEscrow() public {
+        _aliceWithBuffer(1_000 * USDG, 100 * USDG);
+        vm.warp(block.timestamp + MOCK_MAX_AGE + 1); // OPEN phase, stale price: GUARDED
+        assertEq(uint256(_state()), uint256(SessionRiskPolicy.State.GUARDED));
+        assertFalse(escrow.committed(alice));
+
+        vm.prank(guardian);
+        gate.stop();
+        vm.prank(alice);
+        escrow.withdraw(400 * USDG, alice);
+        vm.prank(alice);
+        escrow.cancel();
+        assertEq(escrow.planOf(alice).balance, 600 * USDG);
+    }
+
     function test_commitment_endsWithFullRepaymentOrExpiry() public {
         _aliceWithBuffer(1_000 * USDG, 100 * USDG);
         _tick(FRI_CLOSE + 1 hours);
