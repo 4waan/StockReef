@@ -161,11 +161,13 @@ contract RepaymentEscrow is ReentrancyGuard {
 
     /// @notice True while authorized funds are committed: an active authorization, debt outstanding, and the
     /// schedule anywhere other than the OPEN phase (before A, after a valid full reopening). It follows the
-    /// schedule phase, not the effective state, so a price outage or a guardian stop never freezes escrow.
+    /// schedule phase, not the effective state, so a price outage or a guardian stop never freezes escrow. After
+    /// the calendar has ended (wind-down) buffers can never execute again, so plans are released.
     function committed(address account) public view returns (bool) {
         Plan storage p = _plans[account];
         if (!_active(p, clock.time()) || market.debtOf(account) == 0) return false;
-        return policy.snapshot().phase != SessionRiskPolicy.State.OPEN;
+        SessionRiskPolicy.Snapshot memory s = policy.snapshot();
+        return s.phase != SessionRiskPolicy.State.OPEN && !s.windDown;
     }
 
     /// @notice Borrowing from A onward is rejected while an authorization is active.
@@ -211,7 +213,15 @@ contract RepaymentEscrow is ReentrancyGuard {
         uint256 need = Math.ceilDiv(debt * WAD - p.targetWad * value, WAD);
         uint256 spent = p.spentSession == uint32(s.session + 1) ? p.spent : 0;
         uint256 allowance = p.perSessionCap > spent ? p.perSessionCap - spent : 0;
-        return Math.min(Math.min(need, p.balance), allowance);
+        uint256 available = Math.min(p.balance, allowance);
+        uint256 amount = Math.min(need, available);
+        // Never leave dust below the minimum loan: repay in full if funds allow, else stop at the minimum.
+        uint256 minLoan = market.minLoan();
+        if (amount < debt && debt - amount < minLoan) {
+            if (available >= debt) return debt;
+            return debt > minLoan ? debt - minLoan : 0;
+        }
+        return amount;
     }
 
     function _repay(address account, uint256 amount) internal returns (uint256) {

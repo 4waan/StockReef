@@ -198,6 +198,8 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
         uint256 idx = _index(clock.time());
         uint256 debtAfter;
         (paid, debtAfter) = _reduceDebt(account, a, amount, idx);
+        // Repay everything or leave at least the minimum loan, so dust cannot hold an active slot.
+        if (debtAfter != 0 && debtAfter < minLoan) revert BelowMinimumLoan(debtAfter, minLoan);
         _pullExact(IERC20(asset()), msg.sender, paid);
         cash += paid;
         emit Repaid(account, msg.sender, paid, debtAfter);
@@ -313,12 +315,12 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     }
 
     function withdraw(uint256 assets, address receiver, address owner) public override nonReentrant returns (uint256) {
-        _requireLenderWindow();
+        _requireLenderExit();
         return super.withdraw(assets, receiver, owner);
     }
 
     function redeem(uint256 shares, address receiver, address owner) public override nonReentrant returns (uint256) {
-        _requireLenderWindow();
+        _requireLenderExit();
         return super.redeem(shares, receiver, owner);
     }
 
@@ -369,12 +371,12 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     }
 
     function maxWithdraw(address owner) public view override returns (uint256) {
-        if (!_lenderWindowOpen()) return 0;
+        if (!_lenderExitOpen()) return 0;
         return Math.min(_convertToAssets(balanceOf(owner), Math.Rounding.Floor), cash);
     }
 
     function maxRedeem(address owner) public view override returns (uint256) {
-        if (!_lenderWindowOpen()) return 0;
+        if (!_lenderExitOpen()) return 0;
         return Math.min(balanceOf(owner), _convertToShares(cash, Math.Rounding.Floor));
     }
 
@@ -448,8 +450,20 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
         if (!s.lenderOpen) revert NotAllowedNow(s.state, s.reasons);
     }
 
+    /// @dev Withdrawals and redemptions: the scheduled window, or wind-down after the calendar has ended, when
+    /// lenders exit against idle cash at the last accepted valuation and repayments keep adding to that cash.
+    function _requireLenderExit() internal {
+        SessionRiskPolicy.Snapshot memory s = _refresh();
+        if (!s.lenderOpen && !s.windDown) revert NotAllowedNow(s.state, s.reasons);
+    }
+
     function _lenderWindowOpen() internal view returns (bool) {
         return policy.snapshot().lenderOpen;
+    }
+
+    function _lenderExitOpen() internal view returns (bool) {
+        SessionRiskPolicy.Snapshot memory s = policy.snapshot();
+        return s.lenderOpen || s.windDown;
     }
 
     function _inRunOff() internal view returns (bool) {

@@ -21,6 +21,8 @@ contract SessionCalendar {
     uint256 public immutable sessionCount;
     uint64 public immutable firstOpen;
     uint64 public immutable lastClose;
+    /// @notice Open of the last loaded session. Coverage ends here: that session has no known next open.
+    uint64 public immutable lastOpen;
 
     uint256[] private _words;
 
@@ -41,7 +43,7 @@ contract SessionCalendar {
             prev = c;
         }
         (firstOpen,) = _unpack(words[0], 0);
-        (, lastClose) = _unpack(words[(count - 1) / 4], (count - 1) % 4);
+        (lastOpen, lastClose) = _unpack(words[(count - 1) / 4], (count - 1) % 4);
     }
 
     /// @notice Open and close of session `i`.

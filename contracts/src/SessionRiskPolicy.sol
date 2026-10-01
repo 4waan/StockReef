@@ -54,6 +54,7 @@ contract SessionRiskPolicy {
         bool canTrim; // partial liquidation of positions strictly above LT
         bool canBuffer; // executeBuffer toward the borrower's authorized target
         bool lenderOpen; // ERC-4626 deposits, mints, withdrawals and redemptions
+        bool windDown; // the loaded calendar has ended: lenders may exit against idle cash, nothing else
     }
 
     uint256 public constant LT_OPEN = 0.8e18;
@@ -92,6 +93,7 @@ contract SessionRiskPolicy {
         SessionCalendar.Context memory ctx = calendar.context(t);
         s.covered = ctx.covered;
         if (!ctx.covered) {
+            s.windDown = t >= calendar.lastOpen();
             s.state = State.GUARDED;
             s.phase = State.GUARDED;
             s.closureClass = ClosureClass.EXTENDED;
