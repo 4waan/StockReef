@@ -449,3 +449,10 @@ testnet limitations are presented in the Evidence view and the README.
   the market is GUARDED (§6), with no new credit and no liquidation until a qualifying price arrives.
 - **Ordering.** The sequencer orders transactions first come, first served; a higher fee does not move a
   transaction ahead. Buffer executions and trims compete on arrival time, not gas price.
+
+### R15. Demo operation
+
+Demo positions are opened by a committed script before recording. On camera, one operator wallet advances
+the labelled demo clock (R9); the keeper runs in watch mode and executes funded buffers and capital-funded
+trims on its own, and the app shows each receipt as it lands. No borrower or liquidator key is held by the
+web app.
