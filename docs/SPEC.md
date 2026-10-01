@@ -456,3 +456,21 @@ Demo positions are opened by a committed script before recording. On camera, one
 the labelled demo clock (R9); the keeper runs in watch mode and executes funded buffers and capital-funded
 trims on its own, and the app shows each receipt as it lands. No borrower or liquidator key is held by the
 web app.
+
+### R16. Minimum loan on repayment
+
+A repayment must clear the loan or leave at least the minimum loan (R8), so dust cannot hold one of the 32
+active slots. A buffer execution that would leave less repays in full when the escrow allows, otherwise it
+stops at the minimum. Trims and collateral-exhaustion recovery are not limited by this rule.
+
+### R17. After the calendar ends
+
+The calendar is immutable and finite. From the open of the last loaded session the market fails closed
+(§3) and enters wind-down: no borrowing, trims, buffers or deposits; lenders may withdraw against idle cash
+at the last accepted valuation; repayments keep adding to that cash; buffer plans are released. A
+continuing market is a new deployment with an extended calendar.
+
+### R18. Demo clock bounds
+
+A demo step moves the simulated clock at most seven days and never past the open of the last loaded
+session. Simulated time accrues interest exactly as real time does; the app labels it.
