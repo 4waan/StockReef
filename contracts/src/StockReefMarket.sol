@@ -171,11 +171,13 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
             _active.push(msg.sender);
             _activeSlot[msg.sender] = _active.length;
         }
+        // The minimum applies to principal; the share rounding below adds at most one base unit of debt.
+        uint256 debtBefore = _debt(a.debtShares, idx);
+        if (debtBefore + amount < minLoan) revert BelowMinimumLoan(debtBefore + amount, minLoan);
         uint256 shares = amount.mulDiv(SHARE_UNIT, idx, Math.Rounding.Ceil);
         a.debtShares += shares;
         totalDebtShares += shares;
         uint256 debtAfter = _debt(a.debtShares, idx);
-        if (debtAfter < minLoan) revert BelowMinimumLoan(debtAfter, minLoan);
         _requireWithinLimit(s, debtAfter, _value(a.collateral, s.priceWad));
 
         cash -= amount;
