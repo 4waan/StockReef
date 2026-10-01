@@ -160,11 +160,12 @@ contract RepaymentEscrow is ReentrancyGuard {
     }
 
     /// @notice True while authorized funds are committed: an active authorization, debt outstanding, and the
-    /// market anywhere other than OPEN (before A, after a valid full reopening).
+    /// schedule anywhere other than the OPEN phase (before A, after a valid full reopening). It follows the
+    /// schedule phase, not the effective state, so a price outage or a guardian stop never freezes escrow.
     function committed(address account) public view returns (bool) {
         Plan storage p = _plans[account];
         if (!_active(p, clock.time()) || market.debtOf(account) == 0) return false;
-        return policy.snapshot().state != SessionRiskPolicy.State.OPEN;
+        return policy.snapshot().phase != SessionRiskPolicy.State.OPEN;
     }
 
     /// @notice Borrowing from A onward is rejected while an authorization is active.
