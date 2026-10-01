@@ -81,7 +81,8 @@ contract Deploy is Script {
             d.demo = new DemoController(
                 deployer,
                 uint8(vm.parseJsonUint(manifest, ".stockFeed.decimals")),
-                vm.parseJsonString(manifest, ".stockFeed.label")
+                vm.parseJsonString(manifest, ".stockFeed.label"),
+                d.calendar.lastOpen()
             );
             d.clock = d.demo.clock();
             d.stockFeed = d.demo.feed();
