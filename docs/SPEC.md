@@ -390,3 +390,25 @@ pitch only when a committed script in `tools/evidence/` reproduces them from pin
 
 DemoClock advances and mock-feed pushes live in the Operations view and are labelled as simulation.
 DemoClock is allowlisted to chain IDs 31337 (local) and 46630 (Robinhood Chain testnet).
+
+### R7. Loan asset and demo scale
+
+The testnet market lends **real Paxos USDG** (Robinhood Chain testnet). Because the public faucet is
+rate-limited, demo positions are the §5 worked example scaled by 1/100: 100 USDG of collateral value,
+72 USDG of debt, a 7 USDG buffer repayment, or a 20.77 USDG trim. The arithmetic is identical at both
+scales; `tools/golden/golden.json` carries both.
+
+### R8. Borrower access
+
+Borrowing is open to any wallet while fewer than 32 accounts hold debt. A minimum loan of 5 USDG stops dust
+positions from filling the cap. Accounts leave the active set when their debt returns to zero.
+
+### R9. Demo time control
+
+On the demo deployment a single DemoController transaction advances the DemoClock and publishes the next
+mock price, so each demo step is one action. Only the demo operator key can call it. It is labelled as
+simulation in the app.
+
+### R10. Hosting
+
+The web app is a Next.js project deployed on Vercel.
