@@ -37,12 +37,16 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
         bool impaired; // some account's debt exceeds its recoverable value
     }
 
-    struct Trim {
-        uint256 idx;
+    /// @notice What a trim would do at a given policy snapshot.
+    struct TrimQuote {
+        bool eligible; // trims allowed now and LTV strictly above LT
+        bool bufferPending; // an executable buffer must run first
+        uint256 debt;
+        uint256 value;
         uint256 bonusWad;
         uint256 repaid;
         uint256 collateralOut;
-        bool fullFill;
+        bool fullFill; // a solvent fill that reaches the target
     }
 
     uint256 internal constant WAD = 1e18;
@@ -216,14 +220,16 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
         if (s.time > deadline) revert DeadlinePassed();
         if (!s.canTrim) revert NotAllowedNow(s.state, s.reasons);
 
-        Trim memory t = _planTrim(account, s, maxRepay);
+        TrimQuote memory t = quoteTrim(account, s, maxRepay);
+        if (!t.eligible) revert NotEligible(t.debt, t.value, s.ltWad);
+        if (t.bufferPending) revert BufferPending();
         repaid = t.repaid;
         collateralOut = t.collateralOut;
         if (repaid == 0 || collateralOut == 0) revert ZeroAmount();
         if (collateralOut < minCollateralOut) revert Slippage();
 
         Account storage a = _accounts[account];
-        (, uint256 debtAfter) = _reduceDebt(account, a, repaid, t.idx);
+        (, uint256 debtAfter) = _reduceDebt(account, a, repaid, _index(s.time));
         a.collateral -= collateralOut;
         if (a.collateral == 0 && debtAfter != 0) {
             // Collateral exhausted: recognise the residual as bad debt; lenders already marked it down.
@@ -247,20 +253,21 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
         emit Trimmed(account, msg.sender, repaid, collateralOut, t.bonusWad, s.state, debtAfter, a.collateral);
     }
 
-    /// @notice What `trim(account, maxRepay, ...)` would do at snapshot `s`, or revert if it is not eligible.
-    function _planTrim(address account, SessionRiskPolicy.Snapshot memory s, uint256 maxRepay)
-        internal
+    /// @notice What `trim(account, maxRepay, ...)` would do at snapshot `s`. Never reverts; the app and the
+    /// keeper use it to preview trims, and `trim` executes exactly this quote.
+    function quoteTrim(address account, SessionRiskPolicy.Snapshot memory s, uint256 maxRepay)
+        public
         view
-        returns (Trim memory t)
+        returns (TrimQuote memory t)
     {
         Account storage a = _accounts[account];
-        t.idx = _index(s.time);
-        uint256 debt = _debt(a.debtShares, t.idx);
-        uint256 value = _value(a.collateral, s.priceWad);
-        if (debt == 0 || debt * WAD <= s.ltWad * value) revert NotEligible(debt, value, s.ltWad);
-        if (escrow.executable(account, s, debt, value)) revert BufferPending();
-        t.bonusWad = policy.bonusFor(s, _ltvCeil(debt, value));
-        (t.repaid, t.collateralOut, t.fullFill) = _trimAmounts(a.collateral, debt, value, s, t.bonusWad, maxRepay);
+        t.debt = _debt(a.debtShares, _index(s.time));
+        t.value = _value(a.collateral, s.priceWad);
+        t.eligible = s.canTrim && t.debt != 0 && t.debt * WAD > s.ltWad * t.value;
+        if (!t.eligible) return t;
+        t.bufferPending = escrow.executable(account, s, t.debt, t.value);
+        t.bonusWad = policy.bonusFor(s, _ltvCeil(t.debt, t.value));
+        (t.repaid, t.collateralOut, t.fullFill) = _trimAmounts(a.collateral, t.debt, t.value, s, t.bonusWad, maxRepay);
     }
 
     /// @notice Repayment and collateral transfer for a trim (docs/SPEC.md §5).
