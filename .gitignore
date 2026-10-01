@@ -18,3 +18,5 @@ __pycache__/
 # OS
 .DS_Store
 deployments/addresses.31337.json
+app/next-env.d.ts
+app/tsconfig.tsbuildinfo
