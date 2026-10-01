@@ -16,7 +16,7 @@ liquidations run before new credit opens.
 | Path | Contents |
 |---|---|
 | `contracts/` | Foundry project (Solidity 0.8.28) |
-| `docs/` | Product specification, research notes, review of the earlier GapGuard concept |
+| `docs/` | Product specification and a review of the earlier GapGuard concept |
 | `tools/` | Calendar generator and independently computed golden values |
 | `ops/keeper/` | Execution service (buffer repayments, liquidations, demo feed) |
 | `app/` | Web app: Borrow, Lend, Operations, Evidence |
