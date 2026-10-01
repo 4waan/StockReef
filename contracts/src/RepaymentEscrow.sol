@@ -123,9 +123,11 @@ contract RepaymentEscrow is ReentrancyGuard {
         if (amount == 0) revert ZeroAmount();
         Plan storage p = _plans[msg.sender];
         if (amount > p.balance) revert InsufficientBalance(amount, p.balance);
-        repaid = _repay(msg.sender, amount);
-        p.balance -= repaid;
+        repaid = Math.min(amount, market.debtOf(msg.sender));
+        if (repaid == 0) revert NothingToRepay();
+        p.balance -= repaid; // effects before the call; the market repays exactly this amount
         emit OwnerRepaid(msg.sender, repaid);
+        _repay(msg.sender, repaid);
     }
 
     // ---------------------------------------------------------------- execution
@@ -147,10 +149,12 @@ contract RepaymentEscrow is ReentrancyGuard {
             p.spentSession = sid;
             p.spent = 0;
         }
-        repaid = _repay(account, amount);
+        // `amount` never exceeds the debt, so the market repays exactly this amount: effects before the call.
+        repaid = amount;
         p.balance -= repaid;
         p.spent += repaid;
         emit BufferExecuted(account, msg.sender, s.session, repaid, debt, debt - repaid);
+        _repay(account, repaid);
     }
 
     // ---------------------------------------------------------------- views
@@ -224,10 +228,10 @@ contract RepaymentEscrow is ReentrancyGuard {
         return amount;
     }
 
-    function _repay(address account, uint256 amount) internal returns (uint256) {
+    function _repay(address account, uint256 amount) internal {
         loanToken.forceApprove(address(market), amount);
         uint256 repaid = market.repay(amount, account);
+        if (repaid != amount) revert NothingToRepay();
         loanToken.forceApprove(address(market), 0);
-        return repaid;
     }
 }
