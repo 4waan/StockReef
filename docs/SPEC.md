@@ -412,3 +412,40 @@ simulation in the app.
 ### R10. Hosting
 
 The web app is a Next.js project deployed on Vercel.
+
+### R11. Token multiplier changes
+
+ERC-8056 tokens publish `uiMultiplier`, `newUIMultiplier` and `effectiveAt`. Dividends and splits change the
+multiplier, and the stock feed already reflects it. If `effectiveAt` is non-zero and has passed, and the stock
+feed's `updatedAt` is earlier than `effectiveAt`, the price is invalid (`MULTIPLIER_LAG`) until the feed
+publishes again. Manual repayment and top-up stay available.
+
+The check compares timestamps only, so it needs no size threshold and no stored multiplier. Robinhood pauses
+an affected token from the early morning of the effective date until about the US open, and reopening
+admission already requires a stock update at or after O + 1 minute, so an ordinary dividend adds no wait. The
+check matters when a change takes effect during a session. It never fires for a token whose `effectiveAt` is
+zero, such as the testnet faucet token.
+
+### R12. Answer ceiling
+
+Each feed has an `answerBound` in its own decimals (the mock stock feed uses 1e14, i.e. 1,000,000 USD at 8
+decimals). Answers above it are rejected as malformed. It is a magnitude check, not a price band: a real gap
+of any size below the bound is accepted.
+
+### R13. Demonstration framing
+
+In the three-minute demonstration, account C shows missed-execution detection: the app raises the alert and
+states the exact debt and exposure still open at the close. Quantified gap scenarios, residual-loss figures and
+testnet limitations are presented in the Evidence view and the README.
+
+### R14. Robinhood Chain specifics
+
+- **Sequencer uptime.** Robinhood's documentation recommends checking an L2 sequencer uptime feed before
+  trusting a price; Chainlink lists none for Robinhood Chain. PriceGate accepts an optional uptime feed and
+  grace period from the manifest. When configured, a down sequencer (`SEQUENCER_DOWN`) or a restart inside the
+  grace period (`SEQUENCER_GRACE`) invalidates prices. The manifests leave it unset.
+- **Quiet opens.** The Robinhood stock feeds publish on a 0.5% deviation or a 24-hour heartbeat. On a quiet
+  open the first stock update after O + 1 minute can arrive late. Admission waits for it; after O + 30 minutes
+  the market is GUARDED (§6), with no new credit and no liquidation until a qualifying price arrives.
+- **Ordering.** The sequencer orders transactions first come, first served; a higher fee does not move a
+  transaction ahead. Buffer executions and trims compete on arrival time, not gas price.
