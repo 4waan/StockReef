@@ -1,6 +1,6 @@
 'use client'
 
-import { duration, nyTime, localTime, price } from '@/lib/format'
+import { duration, nyTime, localTime, pct, price } from '@/lib/format'
 import { useMarketView, useProtocolNow } from '@/lib/hooks'
 import { reasonList, stateName, STATE_COPY } from '@/lib/policy'
 import { contracts } from '@/lib/chain'
@@ -49,10 +49,10 @@ export function SessionBar() {
               {m.valuationIndicative && <span className="text-prep"> (last accepted, indicative)</span>}
             </span>
             <span>
-              Threshold <b className="num text-ink">{(Number(s.ltWad) / 1e16).toFixed(2)}%</b>
+              Threshold <b className="num text-ink">{pct(s.ltWad)}</b>
             </span>
             <span>
-              Borrow limit <b className="num text-ink">{s.canBorrow ? `${(Number(s.borrowLimitWad) / 1e16).toFixed(2)}%` : 'closed'}</b>
+              Borrow limit <b className="num text-ink">{s.canBorrow ? pct(s.borrowLimitWad) : 'closed'}</b>
             </span>
             <span>
               Clock <b className="num text-ink">{nyTime(now)} NY</b>
