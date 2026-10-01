@@ -26,6 +26,8 @@ jobs:
         run: forge test -vvv
         env:
           FOUNDRY_PROFILE: ci
+      - name: Exported ABIs match the build
+        run: node ../tools/abi/export.mjs --check
 
   tools:
     runs-on: ubuntu-latest
@@ -40,3 +42,24 @@ jobs:
         run: |
           python tools/calendar/gen_sessions.py --check
           python tools/golden/golden.py --check
+          python tools/scenarios/run.py --check
+
+  offchain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Keeper typechecks
+        working-directory: ops/keeper
+        run: |
+          npm ci
+          npm run typecheck
+      - name: App data is in sync and the app builds
+        working-directory: app
+        run: |
+          npm ci
+          npm run sync
+          git diff --exit-code src/generated
+          npm run build
