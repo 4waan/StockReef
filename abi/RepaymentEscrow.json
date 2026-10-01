@@ -189,6 +189,11 @@
       "name": "lenderOpen",
       "type": "bool",
       "internalType": "bool"
+     },
+     {
+      "name": "windDown",
+      "type": "bool",
+      "internalType": "bool"
      }
     ]
    }
@@ -392,6 +397,11 @@
       "name": "lenderOpen",
       "type": "bool",
       "internalType": "bool"
+     },
+     {
+      "name": "windDown",
+      "type": "bool",
+      "internalType": "bool"
      }
     ]
    },
@@ -546,6 +556,11 @@
      },
      {
       "name": "lenderOpen",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "windDown",
       "type": "bool",
       "internalType": "bool"
      }

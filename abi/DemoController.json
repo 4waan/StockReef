@@ -16,9 +16,27 @@
     "name": "feedDescription",
     "type": "string",
     "internalType": "string"
+   },
+   {
+    "name": "latest_",
+    "type": "uint64",
+    "internalType": "uint64"
    }
   ],
   "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "MAX_STEP",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "stateMutability": "view"
  },
  {
   "type": "function",
@@ -55,6 +73,19 @@
     "name": "",
     "type": "address",
     "internalType": "contract MockAggregatorV3"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "latest",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint64",
+    "internalType": "uint64"
    }
   ],
   "stateMutability": "view"
@@ -142,7 +173,39 @@
  },
  {
   "type": "error",
+  "name": "BeyondCoverage",
+  "inputs": [
+   {
+    "name": "time",
+    "type": "uint64",
+    "internalType": "uint64"
+   },
+   {
+    "name": "latest",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ]
+ },
+ {
+  "type": "error",
   "name": "NotOperator",
   "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "StepTooLong",
+  "inputs": [
+   {
+    "name": "secs",
+    "type": "uint64",
+    "internalType": "uint64"
+   },
+   {
+    "name": "maxStep",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ]
  }
 ]
