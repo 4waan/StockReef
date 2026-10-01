@@ -133,6 +133,50 @@ contract RepaymentEscrowTest is MarketFixture {
         assertEq(market.debtOf(alice), debt);
     }
 
+    function test_execute_neverLeavesDustBelowTheMinimum() public {
+        // A small loan whose 65% target sits just above zero debt after the buffer: 8 USDG on 0.025 TSLA.
+        _fundCollateral(bob, 0.025e18); // 10 USDG of collateral
+        _borrow(bob, 7 * USDG);
+        usdg.mint(bob, 100 * USDG);
+        vm.startPrank(bob);
+        usdg.approve(address(escrow), type(uint256).max);
+        escrow.deposit(100 * USDG, bob);
+        escrow.authorize(0.1e18, 100 * USDG, uint64(MON_CLOSE)); // target 10%: would leave about 1 USDG
+        vm.stopPrank();
+
+        _tick(FRI_CLOSE - 120 minutes);
+        vm.prank(keeper);
+        uint256 repaid = escrow.executeBuffer(bob);
+        assertEq(market.debtOf(bob), 0, "repaid in full rather than leaving dust");
+        assertGt(repaid, 7 * USDG - 1);
+    }
+
+    function test_execute_stopsAtTheMinimumWhenFundsAreShort() public {
+        _fundCollateral(bob, 0.025e18);
+        _borrow(bob, 7 * USDG);
+        usdg.mint(bob, 5 * USDG);
+        vm.startPrank(bob);
+        usdg.approve(address(escrow), type(uint256).max);
+        escrow.deposit(5 * USDG, bob);
+        escrow.authorize(0.1e18, 100 * USDG, uint64(MON_CLOSE));
+        vm.stopPrank();
+
+        _tick(FRI_CLOSE - 120 minutes);
+        vm.prank(keeper);
+        escrow.executeBuffer(bob);
+        assertApproxEqAbs(market.debtOf(bob), MIN_LOAN, 1, "stops at the minimum loan");
+    }
+
+    function test_windDown_releasesPlans() public {
+        _aliceWithBuffer(1_000 * USDG, 100 * USDG);
+        vm.prank(alice);
+        escrow.authorize(0.65e18, 100 * USDG, type(uint64).max);
+        vm.warp(cal.lastOpen() + 1 hours);
+        assertFalse(escrow.committed(alice), "buffers can never execute again");
+        vm.prank(alice);
+        escrow.withdraw(1_000 * USDG, alice);
+    }
+
     // ------------------------------------------------------------ ordering with liquidation
 
     function test_ordering_trimWaitsForAnExecutableBuffer() public {

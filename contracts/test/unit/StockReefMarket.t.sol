@@ -309,6 +309,62 @@ contract StockReefMarketTest is MarketFixture {
         assertApproxEqAbs(market.debtOf(bob), 7_000 * USDG, 1);
     }
 
+    function test_repay_cannotLeaveDustBelowTheMinimumLoan() public {
+        _openFriday();
+        _lend(100_000 * USDG);
+        _fundCollateral(bob, 25 * TOKEN);
+        _borrow(bob, 10 * USDG);
+        usdg.mint(bob, 1 * USDG); // share rounding adds up to one base unit of debt
+        vm.startPrank(bob);
+        usdg.approve(address(market), type(uint256).max);
+        uint256 debt = market.debtOf(bob);
+        vm.expectPartialRevert(StockReefMarket.BelowMinimumLoan.selector);
+        market.repay(debt - MIN_LOAN + 1, bob); // would leave 4.999999 USDG
+        market.repay(debt - MIN_LOAN, bob); // leaves exactly the minimum
+        assertApproxEqAbs(market.debtOf(bob), MIN_LOAN, 1);
+        market.repay(type(uint256).max, bob); // or everything
+        vm.stopPrank();
+        assertEq(market.debtOf(bob), 0);
+        assertEq(market.activeAccounts().length, 0);
+    }
+
+    // ================================================================ wind-down after the calendar
+
+    function test_windDown_lendersExitAgainstCashAfterTheCalendarEnds() public {
+        _openFriday();
+        _lend(10_000 * USDG);
+        _workedExample(bob);
+        uint256 shares = market.balanceOf(lender);
+
+        vm.warp(cal.lastOpen() + 1 hours); // the last loaded session has no next open: coverage is over
+        SessionRiskPolicy.Snapshot memory s = policy.snapshot();
+        assertEq(uint256(s.state), uint256(SessionRiskPolicy.State.GUARDED));
+        assertTrue(s.windDown);
+        assertEq(market.maxDeposit(lender), 0, "no new deposits");
+        assertEq(market.maxWithdraw(lender), market.cash(), "exit is limited to idle cash");
+
+        // Repayments keep flowing to lenders.
+        uint256 debt = market.debtOf(bob);
+        usdg.mint(bob, debt);
+        vm.startPrank(bob);
+        usdg.approve(address(market), type(uint256).max);
+        market.repay(type(uint256).max, bob);
+        vm.stopPrank();
+
+        vm.prank(lender);
+        uint256 assets = market.redeem(shares, lender, lender);
+        assertGt(assets, 10_000 * USDG, "principal plus the interest that was repaid");
+        assertEq(market.totalSupply(), 0);
+
+        vm.prank(bob);
+        vm.expectPartialRevert(StockReefMarket.NotAllowedNow.selector);
+        market.borrow(10 * USDG, bob);
+    }
+
+    function test_windDown_doesNotApplyBeforeCoverageStarts() public view {
+        assertFalse(policy.evaluate(gate.quote(), cal.firstOpen() - 1).windDown);
+    }
+
     // ================================================================ collateral
 
     function test_collateral_zeroDebtWithdrawalNeedsNoPrice() public {
