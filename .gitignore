@@ -1,0 +1,19 @@
+# Foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/31337/
+# Node
+node_modules/
+.next/
+app/out/
+ops/keeper/dist/
+# Env and keys
+.env
+.env.*
+!.env.example
+*.key
+# Python
+__pycache__/
+.venv/
+# OS
+.DS_Store
