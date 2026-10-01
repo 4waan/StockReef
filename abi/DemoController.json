@@ -1,0 +1,148 @@
+[
+ {
+  "type": "constructor",
+  "inputs": [
+   {
+    "name": "operator_",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "feedDecimals",
+    "type": "uint8",
+    "internalType": "uint8"
+   },
+   {
+    "name": "feedDescription",
+    "type": "string",
+    "internalType": "string"
+   }
+  ],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "advance",
+  "inputs": [
+   {
+    "name": "secs",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "clock",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract DemoClock"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "feed",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract MockAggregatorV3"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "operator",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "push",
+  "inputs": [
+   {
+    "name": "answer",
+    "type": "int256",
+    "internalType": "int256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "step",
+  "inputs": [
+   {
+    "name": "secs",
+    "type": "uint64",
+    "internalType": "uint64"
+   },
+   {
+    "name": "answer",
+    "type": "int256",
+    "internalType": "int256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "stepTo",
+  "inputs": [
+   {
+    "name": "t",
+    "type": "uint64",
+    "internalType": "uint64"
+   },
+   {
+    "name": "answer",
+    "type": "int256",
+    "internalType": "int256"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "event",
+  "name": "Step",
+  "inputs": [
+   {
+    "name": "time",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   },
+   {
+    "name": "answer",
+    "type": "int256",
+    "indexed": false,
+    "internalType": "int256"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "error",
+  "name": "NotOperator",
+  "inputs": []
+ }
+]

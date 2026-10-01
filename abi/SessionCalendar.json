@@ -1,0 +1,169 @@
+[
+ {
+  "type": "constructor",
+  "inputs": [
+   {
+    "name": "words",
+    "type": "uint256[]",
+    "internalType": "uint256[]"
+   },
+   {
+    "name": "count",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "context",
+  "inputs": [
+   {
+    "name": "t",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "c",
+    "type": "tuple",
+    "internalType": "struct SessionCalendar.Context",
+    "components": [
+     {
+      "name": "covered",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "inSession",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "index",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "open",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "close",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "prevClose",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "nextOpen",
+      "type": "uint64",
+      "internalType": "uint64"
+     }
+    ]
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "firstOpen",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "lastClose",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "sessionAt",
+  "inputs": [
+   {
+    "name": "i",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "open",
+    "type": "uint64",
+    "internalType": "uint64"
+   },
+   {
+    "name": "close",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "sessionCount",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "error",
+  "name": "EmptyCalendar",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "SessionsNotOrdered",
+  "inputs": [
+   {
+    "name": "index",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ },
+ {
+  "type": "error",
+  "name": "WordCountMismatch",
+  "inputs": [
+   {
+    "name": "words",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "sessions",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ }
+]

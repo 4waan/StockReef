@@ -1,0 +1,744 @@
+[
+ {
+  "type": "constructor",
+  "inputs": [
+   {
+    "name": "market_",
+    "type": "address",
+    "internalType": "contract StockReefMarket"
+   }
+  ],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "accountView",
+  "inputs": [
+   {
+    "name": "account",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "v",
+    "type": "tuple",
+    "internalType": "struct StockReefLens.AccountView",
+    "components": [
+     {
+      "name": "account",
+      "type": "address",
+      "internalType": "address"
+     },
+     {
+      "name": "collateral",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "collateralValue",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "valuationIndicative",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "debt",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "ltvWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "borrowCapacity",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "planTargetWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "repayToTarget",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "addCollateralValueToTarget",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "addCollateralRawToTarget",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "trimmableAtFinal",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "trimAtFinalRepay",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "trimAtFinalCollateral",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "trimAtFinalBonusWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "trimNow",
+      "type": "tuple",
+      "internalType": "struct StockReefMarket.TrimQuote",
+      "components": [
+       {
+        "name": "eligible",
+        "type": "bool",
+        "internalType": "bool"
+       },
+       {
+        "name": "bufferPending",
+        "type": "bool",
+        "internalType": "bool"
+       },
+       {
+        "name": "debt",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "value",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "bonusWad",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "repaid",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "collateralOut",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "fullFill",
+        "type": "bool",
+        "internalType": "bool"
+       }
+      ]
+     },
+     {
+      "name": "plan",
+      "type": "tuple",
+      "internalType": "struct RepaymentEscrow.Plan",
+      "components": [
+       {
+        "name": "balance",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "targetWad",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "perSessionCap",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "expiry",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "spentSession",
+        "type": "uint32",
+        "internalType": "uint32"
+       },
+       {
+        "name": "spent",
+        "type": "uint256",
+        "internalType": "uint256"
+       }
+      ]
+     },
+     {
+      "name": "bufferActive",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "bufferCommitted",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "bufferCoverage",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "bufferExecutableNow",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "missedExecution",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "exposure",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ]
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "activeAccountViews",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "views",
+    "type": "tuple[]",
+    "internalType": "struct StockReefLens.AccountView[]",
+    "components": [
+     {
+      "name": "account",
+      "type": "address",
+      "internalType": "address"
+     },
+     {
+      "name": "collateral",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "collateralValue",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "valuationIndicative",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "debt",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "ltvWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "borrowCapacity",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "planTargetWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "repayToTarget",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "addCollateralValueToTarget",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "addCollateralRawToTarget",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "trimmableAtFinal",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "trimAtFinalRepay",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "trimAtFinalCollateral",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "trimAtFinalBonusWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "trimNow",
+      "type": "tuple",
+      "internalType": "struct StockReefMarket.TrimQuote",
+      "components": [
+       {
+        "name": "eligible",
+        "type": "bool",
+        "internalType": "bool"
+       },
+       {
+        "name": "bufferPending",
+        "type": "bool",
+        "internalType": "bool"
+       },
+       {
+        "name": "debt",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "value",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "bonusWad",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "repaid",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "collateralOut",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "fullFill",
+        "type": "bool",
+        "internalType": "bool"
+       }
+      ]
+     },
+     {
+      "name": "plan",
+      "type": "tuple",
+      "internalType": "struct RepaymentEscrow.Plan",
+      "components": [
+       {
+        "name": "balance",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "targetWad",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "perSessionCap",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "expiry",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "spentSession",
+        "type": "uint32",
+        "internalType": "uint32"
+       },
+       {
+        "name": "spent",
+        "type": "uint256",
+        "internalType": "uint256"
+       }
+      ]
+     },
+     {
+      "name": "bufferActive",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "bufferCommitted",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "bufferCoverage",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "bufferExecutableNow",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "missedExecution",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "exposure",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ]
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "calendar",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract SessionCalendar"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "escrow",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract RepaymentEscrow"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "gate",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract PriceGate"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "market",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract StockReefMarket"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "marketView",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "m",
+    "type": "tuple",
+    "internalType": "struct StockReefLens.MarketView",
+    "components": [
+     {
+      "name": "policy",
+      "type": "tuple",
+      "internalType": "struct SessionRiskPolicy.Snapshot",
+      "components": [
+       {
+        "name": "time",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "state",
+        "type": "uint8",
+        "internalType": "enum SessionRiskPolicy.State"
+       },
+       {
+        "name": "phase",
+        "type": "uint8",
+        "internalType": "enum SessionRiskPolicy.State"
+       },
+       {
+        "name": "closureClass",
+        "type": "uint8",
+        "internalType": "enum SessionRiskPolicy.ClosureClass"
+       },
+       {
+        "name": "covered",
+        "type": "bool",
+        "internalType": "bool"
+       },
+       {
+        "name": "reasons",
+        "type": "uint32",
+        "internalType": "uint32"
+       },
+       {
+        "name": "priceWad",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "priceUpdatedAt",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "session",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "open",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "close",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "prepAt",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "finalAt",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "nextOpen",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "admissionAt",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "creditAt",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "guardAt",
+        "type": "uint64",
+        "internalType": "uint64"
+       },
+       {
+        "name": "ltWad",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "borrowLimitWad",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "targetWad",
+        "type": "uint256",
+        "internalType": "uint256"
+       },
+       {
+        "name": "canBorrow",
+        "type": "bool",
+        "internalType": "bool"
+       },
+       {
+        "name": "canTrim",
+        "type": "bool",
+        "internalType": "bool"
+       },
+       {
+        "name": "canBuffer",
+        "type": "bool",
+        "internalType": "bool"
+       },
+       {
+        "name": "lenderOpen",
+        "type": "bool",
+        "internalType": "bool"
+       }
+      ]
+     },
+     {
+      "name": "simulationClock",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "usesPeg",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "pegLabel",
+      "type": "string",
+      "internalType": "string"
+     },
+     {
+      "name": "cash",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "totalAssets",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "totalShares",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "totalDebt",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "recoverable",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "impaired",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "valuationIndicative",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "valuationPriceWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "utilizationWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "totalBadDebt",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "activeAccounts",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "maxAccounts",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "minLoan",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "lastAcceptedAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "lenderWindowOpensAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "lenderWindowClosesAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "pendingMultiplier",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "multiplierEffectiveAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "debtIndex",
+      "type": "uint256",
+      "internalType": "uint256"
+     }
+    ]
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "policy",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract SessionRiskPolicy"
+   }
+  ],
+  "stateMutability": "view"
+ }
+]

@@ -1,0 +1,1022 @@
+[
+ {
+  "type": "constructor",
+  "inputs": [
+   {
+    "name": "c",
+    "type": "tuple",
+    "internalType": "struct PriceGate.Config",
+    "components": [
+     {
+      "name": "token",
+      "type": "address",
+      "internalType": "address"
+     },
+     {
+      "name": "tokenDecimals",
+      "type": "uint8",
+      "internalType": "uint8"
+     },
+     {
+      "name": "pauseFlagRequired",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "erc8056",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "loanToken",
+      "type": "address",
+      "internalType": "address"
+     },
+     {
+      "name": "loanDecimals",
+      "type": "uint8",
+      "internalType": "uint8"
+     },
+     {
+      "name": "stockFeed",
+      "type": "tuple",
+      "internalType": "struct PriceGate.Feed",
+      "components": [
+       {
+        "name": "feed",
+        "type": "address",
+        "internalType": "contract IAggregatorV3"
+       },
+       {
+        "name": "decimals",
+        "type": "uint8",
+        "internalType": "uint8"
+       },
+       {
+        "name": "maxAge",
+        "type": "uint32",
+        "internalType": "uint32"
+       },
+       {
+        "name": "answerBound",
+        "type": "uint256",
+        "internalType": "uint256"
+       }
+      ]
+     },
+     {
+      "name": "loanFeed",
+      "type": "tuple",
+      "internalType": "struct PriceGate.Feed",
+      "components": [
+       {
+        "name": "feed",
+        "type": "address",
+        "internalType": "contract IAggregatorV3"
+       },
+       {
+        "name": "decimals",
+        "type": "uint8",
+        "internalType": "uint8"
+       },
+       {
+        "name": "maxAge",
+        "type": "uint32",
+        "internalType": "uint32"
+       },
+       {
+        "name": "answerBound",
+        "type": "uint256",
+        "internalType": "uint256"
+       }
+      ]
+     },
+     {
+      "name": "pegLabel",
+      "type": "string",
+      "internalType": "string"
+     },
+     {
+      "name": "sequencerFeed",
+      "type": "address",
+      "internalType": "contract IAggregatorV3"
+     },
+     {
+      "name": "sequencerGrace",
+      "type": "uint32",
+      "internalType": "uint32"
+     },
+     {
+      "name": "clock",
+      "type": "address",
+      "internalType": "contract IClock"
+     },
+     {
+      "name": "calendar",
+      "type": "address",
+      "internalType": "contract SessionCalendar"
+     },
+     {
+      "name": "guardian",
+      "type": "address",
+      "internalType": "address"
+     }
+    ]
+   }
+  ],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "LOCAL_CHAIN_ID",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "ROBINHOOD_TESTNET_CHAIN_ID",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "VALUE_SCALE",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "acceptOwnership",
+  "inputs": [],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "admissionAt",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "admissionFor",
+  "inputs": [
+   {
+    "name": "index",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "admittedSession",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint32",
+    "internalType": "uint32"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "calendar",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract SessionCalendar"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "checkpointAt",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "clock",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract IClock"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "erc8056",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "bool",
+    "internalType": "bool"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "lastAcceptedAt",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "lastPriceWad",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "lastUpdatedAt",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "loanAnswerBound",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "loanDecimals",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint8",
+    "internalType": "uint8"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "loanFeed",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract IAggregatorV3"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "loanFeedDecimals",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint8",
+    "internalType": "uint8"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "loanMaxAge",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint32",
+    "internalType": "uint32"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "loanToken",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "outageSession",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint32",
+    "internalType": "uint32"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "owner",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "pauseFlagRequired",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "bool",
+    "internalType": "bool"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "pegLabel",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "string",
+    "internalType": "string"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "pendingOwner",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "quote",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "q",
+    "type": "tuple",
+    "internalType": "struct PriceGate.Quote",
+    "components": [
+     {
+      "name": "priceWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "roundId",
+      "type": "uint80",
+      "internalType": "uint80"
+     },
+     {
+      "name": "updatedAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "reasons",
+      "type": "uint32",
+      "internalType": "uint32"
+     }
+    ]
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "rawForValue",
+  "inputs": [
+   {
+    "name": "value",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "priceWad",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "rounding",
+    "type": "uint8",
+    "internalType": "enum Math.Rounding"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "refresh",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "q",
+    "type": "tuple",
+    "internalType": "struct PriceGate.Quote",
+    "components": [
+     {
+      "name": "priceWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "roundId",
+      "type": "uint80",
+      "internalType": "uint80"
+     },
+     {
+      "name": "updatedAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "reasons",
+      "type": "uint32",
+      "internalType": "uint32"
+     }
+    ]
+   }
+  ],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "renounceOwnership",
+  "inputs": [],
+  "outputs": [],
+  "stateMutability": "pure"
+ },
+ {
+  "type": "function",
+  "name": "requestResume",
+  "inputs": [],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "resume",
+  "inputs": [],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "resumeAvailableAt",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "sequencerFeed",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract IAggregatorV3"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "sequencerGrace",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint32",
+    "internalType": "uint32"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "stockAnswerBound",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "stockFeed",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract IAggregatorV3"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "stockFeedDecimals",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint8",
+    "internalType": "uint8"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "stockMaxAge",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint32",
+    "internalType": "uint32"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "stop",
+  "inputs": [],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "stopped",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "bool",
+    "internalType": "bool"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "token",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract IStockToken"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "tokenDecimals",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint8",
+    "internalType": "uint8"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "transferOwnership",
+  "inputs": [
+   {
+    "name": "newOwner",
+    "type": "address",
+    "internalType": "address"
+   }
+  ],
+  "outputs": [],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "usesPeg",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "bool",
+    "internalType": "bool"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "valueOf",
+  "inputs": [
+   {
+    "name": "raw",
+    "type": "uint256",
+    "internalType": "uint256"
+   },
+   {
+    "name": "priceWad",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "event",
+  "name": "AdmissionReset",
+  "inputs": [
+   {
+    "name": "session",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "at",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   },
+   {
+    "name": "reasons",
+    "type": "uint32",
+    "indexed": false,
+    "internalType": "uint32"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "Admitted",
+  "inputs": [
+   {
+    "name": "session",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "admissionAt",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   },
+   {
+    "name": "priceUpdatedAt",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "OutageDetected",
+  "inputs": [
+   {
+    "name": "session",
+    "type": "uint256",
+    "indexed": true,
+    "internalType": "uint256"
+   },
+   {
+    "name": "at",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   },
+   {
+    "name": "reasons",
+    "type": "uint32",
+    "indexed": false,
+    "internalType": "uint32"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "OwnershipTransferStarted",
+  "inputs": [
+   {
+    "name": "previousOwner",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "newOwner",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "OwnershipTransferred",
+  "inputs": [
+   {
+    "name": "previousOwner",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   },
+   {
+    "name": "newOwner",
+    "type": "address",
+    "indexed": true,
+    "internalType": "address"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "RecoveryCheckpoint",
+  "inputs": [
+   {
+    "name": "at",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "ResumeRequested",
+  "inputs": [
+   {
+    "name": "at",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   },
+   {
+    "name": "availableAt",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "Resumed",
+  "inputs": [
+   {
+    "name": "at",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "event",
+  "name": "Stopped",
+  "inputs": [
+   {
+    "name": "at",
+    "type": "uint64",
+    "indexed": false,
+    "internalType": "uint64"
+   }
+  ],
+  "anonymous": false
+ },
+ {
+  "type": "error",
+  "name": "DecimalsMismatch",
+  "inputs": [
+   {
+    "name": "source",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "expected",
+    "type": "uint8",
+    "internalType": "uint8"
+   },
+   {
+    "name": "actual",
+    "type": "uint8",
+    "internalType": "uint8"
+   }
+  ]
+ },
+ {
+  "type": "error",
+  "name": "InvalidConfig",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "MissingPegLabel",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "NotStopped",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "OwnableInvalidOwner",
+  "inputs": [
+   {
+    "name": "owner",
+    "type": "address",
+    "internalType": "address"
+   }
+  ]
+ },
+ {
+  "type": "error",
+  "name": "OwnableUnauthorizedAccount",
+  "inputs": [
+   {
+    "name": "account",
+    "type": "address",
+    "internalType": "address"
+   }
+  ]
+ },
+ {
+  "type": "error",
+  "name": "PegNotAllowed",
+  "inputs": [
+   {
+    "name": "chainId",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ]
+ },
+ {
+  "type": "error",
+  "name": "RenounceDisabled",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "ResumeNotRequested",
+  "inputs": []
+ },
+ {
+  "type": "error",
+  "name": "ResumeTooEarly",
+  "inputs": [
+   {
+    "name": "availableAt",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ]
+ }
+]
