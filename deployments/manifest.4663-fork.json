@@ -1,0 +1,34 @@
+{
+  "chainId": 4663,
+  "network": "Robinhood Chain mainnet (fork tests only)",
+  "rpc": "https://rpc.mainnet.chain.robinhood.com",
+  "loanToken": {
+    "address": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+    "symbol": "USDG",
+    "decimals": 6
+  },
+  "collateralToken": {
+    "address": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
+    "symbol": "TSLA",
+    "decimals": 18,
+    "erc8056": true,
+    "pauseFlagRequired": true
+  },
+  "stockFeed": {
+    "type": "chainlink",
+    "address": "0x4A1166a659A55625345e9515b32adECea5547C38",
+    "description": "RHTSLA / USD",
+    "decimals": 8,
+    "maxAgeSeconds": 86400,
+    "answerBound": "100000000000000"
+  },
+  "loanFeed": {
+    "type": "chainlink",
+    "address": "0x61B7e5650328764B076A108EFF5fa7282a1B9aD2",
+    "description": "USDG / USD",
+    "decimals": 8,
+    "maxAgeSeconds": 86400
+  },
+  "clock": "block",
+  "minLoan": "5000000"
+}

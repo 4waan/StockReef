@@ -1,0 +1,33 @@
+{
+  "chainId": 46630,
+  "network": "Robinhood Chain testnet",
+  "rpc": "https://rpc.testnet.chain.robinhood.com",
+  "explorer": "https://explorer.testnet.chain.robinhood.com",
+  "loanToken": {
+    "address": "0x7E955252E15c84f5768B83c41a71F9eba181802F",
+    "symbol": "USDG",
+    "decimals": 6,
+    "note": "Paxos USDG on Robinhood Chain testnet (faucet.paxos.com)"
+  },
+  "collateralToken": {
+    "address": "0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E",
+    "symbol": "TSLA",
+    "decimals": 18,
+    "erc8056": true,
+    "pauseFlagRequired": false,
+    "note": "Robinhood testnet stock token from the chain faucet. This token version does not implement oraclePaused()."
+  },
+  "stockFeed": {
+    "type": "mock",
+    "label": "Simulated TSLA/USD price (demo feed, not Chainlink)",
+    "decimals": 8,
+    "maxAgeSeconds": 120,
+    "answerBound": "100000000000000"
+  },
+  "loanFeed": {
+    "type": "peg",
+    "label": "Test peg: 1 USDG = 1 USD"
+  },
+  "clock": "demo",
+  "minLoan": "5000000"
+}
