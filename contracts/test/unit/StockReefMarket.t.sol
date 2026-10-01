@@ -232,6 +232,57 @@ contract StockReefMarketTest is MarketFixture {
         _borrow(who[32], MIN_LOAN);
     }
 
+    /// @dev Storage touched earlier in a test is warm; mark it cold so measurements match a fresh transaction.
+    function _coolAll() internal {
+        address[8] memory all = [
+            address(market),
+            address(gate),
+            address(policy),
+            address(cal),
+            address(stockFeed),
+            address(tsla),
+            address(usdg),
+            address(escrow)
+        ];
+        for (uint256 i; i < all.length; ++i) {
+            vm.cool(all[i]);
+        }
+    }
+
+    /// @dev Spec §7: publish measured gas for the full-cap valuation (32 accounts with debt).
+    function test_gas_fullCapValuation() public {
+        _openFriday();
+        _lend(100_000 * USDG);
+        for (uint256 i; i < 31; ++i) {
+            address who = address(uint160(0x2000 + i));
+            _fundCollateral(who, TOKEN);
+            _borrow(who, 100 * USDG);
+        }
+        _fundCollateral(bob, TOKEN);
+        _coolAll();
+        uint256 g = gasleft();
+        _borrow(bob, 100 * USDG); // the 32nd account, valued against all others
+        uint256 borrowGas = g - gasleft();
+        _coolAll();
+        g = gasleft();
+        market.totalAssets();
+        uint256 valuationGas = g - gasleft();
+        usdg.mint(lender, 1_000 * USDG);
+        _coolAll();
+        g = gasleft();
+        _lend(1_000 * USDG);
+        uint256 depositGas = g - gasleft();
+        assertEq(market.activeAccounts().length, 32);
+        assertLt(depositGas, 3_000_000, "a full-cap lender deposit fits comfortably in a block");
+
+        string memory k = "gas";
+        vm.serializeUint(k, "activeAccounts", 32);
+        vm.serializeUint(k, "borrowAt32", borrowGas);
+        vm.serializeUint(k, "totalAssetsViewAt32", valuationGas);
+        string memory json = vm.serializeUint(k, "lenderDepositAt32", depositGas);
+        vm.writeJson(json, "../evidence/gas.json");
+    }
+
     function test_borrow_blockedWhileTheMarketIsImpaired() public {
         _openFriday();
         _lend(100_000 * USDG);
