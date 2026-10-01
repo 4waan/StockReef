@@ -71,6 +71,8 @@ def build() -> dict:
         "first_open": sessions[0][0],
         "last_close": sessions[-1][1],
         "sessions": sessions,
+        "opens": [o for o, _ in sessions],
+        "closes": [c for _, c in sessions],
         "packed": words,
     }
 
