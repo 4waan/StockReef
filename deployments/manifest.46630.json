@@ -29,5 +29,10 @@
     "label": "Test peg: 1 USDG = 1 USD"
   },
   "clock": "demo",
-  "minLoan": "5000000"
+  "minLoan": "5000000",
+  "sequencerFeed": {
+    "address": null,
+    "graceSeconds": 0,
+    "note": "Chainlink lists no L2 sequencer uptime feed for Robinhood Chain; the slot stays empty (appendix R14)."
+  }
 }

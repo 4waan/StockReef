@@ -30,5 +30,10 @@
     "maxAgeSeconds": 86400
   },
   "clock": "block",
-  "minLoan": "5000000"
+  "minLoan": "5000000",
+  "sequencerFeed": {
+    "address": null,
+    "graceSeconds": 0,
+    "note": "Chainlink lists no L2 sequencer uptime feed for Robinhood Chain; the slot stays empty (appendix R14)."
+  }
 }

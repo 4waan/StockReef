@@ -16,7 +16,7 @@ remappings = [
 ]
 fs_permissions = [
   { access = "read", path = "../tools" },
-  { access = "read", path = "../deployments" },
+  { access = "read-write", path = "../deployments" },
   { access = "read-write", path = "../evidence" },
 ]
 no_match_path = "test/fork/*"

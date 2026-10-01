@@ -1,0 +1,36 @@
+{
+  "chainId": 31337,
+  "network": "Local anvil",
+  "rpc": "http://127.0.0.1:8545",
+  "loanToken": {
+    "address": "mock",
+    "symbol": "mUSDG",
+    "decimals": 6,
+    "note": "MockUSDG deployed by the script"
+  },
+  "collateralToken": {
+    "address": "mock",
+    "symbol": "TSLA",
+    "decimals": 18,
+    "erc8056": true,
+    "pauseFlagRequired": true,
+    "note": "MockStockToken deployed by the script"
+  },
+  "stockFeed": {
+    "type": "mock",
+    "label": "Simulated TSLA/USD price (demo feed, not Chainlink)",
+    "decimals": 8,
+    "maxAgeSeconds": 120,
+    "answerBound": "100000000000000"
+  },
+  "loanFeed": {
+    "type": "peg",
+    "label": "Test peg: 1 USDG = 1 USD"
+  },
+  "sequencerFeed": {
+    "address": null,
+    "graceSeconds": 0
+  },
+  "clock": "demo",
+  "minLoan": "5000000"
+}
