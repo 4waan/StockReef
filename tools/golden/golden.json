@@ -1,0 +1,147 @@
+{
+ "units": {
+  "usdg_decimals": 6,
+  "token_decimals": 18,
+  "wad": "1000000000000000000"
+ },
+ "fixtures": {
+  "lt_open_wad": "800000000000000000",
+  "b_open_wad": "750000000000000000",
+  "target_open_wad": "750000000000000000",
+  "bonus_scheduling_wad": "20000000000000000",
+  "bonus_distress_wad": "50000000000000000",
+  "prep_seconds": 7200,
+  "final_seconds": 1800
+ },
+ "worked_example": {
+  "price_wad": "400000000000000000000",
+  "collateral_raw": "25000000000000000000",
+  "value_usdg": "10000000000",
+  "debt_usdg": "7200000000",
+  "target_wad": "650000000000000000",
+  "bonus_wad": "20000000000000000",
+  "cash_required_usdg": "700000000",
+  "add_collateral_value_usdg": "1076923077",
+  "trim_repay_usdg": "2077151336",
+  "trim_seized_raw": "5296735906800000000",
+  "trim_seized_value_usdg_exact": "2118.69436272",
+  "debt_after_trim_usdg": "5122848664",
+  "collateral_after_trim_raw": "19703264093200000000",
+  "value_after_trim_usdg": "7881305637",
+  "ltv_after_trim_wad_floor": "649999999993655873",
+  "lt_at_1515_wad": "716666666666666666",
+  "eligible_at_1515": true,
+  "gap35_shortfall_trimmed_usdg_2dp": "243.95",
+  "gap35_shortfall_unmanaged_usdg_2dp": "1009.52"
+ },
+ "ramp": {
+  "EXTENDED": {
+   "lt_final_wad": "700000000000000000",
+   "target_wad": "650000000000000000",
+   "points": {
+    "A": {
+     "offset_s": -7200,
+     "lt_wad": "800000000000000000",
+     "b_wad": "750000000000000000"
+    },
+    "midpoint": {
+     "offset_s": -4500,
+     "lt_wad": "750000000000000000",
+     "b_wad": "700000000000000000"
+    },
+    "C-45m": {
+     "offset_s": -2700,
+     "lt_wad": "716666666666666666",
+     "b_wad": "666666666666666666"
+    },
+    "F": {
+     "offset_s": -1800,
+     "lt_wad": "700000000000000000",
+     "b_wad": "650000000000000000"
+    },
+    "C-1s": {
+     "offset_s": -1,
+     "lt_wad": "700000000000000000",
+     "b_wad": "650000000000000000"
+    }
+   }
+  },
+  "OVERNIGHT": {
+   "lt_final_wad": "770000000000000000",
+   "target_wad": "720000000000000000",
+   "points": {
+    "A": {
+     "offset_s": -7200,
+     "lt_wad": "800000000000000000",
+     "b_wad": "750000000000000000"
+    },
+    "midpoint": {
+     "offset_s": -4500,
+     "lt_wad": "785000000000000000",
+     "b_wad": "735000000000000000"
+    },
+    "C-45m": {
+     "offset_s": -2700,
+     "lt_wad": "775000000000000000",
+     "b_wad": "725000000000000000"
+    },
+    "F": {
+     "offset_s": -1800,
+     "lt_wad": "770000000000000000",
+     "b_wad": "720000000000000000"
+    },
+    "C-1s": {
+     "offset_s": -1,
+     "lt_wad": "770000000000000000",
+     "b_wad": "720000000000000000"
+    }
+   }
+  }
+ },
+ "interest": {
+  "rate_per_second_wad": "3170979198",
+  "points": {
+   "1d": {
+    "seconds": 86400,
+    "index_wad": "1000274010136628394"
+   },
+   "30d": {
+    "seconds": 2592000,
+    "index_wad": "1008253048256789909"
+   },
+   "1y": {
+    "seconds": 31536000,
+    "index_wad": "1105170918062527035"
+   },
+   "5y": {
+    "seconds": 157680000,
+    "index_wad": "1648721270602260052"
+   }
+  }
+ },
+ "valuation": {
+  "haircut_wad": "50000000000000000",
+  "cases": [
+   {
+    "debt_usdg": "7200000000",
+    "value_usdg": "10000000000",
+    "recoverable_usdg_floor": "7200000000"
+   },
+   {
+    "debt_usdg": "9800000000",
+    "value_usdg": "10000000000",
+    "recoverable_usdg_floor": "9523809523"
+   },
+   {
+    "debt_usdg": "12000000000",
+    "value_usdg": "10000000000",
+    "recoverable_usdg_floor": "9523809523"
+   },
+   {
+    "debt_usdg": "0",
+    "value_usdg": "5000000000",
+    "recoverable_usdg_floor": "0"
+   }
+  ]
+ }
+}
