@@ -279,11 +279,11 @@ export const evidence = {
    ]
   },
   "fork-4663": {
-   "block": 77599021,
+   "block": 78471588,
    "chainId": 4663,
-   "priceWadTslaPerUsdg": "356260302018065052484",
+   "priceWadTslaPerUsdg": "372461376931153442327",
    "reasons": 0,
-   "secondsSinceTslaRound": 2965,
+   "secondsSinceTslaRound": 786,
    "tsla": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
    "tslaUsdFeed": "0x4A1166a659A55625345e9515b32adECea5547C38",
    "usdg": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
@@ -291,9 +291,9 @@ export const evidence = {
   },
   "gas": {
    "activeAccounts": 32,
-   "borrowAt32": 469720,
-   "lenderDepositAt32": 519768,
-   "totalAssetsViewAt32": 293748
+   "borrowAt32": 468960,
+   "lenderDepositAt32": 388457,
+   "totalAssetsViewAt32": 297768
   },
   "scenarios": {
    "start": {

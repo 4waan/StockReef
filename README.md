@@ -2,7 +2,7 @@
 
 ## Stock markets close. Loans don't.
 
-**StockReef is an automatic risk-control protocol for tokenized stock borrowers and USDG lenders. It reduces outstanding debt before market closures through borrower-funded repayments, gradually tightening thresholds, and partial liquidation andthen gives recovery priority when the market reopens.**
+**StockReef is a risk-control protocol for tokenized stock borrowers and USDG lenders. It helps reduce outstanding debt before market closures through borrower-funded repayments, gradually tightening thresholds, and partial liquidation. Recovery gets priority when the market reopens.**
 
 The current implementation is a TSLA/USDG lending market for Robinhood Chain, with contracts, a keeper, and a web app. The keeper submits permissionless transactions; the contracts enforce the rules on every call.
 
@@ -10,7 +10,7 @@ The current implementation is a TSLA/USDG lending market for Robinhood Chain, wi
 
 [How it works](#how-stockreef-controls-risk) · [Friday walkthrough](#a-friday-close-in-numbers) · [Run the demo](#run-the-demo) · [Contracts](contracts/src) · [Security](docs/SECURITY.md)
 
-> Buildathon prototype. Risk parameters are illustrative test settings. The testnet configuration simulates the stock price and market clock; it is not a production deployment.
+> Built for the [Arbitrum Open House Singapore buildathon](https://www.hackquest.io/hackathons/Arbitrum-Open-House-Singapore-Online-Buildathon) on Robinhood Chain testnet. Risk parameters are illustrative test settings. The testnet configuration simulates the stock price and market clock; it is not a production deployment.
 
 ## The debt already exists
 
@@ -69,7 +69,7 @@ Once the price is admitted, eligible recovery trims can execute with a fixed **5
 
 Without admission by open + 30 minutes, the market enters `GUARDED`. Elapsed time never makes an invalid quote acceptable. This is a fresh-price admission and recovery window, not a multi-quote convergence test or an escalating-bonus auction.
 
-### See what needs action,and what actually executed
+### See what needs action, and what actually executed
 
 **The borrower view turns a risk ratio into an amount, a deadline, and a transaction history.** It shows how much USDG to repay or TSLA to add, the applicable threshold, buffer coverage, potential trim amounts, and recent execution receipts.
 
@@ -124,12 +124,12 @@ It does not choose prices or risk parameters. Anyone can refresh the gate or exe
 
 ## Evidence you can inspect
 
-- [Unit, fuzz, invariant, and fork suites](contracts/test): 149 test/invariant entry points, including four Robinhood Chain mainnet fork tests. The default Foundry profile excludes the fork suite.
+- [Unit, fuzz, property, invariant, and fork suites](contracts/test): 535 test and invariant entry points, including four Robinhood Chain mainnet fork tests. The default Foundry profile excludes the fork suite.
 - [Golden arithmetic](tools/golden): independent repayment, trim, threshold, and valuation calculations.
 - [Scenario harness](tools/scenarios/run.py): compares fixed-limit lending, borrowing locks, buffers, and trims under identical price paths. It is an economic model using a linear approximation for closure interest, not a replay of on-chain execution.
 - [Scenario results](evidence/scenarios.json): a modeled 35% weekend gap produces 1,014.91 USDG of lender loss without pre-close action, 247.78 after a trim, and 314.38 after a buffer. The same scenario records a 741.54 USDG inventory loss for the liquidator holding trimmed collateral through the gap. Lower lender exposure does not remove risk for everyone.
 - [Mainnet fork](contracts/test/fork/RobinhoodFork.t.sol): checks real token interfaces and live feed admission at block `77599021`. The end-to-end token test mocks future feed timestamps after advancing the frozen fork.
-- [Gas evidence](evidence/gas.json): bounded valuation at the current 32-borrower cap.
+- [Gas evidence](evidence/gas.json): bounded valuation at the current 32-borrower cap, including a lender deposit of about 388k gas.
 
 See the [specification](docs/SPEC.md) for decisions and the [security notes](docs/SECURITY.md) for trust boundaries and known limits. Calibration against historical gaps, unbounded borrower scaling, and production deployment remain outside this prototype.
 

@@ -102,6 +102,16 @@
       "internalType": "uint256"
      },
      {
+      "name": "projectedDebtAtReopen",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "trimmableAtReopen",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
       "name": "trimNow",
       "type": "tuple",
       "internalType": "struct StockReefMarket.TrimQuote",
@@ -304,6 +314,16 @@
       "name": "trimAtFinalBonusWad",
       "type": "uint256",
       "internalType": "uint256"
+     },
+     {
+      "name": "projectedDebtAtReopen",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "trimmableAtReopen",
+      "type": "bool",
+      "internalType": "bool"
      },
      {
       "name": "trimNow",

@@ -461,16 +461,53 @@ web app.
 
 A repayment must clear the loan or leave at least the minimum loan (R8), so dust cannot hold one of the 32
 active slots. A buffer execution that would leave less repays in full when the escrow allows, otherwise it
-stops at the minimum. Trims and collateral-exhaustion recovery are not limited by this rule.
+stops at the minimum. An owner repayment from escrow (§4) is capped by the owner's amount, the escrow balance
+and the debt, where the largest amount means "all", and follows the same rule without exceeding the owner's
+amount. Trims and collateral-exhaustion recovery are not limited by this rule. Collateral worth less than one
+loan unit after the bonus is the "economically worthless dust" of §5: a trim takes it for one base unit and
+the remaining debt is written off, so loss recognition is always reachable.
 
 ### R17. After the calendar ends
 
 The calendar is immutable and finite. From the open of the last loaded session the market fails closed
-(§3) and enters wind-down: no borrowing, trims, buffers or deposits; lenders may withdraw against idle cash
-at the last accepted valuation; repayments keep adding to that cash; buffer plans are released. A
-continuing market is a new deployment with an extended calendar.
+(§3) and enters wind-down: no borrowing, trims, buffers or deposits; lenders may withdraw their pro-rata
+share of idle cash (R19); repayments keep adding to that cash; buffer plans are released. A continuing
+market is a new deployment with an extended calendar.
 
 ### R18. Demo clock bounds
 
 A demo step moves the simulated clock at most seven days and never past the open of the last loaded
 session. Simulated time accrues interest exactly as real time does; the app labels it.
+
+### R19. The last covered close
+
+Wind-down follows the close of the last covered session and never reopens, so that close is treated as the
+strictest closure: EXTENDED limits (LT 70% at F, target 65%) whatever its gap, and no new credit in that
+session (no borrowing or debt-backed collateral withdrawal; repayment, top-ups and lender exits stay open).
+Nothing price-dependent runs after the calendar ends (§2, §3). Because no trim can collect a loan in wind-down,
+lender assets there are idle cash only: lenders exit pro rata from cash, later repayments raise the share value,
+and neither a price nor a guardian stop changes what an exit pays.
+
+### R20. Buffers during reopening recovery
+
+A funded buffer may also execute during REOPEN_RECOVERY, with the admitted price, under the same authorization,
+target and per-session cap; a recovery execution counts against the allowance of the session it runs in. Recovery
+trims still wait for an executable buffer (`BufferPending`, §4), so the borrower's own funds go first after a
+closure as well as before it. The recovery bonus stays 5% (§3, §6), and the buffer pays none. Funds were already
+committed through recovery (§4), and the app describes the authorization as reducing debt during preparation and
+reopening recovery.
+
+### R21. Lender entry while impaired
+
+Deposits and mints close while the book is impaired (§7), as they do in run-off, so a new lender cannot buy
+shares at a marked-down valuation that a later repayment writes back up. Withdrawals stay open at the marked
+valuation.
+
+### R22. Deployment bounds
+
+The price gate rejects feeds with more than 18 decimals and a loan-feed answer bound that could price a token
+below one wei, and treats a stock answer that would price a whole token above 10^18 whole loan tokens as a bad
+answer (R12), so every price, value and trim product fits in 256 bits and no reading overflows. The deploy
+script creates mock tokens only on the local chain and Robinhood Chain testnet. The mainnet-fork manifest uses a
+maxAge of the 24-hour heartbeat plus one hour, so a round landing just after its heartbeat is not an outage, and
+bounds the USDG answer at 2 USD.

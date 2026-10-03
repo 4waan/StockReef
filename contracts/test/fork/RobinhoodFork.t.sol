@@ -18,11 +18,13 @@ import {IStockToken} from "../../src/interfaces/IStockToken.sol";
 /// The public RPC rejects clients without a browser User-Agent, which forge cannot set, so the suite runs
 /// against a local fork:
 ///   anvil --port 8546 --fork-url https://rpc.mainnet.chain.robinhood.com \
-///         --fork-header "User-Agent: Mozilla/5.0" --fork-block-number 77599021
+///         --fork-header "User-Agent: Mozilla/5.0" --fork-block-number 78471588 --compute-units-per-second 5
 ///   FOUNDRY_PROFILE=fork forge test
+/// The public RPC rate-limits and keeps only recent state: re-running at this block later needs an archive RPC,
+/// or a re-pin to a recent block inside a regular session.
 /// This validates interfaces and feed behaviour; it does not establish production economic safety.
 contract RobinhoodForkTest is Fixtures {
-    uint256 internal constant FORK_BLOCK = 77599021;
+    uint256 internal constant FORK_BLOCK = 78471588;
 
     string internal manifest;
     IERC20 internal tsla;

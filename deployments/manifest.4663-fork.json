@@ -19,15 +19,18 @@
     "address": "0x4A1166a659A55625345e9515b32adECea5547C38",
     "description": "RHTSLA / USD",
     "decimals": 8,
-    "maxAgeSeconds": 86400,
-    "answerBound": "100000000000000"
+    "maxAgeSeconds": 90000,
+    "answerBound": "100000000000000",
+    "maxAgeNote": "Heartbeat 86400 s plus 3600 s of margin, so a round that lands a little after the heartbeat is not an outage (appendix R22)."
   },
   "loanFeed": {
     "type": "chainlink",
     "address": "0x61B7e5650328764B076A108EFF5fa7282a1B9aD2",
     "description": "USDG / USD",
     "decimals": 8,
-    "maxAgeSeconds": 86400
+    "maxAgeSeconds": 90000,
+    "maxAgeNote": "Heartbeat 86400 s plus 3600 s of margin (appendix R22).",
+    "answerBound": "200000000"
   },
   "clock": "block",
   "minLoan": "5000000",

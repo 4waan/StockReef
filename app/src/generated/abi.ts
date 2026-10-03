@@ -103,6 +103,16 @@ export const lensAbi = [
       "internalType": "uint256"
      },
      {
+      "name": "projectedDebtAtReopen",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "trimmableAtReopen",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
       "name": "trimNow",
       "type": "tuple",
       "internalType": "struct StockReefMarket.TrimQuote",
@@ -305,6 +315,16 @@ export const lensAbi = [
       "name": "trimAtFinalBonusWad",
       "type": "uint256",
       "internalType": "uint256"
+     },
+     {
+      "name": "projectedDebtAtReopen",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "trimmableAtReopen",
+      "type": "bool",
+      "internalType": "bool"
      },
      {
       "name": "trimNow",
@@ -1115,6 +1135,30 @@ export const marketAbi = [
     "name": "assets",
     "type": "uint256",
     "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "debtAt",
+  "inputs": [
+   {
+    "name": "account",
+    "type": "address",
+    "internalType": "address"
+   },
+   {
+    "name": "t",
+    "type": "uint64",
+    "internalType": "uint64"
    }
   ],
   "outputs": [
@@ -2728,6 +2772,11 @@ export const marketAbi = [
  },
  {
   "type": "error",
+  "name": "ZeroAddress",
+  "inputs": []
+ },
+ {
+  "type": "error",
   "name": "ZeroAmount",
   "inputs": []
  }
@@ -3731,6 +3780,11 @@ export const escrowAbi = [
  },
  {
   "type": "error",
+  "name": "ZeroAddress",
+  "inputs": []
+ },
+ {
+  "type": "error",
   "name": "ZeroAmount",
   "inputs": []
  }
@@ -3866,6 +3920,32 @@ export const gateAbi = [
  {
   "type": "function",
   "name": "LOCAL_CHAIN_ID",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "MAX_FEED_DECIMALS",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint8",
+    "internalType": "uint8"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "MAX_PRICE_WAD",
   "inputs": [],
   "outputs": [
    {

@@ -57,7 +57,7 @@ export default function LendPage() {
           </>
         ) : windDown ? (
           <>
-            <b>Wind-down.</b> The loaded calendar has ended: withdraw against idle cash at the last accepted valuation. Repayments keep adding to that cash.
+            <b>Wind-down.</b> The loaded calendar has ended: withdraw your share of idle cash. Repayments keep adding to it.
           </>
         ) : (
           <>
@@ -102,8 +102,8 @@ export default function LendPage() {
               unit="USDG"
               decimals={6}
               action="Deposit"
-              disabled={!open}
-              hint={`Wallet: ${usdg(wallet)} USDG`}
+              disabled={!open || m.impaired}
+              hint={m.impaired ? 'Deposits pause while a loan is impaired' : `Wallet: ${usdg(wallet)} USDG`}
               status={deposit.status}
               onSubmit={amount => deposit.send({ address: c.market, abi: marketAbi, functionName: 'deposit', args: [amount, address] }, { token: c.loanToken, spender: c.market, amount })}
             />
