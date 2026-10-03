@@ -211,6 +211,16 @@ forge script script/Deploy.s.sol --rpc-url https://rpc.testnet.chain.robinhood.c
 
 For the testnet demo, fund the actor wallets and set `OPERATOR_KEY`, `ALICE_KEY`, `BOB_KEY`, `CAROL_KEY`, and `LIQUIDATOR_KEY` before running `DemoRun.s.sol`. Sync the app and configure its [environment](app/.env.example) for chain `46630`.
 
+To host the app on Vercel, import the repository with **Root Directory** `app`, the Next.js preset, and these environment variables:
+
+```
+NEXT_PUBLIC_CHAIN_ID=46630
+NEXT_PUBLIC_RPC_URL=https://rpc.testnet.chain.robinhood.com
+NEXT_PUBLIC_DEMO_ACCOUNTS=Funded buffer (A):0x…,Trimmed (B):0x…,Untouched (C):0x…
+```
+
+The app reads its history from the deployment block recorded in `evidence/deploy-46630.json`, so no indexer is needed.
+
 The separate [mainnet fork manifest](deployments/manifest.4663-fork.json) uses stock and USDG price feeds with a block clock. Neither configuration establishes production economic safety.
 
 ## Repository map

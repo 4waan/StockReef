@@ -105,6 +105,7 @@ export function AmountBox({ value, onChange, unit, disabled }: { value: string; 
     <div className="flex items-center rounded-md border border-dk-line bg-dk-bg px-4 focus-within:border-dk-muted">
       <input
         inputMode="decimal"
+        aria-label={`Amount in ${unit}`}
         value={value}
         disabled={disabled}
         onChange={e => onChange(e.target.value)}

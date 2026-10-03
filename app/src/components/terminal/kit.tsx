@@ -21,11 +21,13 @@ export function useWidth<T extends HTMLElement>() {
 /** Underlined tab row, as in the mockup's ticket and bottom panel. */
 export function Tabs<K extends string>({ tabs, value, onChange, className = '' }: { tabs: { key: K; label: ReactNode }[]; value: K; onChange: (k: K) => void; className?: string }) {
   return (
-    <div className={`flex border-b border-dk-line ${className}`}>
+    <div role="tablist" className={`flex border-b border-dk-line ${className}`}>
       {tabs.map((t, i) => (
         <button
           key={t.key}
           type="button"
+          role="tab"
+          aria-selected={value === t.key}
           onClick={() => onChange(t.key)}
           className={`relative px-5 py-3 text-[15px] ${i > 0 ? 'border-l border-dk-line/0' : ''} ${value === t.key ? 'font-semibold text-dk-ink' : 'text-dk-muted hover:text-dk-ink'}`}
         >
@@ -45,6 +47,7 @@ export function Segmented<K extends string>({ options, value, onChange }: { opti
         <button
           key={o.key}
           type="button"
+          aria-pressed={value === o.key}
           onClick={() => onChange(o.key)}
           className={`rounded px-4 py-1 text-sm ${value === o.key ? 'bg-dk-raised font-medium text-dk-ink' : 'text-dk-muted hover:text-dk-ink'}`}
         >
