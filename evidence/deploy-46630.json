@@ -1,0 +1,76 @@
+{
+  "chainId": 46630,
+  "network": "Robinhood Chain testnet",
+  "deployer": "0x8A60820Ebbf9643F7b0B560a2FE6AFE666c2A87a",
+  "manifest": "deployments/manifest.46630.json",
+  "addresses": {
+    "calendar": "0xF6d5DC27a3d00B74B51c1a3F0a12f8224502931C",
+    "chainId": 46630,
+    "clock": "0xF98632F92C0Fc53ee3e4530687094230238D19F1",
+    "collateralToken": "0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E",
+    "demoController": "0xcecC16443d5BACDBE7111f2d5545815a67EFc32F",
+    "escrow": "0x4ddB4d02227bD118440ecC173467E382116Eb23b",
+    "gate": "0xda8D4e952c1902592fCA37a00299f248875DE6C6",
+    "guardian": "0x8A60820Ebbf9643F7b0B560a2FE6AFE666c2A87a",
+    "lens": "0xf529a7fDe3c6819cE9F0dF08E5c8f62e50eae96E",
+    "loanToken": "0x7E955252E15c84f5768B83c41a71F9eba181802F",
+    "market": "0x216cb1CB54F6300d12d40A6FbF66C55C13f1cf6D",
+    "policy": "0x7862DA7109687775FAE52D0eA1C6BD99F605aF7b",
+    "stockFeed": "0xe90f0a2BFA076a0D3009f4d58779bF8e34cFC7B4"
+  },
+  "transactions": [
+    {
+      "contract": "SessionCalendar",
+      "address": "0xf6d5dc27a3d00b74b51c1a3f0a12f8224502931c",
+      "transactionHash": "0xea990b1e7c011a0c6cd19b1b3e2aa9e3af89e111e7090431f4e0e7de932df3cf",
+      "blockNumber": 128266666,
+      "gasUsed": 4223841,
+      "status": "success"
+    },
+    {
+      "contract": "DemoController",
+      "address": "0xcecc16443d5bacdbe7111f2d5545815a67efc32f",
+      "transactionHash": "0x795a798a88839cfd891fc1daf1b014e7701c0e8512aa80e3fabce6b9710c9b4f",
+      "blockNumber": 128266673,
+      "gasUsed": 1681665,
+      "status": "success"
+    },
+    {
+      "contract": "PriceGate",
+      "address": "0xda8d4e952c1902592fca37a00299f248875de6c6",
+      "transactionHash": "0x3a063df2cb8dd37a4785c1dd286b478502db556583989f25675f1b11fed6db0f",
+      "blockNumber": 128266690,
+      "gasUsed": 2415785,
+      "status": "success"
+    },
+    {
+      "contract": "SessionRiskPolicy",
+      "address": "0x7862da7109687775fae52d0ea1c6bd99f605af7b",
+      "transactionHash": "0x430155dda6f48a9b7f60014790951355acce9b1bc5bca2d83cf0815758b5fe83",
+      "blockNumber": 128266711,
+      "gasUsed": 1519661,
+      "status": "success"
+    },
+    {
+      "contract": "StockReefMarket",
+      "address": "0x216cb1cb54f6300d12d40a6fbf66c55c13f1cf6d",
+      "transactionHash": "0x4c4f30e0f3650dd59d51f155ff44b4cb82a8daf04be8c352ed7292159843ec58",
+      "blockNumber": 128266721,
+      "gasUsed": 6026767,
+      "status": "success"
+    },
+    {
+      "contract": "StockReefLens",
+      "address": "0xf529a7fde3c6819ce9f0df08e5c8f62e50eae96e",
+      "transactionHash": "0xc19f871c074c13a3fbed00f0cbb7aef71e2197a99ed2ec83879b7c084aa76797",
+      "blockNumber": 128266728,
+      "gasUsed": 3021753,
+      "status": "success"
+    }
+  ],
+  "notes": [
+    "The TSLA/USD feed and market clock are operator controlled demo components.",
+    "The loan feed uses a labelled 1 USDG to 1 USD test peg.",
+    "The six top level transactions deployed the calendar, demo controller, gate, policy, market, and lens. The demo controller and market deployed child contracts internally."
+  ]
+}
