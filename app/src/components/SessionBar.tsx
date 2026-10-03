@@ -2,7 +2,7 @@
 
 import { duration, nyTime, localTime, pct, price } from '@/lib/format'
 import { useMarketView, useProtocolNow } from '@/lib/hooks'
-import { reasonList, stateName, STATE_COPY } from '@/lib/policy'
+import { nextMilestone, reasonList, stateName, STATE_COPY } from '@/lib/policy'
 import { contracts } from '@/lib/chain'
 import { Badge, Notice } from './ui'
 
@@ -65,25 +65,6 @@ export function SessionBar() {
 }
 
 type Snap = { open: bigint; close: bigint; prepAt: bigint; finalAt: bigint; nextOpen: bigint; creditAt: bigint; guardAt: bigint; covered: boolean }
-
-function nextMilestone(phase: string, s: Snap): { label: string; at: bigint } | undefined {
-  if (!s.covered) return undefined
-  switch (phase) {
-    case 'OPEN':
-      return { label: 'Preparation starts', at: s.prepAt }
-    case 'PRE_CLOSE':
-      return { label: 'Final window (no new borrowing)', at: s.finalAt }
-    case 'FINAL_WINDOW':
-      return { label: 'Market closes', at: s.close }
-    case 'CLOSED':
-      return { label: 'Market reopens', at: s.nextOpen }
-    case 'REOPEN_WAIT':
-      return { label: 'Guarded if no fresh price by', at: s.guardAt }
-    case 'REOPEN_RECOVERY':
-      return { label: 'Credit returns', at: s.creditAt }
-  }
-  return undefined
-}
 
 function Timeline({ s, now }: { s: Snap; now: number }) {
   const open = Number(s.open)

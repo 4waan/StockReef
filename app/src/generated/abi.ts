@@ -5048,6 +5048,908 @@ export const demoAbi = [
   ]
  }
 ] as const
+export const policyAbi = [
+ {
+  "type": "constructor",
+  "inputs": [
+   {
+    "name": "gate_",
+    "type": "address",
+    "internalType": "contract PriceGate"
+   }
+  ],
+  "stateMutability": "nonpayable"
+ },
+ {
+  "type": "function",
+  "name": "BONUS_DISTRESS",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "BONUS_SCHEDULING",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "BORROW_GAP",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "B_OPEN",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "LT_FINAL_EXTENDED",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "LT_FINAL_OVERNIGHT",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "LT_OPEN",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "TARGET_EXTENDED",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "TARGET_OPEN",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "TARGET_OVERNIGHT",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "bonusFor",
+  "inputs": [
+   {
+    "name": "s",
+    "type": "tuple",
+    "internalType": "struct SessionRiskPolicy.Snapshot",
+    "components": [
+     {
+      "name": "time",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "state",
+      "type": "uint8",
+      "internalType": "enum SessionRiskPolicy.State"
+     },
+     {
+      "name": "phase",
+      "type": "uint8",
+      "internalType": "enum SessionRiskPolicy.State"
+     },
+     {
+      "name": "closureClass",
+      "type": "uint8",
+      "internalType": "enum SessionRiskPolicy.ClosureClass"
+     },
+     {
+      "name": "covered",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "reasons",
+      "type": "uint32",
+      "internalType": "uint32"
+     },
+     {
+      "name": "priceWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "priceUpdatedAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "session",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "open",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "close",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "prepAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "finalAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "nextOpen",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "admissionAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "creditAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "guardAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "ltWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "borrowLimitWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "targetWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "canBorrow",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "canTrim",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "canBuffer",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "lenderOpen",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "windDown",
+      "type": "bool",
+      "internalType": "bool"
+     }
+    ]
+   },
+   {
+    "name": "ltvWad",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "pure"
+ },
+ {
+  "type": "function",
+  "name": "borrowLimit",
+  "inputs": [
+   {
+    "name": "ltWad",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "pure"
+ },
+ {
+  "type": "function",
+  "name": "calendar",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract SessionCalendar"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "classOf",
+  "inputs": [
+   {
+    "name": "gapSeconds",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint8",
+    "internalType": "enum SessionRiskPolicy.ClosureClass"
+   }
+  ],
+  "stateMutability": "pure"
+ },
+ {
+  "type": "function",
+  "name": "clock",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract IClock"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "evaluate",
+  "inputs": [
+   {
+    "name": "q",
+    "type": "tuple",
+    "internalType": "struct PriceGate.Quote",
+    "components": [
+     {
+      "name": "priceWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "roundId",
+      "type": "uint80",
+      "internalType": "uint80"
+     },
+     {
+      "name": "updatedAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "reasons",
+      "type": "uint32",
+      "internalType": "uint32"
+     }
+    ]
+   },
+   {
+    "name": "t",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "s",
+    "type": "tuple",
+    "internalType": "struct SessionRiskPolicy.Snapshot",
+    "components": [
+     {
+      "name": "time",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "state",
+      "type": "uint8",
+      "internalType": "enum SessionRiskPolicy.State"
+     },
+     {
+      "name": "phase",
+      "type": "uint8",
+      "internalType": "enum SessionRiskPolicy.State"
+     },
+     {
+      "name": "closureClass",
+      "type": "uint8",
+      "internalType": "enum SessionRiskPolicy.ClosureClass"
+     },
+     {
+      "name": "covered",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "reasons",
+      "type": "uint32",
+      "internalType": "uint32"
+     },
+     {
+      "name": "priceWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "priceUpdatedAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "session",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "open",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "close",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "prepAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "finalAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "nextOpen",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "admissionAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "creditAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "guardAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "ltWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "borrowLimitWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "targetWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "canBorrow",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "canTrim",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "canBuffer",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "lenderOpen",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "windDown",
+      "type": "bool",
+      "internalType": "bool"
+     }
+    ]
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "gate",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "address",
+    "internalType": "contract PriceGate"
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "ltAt",
+  "inputs": [
+   {
+    "name": "c",
+    "type": "uint8",
+    "internalType": "enum SessionRiskPolicy.ClosureClass"
+   },
+   {
+    "name": "t",
+    "type": "uint64",
+    "internalType": "uint64"
+   },
+   {
+    "name": "close",
+    "type": "uint64",
+    "internalType": "uint64"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "pure"
+ },
+ {
+  "type": "function",
+  "name": "ltFinalOf",
+  "inputs": [
+   {
+    "name": "c",
+    "type": "uint8",
+    "internalType": "enum SessionRiskPolicy.ClosureClass"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "pure"
+ },
+ {
+  "type": "function",
+  "name": "snapshot",
+  "inputs": [],
+  "outputs": [
+   {
+    "name": "",
+    "type": "tuple",
+    "internalType": "struct SessionRiskPolicy.Snapshot",
+    "components": [
+     {
+      "name": "time",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "state",
+      "type": "uint8",
+      "internalType": "enum SessionRiskPolicy.State"
+     },
+     {
+      "name": "phase",
+      "type": "uint8",
+      "internalType": "enum SessionRiskPolicy.State"
+     },
+     {
+      "name": "closureClass",
+      "type": "uint8",
+      "internalType": "enum SessionRiskPolicy.ClosureClass"
+     },
+     {
+      "name": "covered",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "reasons",
+      "type": "uint32",
+      "internalType": "uint32"
+     },
+     {
+      "name": "priceWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "priceUpdatedAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "session",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "open",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "close",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "prepAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "finalAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "nextOpen",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "admissionAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "creditAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "guardAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "ltWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "borrowLimitWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "targetWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "canBorrow",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "canTrim",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "canBuffer",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "lenderOpen",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "windDown",
+      "type": "bool",
+      "internalType": "bool"
+     }
+    ]
+   }
+  ],
+  "stateMutability": "view"
+ },
+ {
+  "type": "function",
+  "name": "targetOf",
+  "inputs": [
+   {
+    "name": "c",
+    "type": "uint8",
+    "internalType": "enum SessionRiskPolicy.ClosureClass"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "stateMutability": "pure"
+ },
+ {
+  "type": "function",
+  "name": "trimEligible",
+  "inputs": [
+   {
+    "name": "s",
+    "type": "tuple",
+    "internalType": "struct SessionRiskPolicy.Snapshot",
+    "components": [
+     {
+      "name": "time",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "state",
+      "type": "uint8",
+      "internalType": "enum SessionRiskPolicy.State"
+     },
+     {
+      "name": "phase",
+      "type": "uint8",
+      "internalType": "enum SessionRiskPolicy.State"
+     },
+     {
+      "name": "closureClass",
+      "type": "uint8",
+      "internalType": "enum SessionRiskPolicy.ClosureClass"
+     },
+     {
+      "name": "covered",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "reasons",
+      "type": "uint32",
+      "internalType": "uint32"
+     },
+     {
+      "name": "priceWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "priceUpdatedAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "session",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "open",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "close",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "prepAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "finalAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "nextOpen",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "admissionAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "creditAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "guardAt",
+      "type": "uint64",
+      "internalType": "uint64"
+     },
+     {
+      "name": "ltWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "borrowLimitWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "targetWad",
+      "type": "uint256",
+      "internalType": "uint256"
+     },
+     {
+      "name": "canBorrow",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "canTrim",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "canBuffer",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "lenderOpen",
+      "type": "bool",
+      "internalType": "bool"
+     },
+     {
+      "name": "windDown",
+      "type": "bool",
+      "internalType": "bool"
+     }
+    ]
+   },
+   {
+    "name": "ltvWad",
+    "type": "uint256",
+    "internalType": "uint256"
+   }
+  ],
+  "outputs": [
+   {
+    "name": "",
+    "type": "bool",
+    "internalType": "bool"
+   }
+  ],
+  "stateMutability": "pure"
+ }
+] as const
 export const erc20Abi = [
  {
   "type": "constructor",

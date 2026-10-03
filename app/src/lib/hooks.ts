@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { maxUint256, type Address } from 'viem'
 import { usePublicClient, useReadContract, useWriteContract, useAccount } from 'wagmi'
-import { lensAbi, erc20Abi, marketAbi, escrowAbi } from '@/generated/abi'
+import { lensAbi, erc20Abi, marketAbi, escrowAbi, policyAbi, gateAbi, demoAbi } from '@/generated/abi'
 import { chain, contracts, ZERO } from './chain'
+import type { Snapshot } from './types'
 
 const POLL = 2_000
 
@@ -166,4 +167,108 @@ export function useReceipts(account: Address | undefined) {
     }
   }, [client, account])
   return receipts
+}
+
+export interface ProtocolConstants {
+  ratePerSecond: bigint
+  utilizationCap: bigint
+  maxBufferTarget: bigint
+  ltOpen: bigint
+  ltFinalOvernight: bigint
+  ltFinalExtended: bigint
+  targetOpen: bigint
+  targetOvernight: bigint
+  targetExtended: bigint
+  borrowOpen: bigint
+  borrowGap: bigint
+  bonusScheduling: bigint
+  bonusDistress: bigint
+}
+
+/** Fixed policy, rate and cap constants, read once from the deployed contracts. */
+export function useProtocolConstants() {
+  const client = usePublicClient({ chainId: chain.id })
+  return useQuery({
+    queryKey: ['constants', chain.id],
+    enabled: !!client && !!contracts,
+    staleTime: Infinity,
+    queryFn: async (): Promise<ProtocolConstants> => {
+      const c = contracts!
+      const p = (functionName: 'LT_OPEN' | 'LT_FINAL_OVERNIGHT' | 'LT_FINAL_EXTENDED' | 'TARGET_OPEN' | 'TARGET_OVERNIGHT' | 'TARGET_EXTENDED' | 'B_OPEN' | 'BORROW_GAP' | 'BONUS_SCHEDULING' | 'BONUS_DISTRESS') =>
+        client!.readContract({ address: c.policy, abi: policyAbi, functionName }) as Promise<bigint>
+      const [ratePerSecond, utilizationCap, maxBufferTarget, ltOpen, ltFinalOvernight, ltFinalExtended, targetOpen, targetOvernight, targetExtended, borrowOpen, borrowGap, bonusScheduling, bonusDistress] =
+        await Promise.all([
+          client!.readContract({ address: c.market, abi: marketAbi, functionName: 'RATE_PER_SECOND' }) as Promise<bigint>,
+          client!.readContract({ address: c.market, abi: marketAbi, functionName: 'UTILIZATION_CAP' }) as Promise<bigint>,
+          client!.readContract({ address: c.escrow, abi: escrowAbi, functionName: 'MAX_TARGET' }) as Promise<bigint>,
+          p('LT_OPEN'),
+          p('LT_FINAL_OVERNIGHT'),
+          p('LT_FINAL_EXTENDED'),
+          p('TARGET_OPEN'),
+          p('TARGET_OVERNIGHT'),
+          p('TARGET_EXTENDED'),
+          p('B_OPEN'),
+          p('BORROW_GAP'),
+          p('BONUS_SCHEDULING'),
+          p('BONUS_DISTRESS'),
+        ])
+      return { ratePerSecond, utilizationCap, maxBufferTarget, ltOpen, ltFinalOvernight, ltFinalExtended, targetOpen, targetOvernight, targetExtended, borrowOpen, borrowGap, bonusScheduling, bonusDistress }
+    },
+  })
+}
+
+/**
+ * Liquidation threshold at each time of the session's pre-close ramp, from SessionRiskPolicy.ltAt. The ramp uses the
+ * class of the coming closure, SessionRiskPolicy.classOf(nextOpen - close), which can differ from the class that
+ * applies now while a reopening still runs at the previous closure's limits.
+ */
+export function useLtCurve(close: bigint | undefined, nextOpen: bigint | undefined, times: bigint[]) {
+  const client = usePublicClient({ chainId: chain.id })
+  return useQuery({
+    queryKey: ['ltCurve', chain.id, close?.toString(), nextOpen?.toString(), times.map(String).join(',')],
+    enabled: !!client && !!contracts && !!close && !!nextOpen && nextOpen > close && times.length > 0,
+    staleTime: Infinity,
+    queryFn: async () => {
+      const cls = (await client!.readContract({ address: contracts!.policy, abi: policyAbi, functionName: 'classOf', args: [nextOpen! - close!] })) as number
+      const lts = await Promise.all(
+        times.map(t => client!.readContract({ address: contracts!.policy, abi: policyAbi, functionName: 'ltAt', args: [cls, t, close!] }) as Promise<bigint>),
+      )
+      return times.map((t, i) => ({ t: Number(t), lt: lts[i] }))
+    },
+  })
+}
+
+/**
+ * Most collateral that can be withdrawn now, and why it is zero. Without debt it is all of it. With debt the market
+ * requires borrowing to be open and no active buffer plan from preparation start (escrow.blocksBorrowing), and the
+ * rest must keep the loan within the borrow limit: PriceGate.rawForValue(debt / B), rounded up, stays behind.
+ */
+export function useMaxCollateralWithdraw(account: Address | undefined, v: { debt: bigint; collateral: bigint } | undefined, s: Snapshot | undefined, priceWad: bigint | undefined) {
+  const client = usePublicClient({ chainId: chain.id })
+  return useQuery({
+    queryKey: ['maxCollateralWithdraw', chain.id, account, v?.debt.toString(), v?.collateral.toString(), s?.time.toString(), priceWad?.toString()],
+    enabled: !!client && !!contracts && !!v && !!s && !!account,
+    queryFn: async (): Promise<{ max: bigint; blocked?: 'closed' | 'buffer' }> => {
+      if (v!.debt === 0n) return { max: v!.collateral }
+      if (!s!.canBorrow || !priceWad) return { max: 0n, blocked: 'closed' }
+      const blocked = (await client!.readContract({ address: contracts!.escrow, abi: escrowAbi, functionName: 'blocksBorrowing', args: [account!, s!] })) as boolean
+      if (blocked) return { max: 0n, blocked: 'buffer' }
+      const needValue = (v!.debt * 10n ** 18n + s!.borrowLimitWad - 1n) / s!.borrowLimitWad
+      const needRaw = (await client!.readContract({ address: contracts!.gate, abi: gateAbi, functionName: 'rawForValue', args: [needValue, priceWad, 1] })) as bigint
+      return { max: v!.collateral > needRaw ? v!.collateral - needRaw : 0n }
+    },
+  })
+}
+
+/** The demo operator and whether the connected wallet is it. Undefined operator when the deployment has no demo. */
+export function useDemoOperator() {
+  const { address } = useAccount()
+  const { data: operator } = useReadContract({
+    address: contracts?.demoController,
+    abi: demoAbi,
+    functionName: 'operator',
+    chainId: chain.id,
+    query: { enabled: !!contracts && contracts.demoController !== ZERO, staleTime: Infinity },
+  })
+  return { operator, isOperator: !!address && !!operator && operator.toLowerCase() === address.toLowerCase() }
 }

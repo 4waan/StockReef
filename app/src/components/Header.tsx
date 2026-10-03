@@ -10,6 +10,7 @@ import { Badge } from './ui'
 
 const NAV = [
   { href: '/', label: 'My loan' },
+  { href: '/trade', label: 'Trade' },
   { href: '/lend', label: 'Lend' },
   { href: '/operations', label: 'Operations' },
   { href: '/evidence', label: 'Evidence' },

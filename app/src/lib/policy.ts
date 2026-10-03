@@ -43,3 +43,44 @@ export function reasonList(bits: number): string[] {
 export function stateName(i: number): StateName {
   return STATES[i] ?? 'GUARDED'
 }
+
+/** Ticker labels for each schedule phase, as the trading view prints them. */
+export const PHASE_TICKER: Record<StateName, string> = {
+  OPEN: 'OPEN',
+  PRE_CLOSE: 'PRE-CLOSE',
+  FINAL_WINDOW: 'FINAL WINDOW',
+  CLOSED: 'CLOSED',
+  REOPEN_WAIT: 'REOPEN WAIT',
+  REOPEN_RECOVERY: 'RECOVERY',
+  GUARDED: 'GUARDED',
+}
+
+type Milestones = { open: bigint; close: bigint; prepAt: bigint; finalAt: bigint; nextOpen: bigint; creditAt: bigint; guardAt: bigint; covered: boolean }
+
+/** The next scheduled event of the session for a phase, with a long and a ticker label. */
+export function nextMilestone(phase: string, s: Milestones): { label: string; short: string; at: bigint } | undefined {
+  if (!s.covered) return undefined
+  switch (phase) {
+    case 'OPEN':
+      return { label: 'Preparation starts', short: 'RAMP', at: s.prepAt }
+    case 'PRE_CLOSE':
+      return { label: 'Final window (no new borrowing)', short: 'BORROW LOCK', at: s.finalAt }
+    case 'FINAL_WINDOW':
+      return { label: 'Market closes', short: 'CLOSE', at: s.close }
+    case 'CLOSED':
+      return { label: 'Market reopens', short: 'OPEN', at: s.nextOpen }
+    case 'REOPEN_WAIT':
+      return { label: 'Guarded if no fresh price by', short: 'GUARD', at: s.guardAt }
+    case 'REOPEN_RECOVERY':
+      return { label: 'Credit returns', short: 'CREDIT', at: s.creditAt }
+  }
+  return undefined
+}
+
+/** Repayments under 0.01 USDG are rounding dust (a full trim may leave one base unit above target). */
+export const DUST = 10_000n
+
+/** Whether a loan is above its closure plan by more than rounding dust. */
+export function abovePlan(repayToTarget: bigint): boolean {
+  return repayToTarget >= DUST
+}

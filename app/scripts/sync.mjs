@@ -17,6 +17,7 @@ const abis = {
   escrowAbi: 'RepaymentEscrow',
   gateAbi: 'PriceGate',
   demoAbi: 'DemoController',
+  policyAbi: 'SessionRiskPolicy',
   erc20Abi: 'MockUSDG',
 }
 let abiTs = header
