@@ -112,7 +112,7 @@ export default function Landing() {
 
       <section className="border-y border-charcoal/15 bg-[#f4f2e8]">
         <div className="mx-auto grid max-w-6xl gap-8 px-5 py-14 md:grid-cols-4">
-          <Fact value="149" label="test and invariant entry points, including mainnet fork tests" />
+          <Fact value="535" label="test and invariant entry points, including four mainnet fork tests" />
           <Fact value="32" label="borrowers valued on every lender withdrawal, gas measured at the cap" />
           <Fact value="24 h" label="delay before a guardian stop can be resumed" />
           <Fact value="If no transaction is submitted, debt does not shrink." label="The keeper executes; anyone can. Nothing guarantees a buyer for seized stock." small />

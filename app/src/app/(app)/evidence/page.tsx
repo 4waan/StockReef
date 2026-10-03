@@ -44,7 +44,7 @@ export default function EvidencePage() {
 
       <div className="grid border-b border-dk-line md:grid-cols-4">
         <Panel className="border-b-0 md:border-r">
-          <Metric big label="Test entry points" value="149" sub="unit, fuzz, invariant and property suites, including 4 mainnet fork tests" />
+          <Metric big label="Test entry points" value="535" sub="unit, fuzz, property and invariant suites, including 4 mainnet fork tests" />
         </Panel>
         <Panel className="border-b-0 md:border-r">
           <Metric big label="Mainnet fork block" value={fork ? Number(fork.block).toLocaleString('en-US') : '—'} sub="real TSLA Stock Token, Paxos USDG and Chainlink feeds" />
