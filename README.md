@@ -128,7 +128,7 @@ It does not choose prices or risk parameters. Anyone can refresh the gate or exe
 - [Golden arithmetic](tools/golden): independent repayment, trim, threshold, and valuation calculations.
 - [Scenario harness](tools/scenarios/run.py): compares fixed-limit lending, borrowing locks, buffers, and trims under identical price paths. It is an economic model using a linear approximation for closure interest, not a replay of on-chain execution.
 - [Scenario results](evidence/scenarios.json): a modeled 35% weekend gap produces 1,014.91 USDG of lender loss without pre-close action, 247.78 after a trim, and 314.38 after a buffer. The same scenario records a 741.54 USDG inventory loss for the liquidator holding trimmed collateral through the gap. Lower lender exposure does not remove risk for everyone.
-- [Mainnet fork](contracts/test/fork/RobinhoodFork.t.sol): checks real token interfaces and live feed admission at block `77599021`. The end-to-end token test mocks future feed timestamps after advancing the frozen fork.
+- [Mainnet fork](contracts/test/fork/RobinhoodFork.t.sol): checks real token interfaces and live feed admission at block `78471588`. The end-to-end token test mocks future feed timestamps after advancing the frozen fork.
 - [Gas evidence](evidence/gas.json): bounded valuation at the current 32-borrower cap, including a lender deposit of about 388k gas.
 
 See the [specification](docs/SPEC.md) for decisions and the [security notes](docs/SECURITY.md) for trust boundaries and known limits. Calibration against historical gaps, unbounded borrower scaling, and production deployment remain outside this prototype.
@@ -183,6 +183,14 @@ The app has **My loan**, **Lend**, **Operations**, and **Evidence** views. The s
 ## Robinhood Chain configuration
 
 The [testnet manifest](deployments/manifest.46630.json) configures Paxos USDG and the faucet TSLA token on chain `46630`, with an operator-controlled simulated TSLA feed, a simulated clock, and a labelled `1 USDG = 1 USD` test peg. The [testnet addresses](deployments/addresses.46630.json) and [deployment receipts](evidence/deploy-46630.json) record the current deployment.
+
+| Audited testnet contract | Address |
+|---|---|
+| Market | [`0x75459B07b03F3Ea4768073854Ec06AA02DF9264F`](https://explorer.testnet.chain.robinhood.com/address/0x75459B07b03F3Ea4768073854Ec06AA02DF9264F) |
+| Lens | [`0xBfbA1b11b35f65860F6b7B64aeBb310C99a347D0`](https://explorer.testnet.chain.robinhood.com/address/0xBfbA1b11b35f65860F6b7B64aeBb310C99a347D0) |
+| Demo controller | [`0xe7F80950f96E8c51578bC546b580dAe7cfe01Be6`](https://explorer.testnet.chain.robinhood.com/address/0xe7F80950f96E8c51578bC546b580dAe7cfe01Be6) |
+
+The [initial deployment receipts](evidence/deploy-46630-initial.json) remain available for comparison. The app uses the audited addresses after `npm run sync`.
 
 From `contracts/`, deploy with a funded testnet account configured through Foundry:
 

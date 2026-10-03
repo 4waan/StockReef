@@ -1,0 +1,10 @@
+title = "StockReef secret scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Public ERC-20 contract addresses in deployment manifests and generated data"
+targetRules = ["generic-api-key"]
+regexTarget = "line"
+regexes = ['''(?i)"(?:loanToken|collateralToken)"\s*:\s*"0x[0-9a-f]{40}"''']
