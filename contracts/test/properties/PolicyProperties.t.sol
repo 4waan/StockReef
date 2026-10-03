@@ -86,7 +86,7 @@ abstract contract PolicyRules {
         if (st == S_OPEN) return (true, true, false, true);
         if (st == S_PRE) return (true, true, true, false);
         if (st == S_FINAL) return (false, true, true, false);
-        if (st == S_RECOVERY) return (false, true, false, false);
+        if (st == S_RECOVERY) return (false, true, true, false); // buffers in recovery: appendix R20
         return (false, false, false, false);
     }
 
@@ -103,9 +103,14 @@ abstract contract PolicyRules {
         bool any = _anyPermission(s);
         if (s.state != s.phase && s.state != S_GUARDED) return "state differs from the phase only by GUARDED";
         (bool b, bool tr, bool bu, bool l) = _flagsOf(s.state);
+        // The last covered session (its next open is wind-down) gives no new credit: appendix R19.
+        bool terminal = s.covered && s.nextOpen == lastOpen;
+        if (terminal) b = false;
         if (s.canBorrow != b || s.canTrim != tr || s.canBuffer != bu || s.lenderOpen != l) {
             return "permissions follow the effective state";
         }
+        bool closingClassPhase = s.phase == S_PRE || s.phase == S_FINAL || s.phase == S_CLOSED || s.phase == S_OPEN;
+        if (terminal && closingClassPhase && s.closureClass != K_EXTENDED) return "the last covered close is EXTENDED";
         if (s.windDown != (s.time >= lastOpen)) return "windDown iff t >= lastOpen";
         if (s.windDown && (s.covered || any)) return "wind-down is uncovered and allows nothing";
         if (s.reasons & Reasons.STOPPED != 0 && (s.state != S_GUARDED || any)) return "a stop is GUARDED";
@@ -167,8 +172,10 @@ abstract contract PolicyRules {
         }
         if (s.canBorrow && (t < s.creditAt || t >= s.finalAt)) return "borrowing within [creditAt, F)";
         if (s.lenderOpen && (t < s.creditAt || t >= s.prepAt)) return "lender window within [creditAt, A)";
-        if (s.canBuffer && (t < s.prepAt || t < s.creditAt || t >= s.close)) {
-            return "buffers within [max(A, creditAt), C)";
+        // Reopening recovery, taking the admission record at face value as the policy does (appendix R20).
+        bool inRecovery = s.admissionAt != 0 && t >= s.open && t < s.creditAt;
+        if (s.canBuffer && !inRecovery && (t < s.prepAt || t < s.creditAt || t >= s.close)) {
+            return "buffers within recovery or [max(A, creditAt), C)";
         }
         if (s.canTrim && t >= s.close) return "trims end at C";
         return "";
@@ -268,7 +275,7 @@ contract PolicyModelTest is Fixtures, PolicyRules {
         bool guarded = reasons & Reasons.STOPPED != 0 || (priced && reasons != 0)
             || (e.phase == S_WAIT && t >= opens[e.index] + 30 minutes);
         e.state = guarded ? S_GUARDED : e.phase;
-        if (e.state != S_OPEN && e.state != S_PRE) e.b = 0;
+        if ((e.state != S_OPEN && e.state != S_PRE) || e.index + 2 == n) e.b = 0;
     }
 
     /// @dev Schedule phase and limits: CLOSED from C, REOPEN_WAIT before admission, REOPEN_RECOVERY before
@@ -277,7 +284,8 @@ contract PolicyModelTest is Fixtures, PolicyRules {
     function _modelPhase(PolicyExpected memory e, uint64 t) internal view {
         uint256 i = e.index;
         uint64 c = closes[i];
-        SessionRiskPolicy.ClosureClass closing = _gapClass(opens[i + 1] - c);
+        // The last covered close is EXTENDED whatever its gap: wind-down follows it (appendix R19).
+        SessionRiskPolicy.ClosureClass closing = i + 2 == n ? K_EXTENDED : _gapClass(opens[i + 1] - c);
         SessionRiskPolicy.ClosureClass opening = i == 0 ? K_EXTENDED : _gapClass(opens[i] - closes[i - 1]);
         if (t >= c) {
             _set(e, S_CLOSED, closing, _ltF(closing), 0, _tgt(closing));
@@ -327,6 +335,7 @@ contract PolicyModelTest is Fixtures, PolicyRules {
         assertEq(s.admissionAt, e.admissionAt, "admissionAt");
         assertEq(s.creditAt, e.creditAt, "creditAt");
         (bool b, bool tr, bool bu, bool l) = _flagsOf(e.state);
+        if (e.covered && e.index + 2 == n) b = false; // appendix R19
         assertEq(s.canBorrow, b, "canBorrow");
         assertEq(s.canTrim, tr, "canTrim");
         assertEq(s.canBuffer, bu, "canBuffer");

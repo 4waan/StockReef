@@ -123,8 +123,8 @@ contract MarketHandler is Test {
     }
 
     /// @dev Storage slots (forge inspect storageLayout): StockReefMarket._accounts and RepaymentEscrow._plans.
-    uint256 internal constant ACCOUNTS_MAPPING = 9;
-    uint256 internal constant PLANS_MAPPING = 1;
+    uint256 internal constant ACCOUNTS_MAPPING = 8; // forge inspect StockReefMarket storageLayout
+    uint256 internal constant PLANS_MAPPING = 0; // forge inspect RepaymentEscrow storageLayout
 
     /// @dev Reads positions and plans straight from storage, and debt as the market defines it:
     /// ceil(shares * index / 1e36).
@@ -512,11 +512,15 @@ contract MarketHandler is Test {
         _flow(uint256(keccak256(abi.encode(seed, calls))));
         address a = _actor(seed);
         uint256 i = seed % 4;
-        SessionRiskPolicy.Snapshot memory s = policy.snapshot();
         World memory w0 = _world();
         try escrow.executeBuffer(a) returns (uint256 repaid) {
             okBuffer++;
-            if (s.state != SessionRiskPolicy.State.PRE_CLOSE && s.state != SessionRiskPolicy.State.FINAL_WINDOW) {
+            // The state the call's own refresh produced: preparation or reopening recovery (appendix R20).
+            SessionRiskPolicy.State st = policy.snapshot().state;
+            if (
+                st != SessionRiskPolicy.State.PRE_CLOSE && st != SessionRiskPolicy.State.FINAL_WINDOW
+                    && st != SessionRiskPolicy.State.REOPEN_RECOVERY
+            ) {
                 buffersOutsideWindow++;
             }
             World memory w1 = _world();
@@ -689,7 +693,7 @@ contract MarketInvariants is MarketFixture {
     MarketHandler internal handler;
 
     /// @dev Slot of StockReefMarket._activeSlot (forge inspect StockReefMarket storageLayout).
-    uint256 internal constant ACTIVE_SLOT_MAPPING = 11;
+    uint256 internal constant ACTIVE_SLOT_MAPPING = 10; // forge inspect StockReefMarket storageLayout
 
     function setUp() public {
         _setUpMarket();

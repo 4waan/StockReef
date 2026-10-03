@@ -399,119 +399,101 @@ contract GateArithmeticTest is GateFixture {
 
     // ------------------------------------------------------------ decimals bounds of the price math
 
-    /// INV-GATE-06, INV-GATE-49. Peg mode prices mulDiv(answer, 1e18 * 10^sd, 10^sd * 10^sd). Bound:
-    /// 10^(2 sd) < 2^256 iff sd <= 38, so sd = 38 prices exactly and sd = 39 panics (0x11) once an in-range answer
-    /// reaches the product; an out-of-range answer skips it and still yields a reason. 10^sd itself panics for
-    /// sd >= 78, on every read. None of these decimals is rejected at deployment.
+    /// INV-GATE-06, INV-GATE-49, appendix R22. Feed decimals are at most 18: sd = 18 deploys and prices exactly
+    /// (peg: answer * 1e18 / 1e18), while 19, 39 and 78, which used to overflow on every read, are rejected at
+    /// deployment.
     function test_pegStockDecimals_exactBounds() public {
-        GateArithFeed f38 = new GateArithFeed(38);
-        GateArithFeed f39 = new GateArithFeed(39);
-        GateArithFeed f78 = new GateArithFeed(78);
-        PriceGate g38 = new PriceGate(_pegConfig(f38, 38, 1e60));
-        PriceGate g39 = new PriceGate(_pegConfig(f39, 39, 1e60));
-        PriceGate g78 = new PriceGate(_pegConfig(f78, 78, 1));
+        GateArithFeed f18 = new GateArithFeed(18);
+        PriceGate g18 = new PriceGate(_pegConfig(f18, 18, 1e60));
         _warp(MON_OPEN + 1 hours);
         uint256 t = _now();
+        f18.set(400e18, t, t);
+        assertEq(g18.quote().reasons, 0);
+        assertEq(g18.quote().priceWad, 400e18);
+        f18.set(1e36, t, t);
+        assertEq(g18.quote().priceWad, g18.MAX_PRICE_WAD(), "the ceiling itself is usable");
 
-        f38.set(400e38, t, t);
-        assertEq(g38.quote().reasons, 0);
-        assertEq(g38.quote().priceWad, 400e18);
-        f38.set(1e20 - 1, t, t);
-        assertEq(g38.quote().priceWad, 0, "floor(answer * 1e18 / 1e38) rounds a sub-unit answer to zero");
-
-        f39.set(400e39, t, t);
-        vm.expectRevert(stdError.arithmeticError);
-        g39.quote();
-        f39.set(0, t, t);
-        assertEq(g39.quote().reasons, Reasons.STOCK_BAD_ANSWER, "no product without an in-range answer");
-
-        f78.set(1, t, t);
-        vm.expectRevert(stdError.arithmeticError);
-        g78.quote();
-        f78.fail(GateArithFail.EMPTY, 0);
-        vm.expectRevert(stdError.arithmeticError);
-        g78.refresh();
+        uint8[3] memory bad = [19, 39, 78];
+        for (uint256 i; i < bad.length; ++i) {
+            GateArithFeed f = new GateArithFeed(bad[i]);
+            vm.expectRevert(PriceGate.InvalidConfig.selector);
+            new PriceGate(_pegConfig(f, bad[i], 1));
+        }
     }
 
-    /// INV-GATE-06, INV-GATE-49. Feed mode multiplies 1e18 * 10^ld. Bound: 1e18 * 10^ld < 2^256 iff ld <= 59, so
-    /// ld = 59 prices exactly and ld = 60 panics once both answers are in range; 10^ld panics for ld >= 78 on
-    /// every read.
+    /// INV-GATE-06, INV-GATE-49, appendix R22. Loan feed decimals are at most 18: ld = 18 deploys and prices
+    /// exactly; 19, 60 and 78 are rejected at deployment.
     function test_feedLoanDecimals_exactBounds() public {
         GateArithFeed stock = new GateArithFeed(8);
-        GateArithFeed l59 = new GateArithFeed(59);
-        GateArithFeed l60 = new GateArithFeed(60);
-        GateArithFeed l78 = new GateArithFeed(78);
-        PriceGate g59 = new PriceGate(_feedConfig(stock, 8, ANSWER_BOUND, l59, 59, 2e59));
-        PriceGate g60 = new PriceGate(_feedConfig(stock, 8, ANSWER_BOUND, l60, 60, 2e60));
-        PriceGate g78 = new PriceGate(_feedConfig(stock, 8, ANSWER_BOUND, l78, 78, 2e60));
+        GateArithFeed l18 = new GateArithFeed(18);
+        PriceGate g18 = new PriceGate(_feedConfig(stock, 8, ANSWER_BOUND, l18, 18, 2e18));
         _warp(MON_OPEN + 1 hours);
         uint256 t = _now();
         stock.set(TSLA_400, t, t);
+        l18.set(1e18, t, t);
+        assertEq(g18.quote().reasons, 0);
+        assertEq(g18.quote().priceWad, 400e18);
 
-        l59.set(1e59, t, t);
-        assertEq(g59.quote().reasons, 0);
-        assertEq(g59.quote().priceWad, 400e18);
-
-        l60.set(1e60, t, t);
-        vm.expectRevert(stdError.arithmeticError);
-        g60.quote();
-        l60.set(0, t, t);
-        assertEq(g60.quote().reasons, Reasons.LOAN_BAD_ANSWER, "no product without an in-range loan answer");
-
-        l78.set(1e60, t, t);
-        vm.expectRevert(stdError.arithmeticError);
-        g78.quote();
+        uint8[3] memory bad = [19, 60, 78];
+        for (uint256 i; i < bad.length; ++i) {
+            GateArithFeed l = new GateArithFeed(bad[i]);
+            vm.expectRevert(PriceGate.InvalidConfig.selector);
+            new PriceGate(_feedConfig(stock, 8, ANSWER_BOUND, l, bad[i], 2));
+        }
     }
 
     // ------------------------------------------------------------ answer magnitude bounds
 
-    /// INV-GATE-07, INV-GATE-49. Peg mode, sd = 8: priceWad = answer * 1e10. Bound: the mulDiv result fits iff
-    /// answer <= floor(M / 1e10); one more panics (0x11). Only an answer bound above that limit lets the answer
-    /// reach the product (the fixture bound is 1e14).
+    /// INV-GATE-07, INV-GATE-49, appendix R22. Peg mode, sd = 8: priceWad = answer * 1e10, usable up to
+    /// MAX_PRICE_WAD (answer 1e26). One more is a bad answer with no price, and no answer, however large, makes a
+    /// read revert.
     function test_pegAnswer_exactOverflowBound() public {
         GateArithFeed f = new GateArithFeed(8);
         PriceGate g = new PriceGate(_pegConfig(f, 8, M));
         _warp(MON_OPEN + 1 hours);
-        uint256 lim = M / 1e10;
-        f.set(int256(lim), _now(), _now());
-        assertEq(g.quote().priceWad, lim * 1e10);
-        f.set(int256(lim + 1), _now(), _now());
-        vm.expectRevert(stdError.arithmeticError);
-        g.quote();
-        vm.expectRevert(stdError.arithmeticError);
-        g.refresh();
+        f.set(1e26, _now(), _now());
+        assertEq(g.quote().priceWad, 1e36);
+        assertEq(g.quote().reasons, 0);
+        f.set(1e26 + 1, _now(), _now());
+        assertEq(g.quote().priceWad, 0);
+        assertEq(g.quote().reasons, Reasons.STOCK_BAD_ANSWER);
+        f.set(type(int256).max, _now(), _now());
+        assertEq(g.quote().reasons, Reasons.STOCK_BAD_ANSWER);
+        assertEq(g.refresh().reasons, Reasons.STOCK_BAD_ANSWER);
     }
 
-    /// INV-GATE-07, INV-GATE-49. Feed mode, sd = ld = 8, loan answer 1 (the smallest in-range answer):
-    /// priceWad = stock * 1e18. Bound: stock <= floor(M / 1e18).
+    /// INV-GATE-07, INV-GATE-49, appendix R22. Feed mode, sd = ld = 8, loan answer 1 (the smallest in-range
+    /// answer): priceWad = stock * 1e18, usable up to stock 1e18; above that a bad answer, never an overflow.
     function test_feedStockAnswer_exactOverflowBound() public {
         GateArithFeed stock = new GateArithFeed(8);
         GateArithFeed loan = new GateArithFeed(8);
         PriceGate g = new PriceGate(_feedConfig(stock, 8, M, loan, 8, LOAN_BOUND));
         _warp(MON_OPEN + 1 hours);
         loan.set(1, _now(), _now());
-        uint256 lim = M / 1e18;
-        stock.set(int256(lim), _now(), _now());
-        assertEq(g.quote().priceWad, lim * 1e18);
-        stock.set(int256(lim + 1), _now(), _now());
-        vm.expectRevert(stdError.arithmeticError);
-        g.quote();
+        stock.set(1e18, _now(), _now());
+        assertEq(g.quote().priceWad, 1e36);
+        stock.set(1e18 + 1, _now(), _now());
+        assertEq(g.quote().reasons, Reasons.STOCK_BAD_ANSWER);
+        stock.set(type(int256).max, _now(), _now());
+        assertEq(g.quote().reasons, Reasons.STOCK_BAD_ANSWER);
     }
 
-    /// INV-GATE-07, INV-GATE-49. Feed mode: the denominator loanAnswer * 10^sd is a checked product. Bound: with
-    /// sd = 8 it fits iff loanAnswer <= floor(M / 1e8); one more panics. At the limit the floored price is 0.
+    /// INV-GATE-07, INV-GATE-49, appendix R22. The loan answer bound must keep loanAnswer * 10^sd <= 1e18 * 10^ld,
+    /// so the price of an in-range quote is at least one: with sd = ld = 8 the largest bound is 1e18. A larger
+    /// bound, which used to let a quote price at zero or overflow, is rejected at deployment.
     function test_feedLoanAnswer_exactOverflowBound() public {
         GateArithFeed stock = new GateArithFeed(8);
         GateArithFeed loan = new GateArithFeed(8);
-        PriceGate g = new PriceGate(_feedConfig(stock, 8, ANSWER_BOUND, loan, 8, M));
+        vm.expectRevert(PriceGate.InvalidConfig.selector);
+        new PriceGate(_feedConfig(stock, 8, ANSWER_BOUND, loan, 8, 1e18 + 1));
+        vm.expectRevert(PriceGate.InvalidConfig.selector);
+        new PriceGate(_feedConfig(stock, 8, ANSWER_BOUND, loan, 8, M));
+        PriceGate g = new PriceGate(_feedConfig(stock, 8, ANSWER_BOUND, loan, 8, 1e18));
         _warp(MON_OPEN + 1 hours);
-        stock.set(TSLA_400, _now(), _now());
-        uint256 lim = M / 1e8;
-        loan.set(int256(lim), _now(), _now());
-        assertEq(g.quote().priceWad, 0, "floor(400e8 * 1e26 / (lim * 1e8))");
-        loan.set(int256(lim + 1), _now(), _now());
-        vm.expectRevert(stdError.arithmeticError);
-        g.quote();
+        stock.set(1, _now(), _now());
+        loan.set(1e18, _now(), _now());
+        assertEq(g.quote().reasons, 0);
+        assertEq(g.quote().priceWad, 1, "the smallest price is one");
     }
 
     /// INV-GATE-49, INV-GATE-18, INV-GATE-21, INV-GATE-22. With bounds like the shipped manifests (stock 1e14,
@@ -683,7 +665,8 @@ contract GateArithmeticTest is GateFixture {
         setClock.set(t);
         f.set(answer, 0, stamp);
 
-        bool inRange = answer > 0 && uint256(answer) <= answerBound;
+        // In range: positive, within the bound, and priced at most MAX_PRICE_WAD (answer * 1e10 <= 1e36).
+        bool inRange = answer > 0 && uint256(answer) <= answerBound && uint256(answer) <= 1e26;
         uint32 expected = inRange ? 0 : Reasons.STOCK_BAD_ANSWER;
         if (stamp == 0) expected |= Reasons.STOCK_NO_TIMESTAMP;
         else if (stamp > t) expected |= Reasons.STOCK_FUTURE_TIMESTAMP;
@@ -951,32 +934,41 @@ contract GateArithmeticTest is GateFixture {
 
     // ------------------------------------------------------------ price formula, peg and feed mode
 
-    /// INV-GATE-22: in feed mode priceWad is the floor of stock * 1e18 * 10^ld / (loan * 10^sd) for any in-range
-    /// answers and decimals 0..18, checked against the defining inequality without mulDiv.
+    /// INV-GATE-22, appendix R22: in feed mode priceWad is the floor of stock * 1e18 * 10^ld / (loan * 10^sd) for
+    /// any in-range answers and decimals 0..18, checked against the defining inequality without mulDiv; an answer
+    /// that would price above MAX_PRICE_WAD is a bad answer instead. The loan bound is the largest R22 allows.
     function testFuzz_priceWad_feedModeIsTheFlooredRatio(uint256 s, uint256 l, uint8 sd, uint8 ld) public {
         sd = uint8(bound(sd, 0, 18));
         ld = uint8(bound(ld, 0, 18));
+        uint256 lBound = Math.min(1e30, 1e18 * 10 ** uint256(ld) / 10 ** uint256(sd));
         s = bound(s, 1, 1e30);
-        l = bound(l, 1, 1e30);
+        l = bound(l, 1, lBound);
         GateArithFeed stock = new GateArithFeed(sd);
         GateArithFeed loan = new GateArithFeed(ld);
-        PriceGate g = new PriceGate(_feedConfig(stock, sd, 1e30, loan, ld, 1e30));
+        PriceGate g = new PriceGate(_feedConfig(stock, sd, 1e30, loan, ld, lBound));
         _warp(MON_OPEN + 1 hours);
         stock.set(int256(s), _now(), _now());
         loan.set(int256(l), _now(), _now());
         PriceGate.Quote memory q = g.quote();
-        assertEq(q.reasons, 0);
         uint256 num = s * 1e18 * 10 ** uint256(ld);
         uint256 den = l * 10 ** uint256(sd);
+        if (s > Math.mulDiv(1e36, den, 1e18 * 10 ** uint256(ld))) {
+            assertEq(q.reasons, Reasons.STOCK_BAD_ANSWER, "above the price ceiling");
+            assertEq(q.priceWad, 0);
+            return;
+        }
+        assertEq(q.reasons, 0);
+        assertGe(q.priceWad, 1, "never zero");
+        assertLe(q.priceWad, 1e36);
         assertLe(q.priceWad * den, num, "rounded down");
         assertGt((q.priceWad + 1) * den, num, "by less than one unit");
         assertEq(q.priceWad, _flooredRatio(s, sd, l, ld));
     }
 
-    /// INV-GATE-21, INV-GATE-01: the peg prices floor(answer * 1e18 / 10^sd) for sd 0..38 and never sets a
-    /// LOAN_ bit, whatever the unused loan feed fields hold.
+    /// INV-GATE-21, INV-GATE-01: the peg prices floor(answer * 1e18 / 10^sd) for sd 0..18 (appendix R22) up to
+    /// MAX_PRICE_WAD and never sets a LOAN_ bit, whatever the unused loan feed fields hold.
     function testFuzz_peg_pricesTheAnswerAndNeverSetsLoanBits(uint256 s, uint8 sd, uint256 stamp, uint32 junk) public {
-        sd = uint8(bound(sd, 0, 38));
+        sd = uint8(bound(sd, 0, 18));
         s = bound(s, 1, 1e40);
         GateArithFeed stock = new GateArithFeed(sd);
         PriceGate.Config memory c = _pegConfig(stock, sd, 1e40);
@@ -985,7 +977,9 @@ contract GateArithmeticTest is GateFixture {
         _warp(MON_OPEN + 1 hours);
         stock.set(int256(s), 0, stamp);
         PriceGate.Quote memory q = g.quote();
-        assertEq(q.priceWad, s * 1e18 / 10 ** uint256(sd));
+        bool aboveCeiling = s > 1e18 * 10 ** uint256(sd);
+        assertEq(q.priceWad, aboveCeiling ? 0 : s * 1e18 / 10 ** uint256(sd));
+        assertEq(q.reasons & Reasons.STOCK_BAD_ANSWER != 0, aboveCeiling);
         uint32 loanBits = Reasons.LOAN_FEED_UNAVAILABLE | Reasons.LOAN_BAD_ANSWER | Reasons.LOAN_NO_TIMESTAMP
             | Reasons.LOAN_FUTURE_TIMESTAMP | Reasons.LOAN_STALE | Reasons.LOAN_DECIMALS_CHANGED;
         assertEq(q.reasons & loanBits, 0);

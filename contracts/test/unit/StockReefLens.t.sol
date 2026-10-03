@@ -72,9 +72,15 @@ contract StockReefLensTest is MarketFixture {
         assertApproxEqAbs(v.addCollateralValueToTarget, _golden(".worked_example.add_collateral_value_usdg"), 2); // 1 unit / 0.65
         assertEq(v.addCollateralRawToTarget, gate.rawForValue(v.addCollateralValueToTarget, 400e18, Math.Rounding.Ceil));
 
-        // If nothing is done, a liquidator can trim it at F: the worked example's 2,077.15 at 2%.
+        // If nothing is done, a liquidator can trim it at F: the worked example's 2,077.15 at 2%, with the debt
+        // accrued to F (about 0.47 USDG of interest, which the trim repays 1 / 0.337 times over).
         assertTrue(v.trimmableAtFinal);
-        assertApproxEqAbs(v.trimAtFinalRepay, _golden(".worked_example.trim_repay_usdg"), 3); // 1 unit of debt rounding / 0.337
+        uint256 debtAtF = market.debtAt(bob, policy.snapshot().finalAt);
+        uint256 x = Math.mulDiv(
+            debtAtF * 1e18 - 0.65e18 * v.collateralValue, 1e18, 1e36 - 0.65e18 * 1.02e18, Math.Rounding.Ceil
+        );
+        assertEq(v.trimAtFinalRepay, x);
+        assertApproxEqAbs(v.trimAtFinalRepay, _golden(".worked_example.trim_repay_usdg"), 2 * USDG);
         assertEq(v.trimAtFinalBonusWad, 0.02e18);
         assertFalse(v.trimNow.eligible, "72% is under the OPEN threshold");
         assertFalse(v.missedExecution);
@@ -96,7 +102,10 @@ contract StockReefLensTest is MarketFixture {
         StockReefLens.AccountView memory v = lens.accountView(alice);
         assertTrue(v.bufferActive);
         assertFalse(v.bufferCommitted);
-        assertApproxEqAbs(v.bufferCoverage, 700 * USDG, 1, "covers the plan");
+        // Sized at A, the next execution window, with the debt accrued to A.
+        uint256 debtAtA = market.debtAt(alice, policy.snapshot().prepAt);
+        assertEq(v.bufferCoverage, Math.ceilDiv(debtAtA * 1e18 - 0.65e18 * v.collateralValue, 1e18), "covers the plan");
+        assertApproxEqAbs(v.bufferCoverage, 700 * USDG, 1 * USDG);
         assertEq(v.bufferExecutableNow, 0, "not before A");
 
         _tick(FRI_CLOSE - 120 minutes);
@@ -347,10 +356,10 @@ contract StockReefLensTest is MarketFixture {
     /// second-to-last session's A and through its closure the snapshot is still covered, so the Lens projects the
     /// last loaded session's (O + 15 min, C - 2 h) although that session opens in wind-down; from its open both
     /// fields are zero.
-    function test_market_lenderWindowFromTheSecondToLastSessionProjectsTheLastSession() public {
+    function test_market_noLenderWindowProjectedIntoWindDown() public {
         uint256 n = cal.sessionCount();
         (, uint64 close) = cal.sessionAt(n - 2);
-        (uint64 lastOpen, uint64 lastClose) = cal.sessionAt(n - 1);
+        (uint64 lastOpen,) = cal.sessionAt(n - 1);
         uint64[3] memory times = [close - SessionTiming.PREP, close - 1, close + 1 hours];
         for (uint256 i; i < times.length; ++i) {
             _tick(times[i]);
@@ -358,8 +367,8 @@ contract StockReefLensTest is MarketFixture {
             assertTrue(m.policy.covered, "covered until the last open");
             assertEq(m.policy.session, n - 2);
             assertFalse(m.policy.lenderOpen);
-            assertEq(m.lenderWindowOpensAt, lastOpen + SessionTiming.CREDIT_AFTER, "last session opens");
-            assertEq(m.lenderWindowClosesAt, lastClose - SessionTiming.PREP, "last session A");
+            assertEq(m.lenderWindowOpensAt, 0, "the last session opens in wind-down");
+            assertEq(m.lenderWindowClosesAt, 0, "the last session opens in wind-down");
         }
 
         _tick(lastOpen);
@@ -714,7 +723,7 @@ contract StockReefLensTest is MarketFixture {
         escrow.executeBuffer(alice);
 
         _tick(FRI_CLOSE + 1 hours);
-        assertEq(lens.accountView(alice).bufferCoverage, 0, "closed: the allowance of the session just closed");
+        assertEq(lens.accountView(alice).bufferCoverage, 300 * USDG, "closed: the next session's allowance");
 
         _tick(MON_OPEN + 5 minutes);
         _tick(MON_OPEN + 15 minutes);

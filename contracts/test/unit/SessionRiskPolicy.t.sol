@@ -417,7 +417,8 @@ contract SessionRiskPolicyTest is GateFixture {
         assertEq(s.targetWad, target, string.concat("target at ", at));
     }
 
-    /// @dev The permission row of docs/SPEC.md §3 for the snapshot's effective state, written out as a table.
+    /// @dev The permission row of docs/SPEC.md §3 for the snapshot's effective state, written out as a table;
+    /// buffers also run in REOPEN_RECOVERY (appendix R20).
     function _expectPermissions(SessionRiskPolicy.Snapshot memory s, string memory at) internal pure {
         SessionRiskPolicy.State st = s.state;
         bool borrow;
@@ -427,7 +428,7 @@ contract SessionRiskPolicyTest is GateFixture {
         if (st == S_OPEN) (borrow, trim, buffer, lender) = (true, true, false, true);
         else if (st == S_PRE) (borrow, trim, buffer, lender) = (true, true, true, false);
         else if (st == S_FINAL) (borrow, trim, buffer, lender) = (false, true, true, false);
-        else if (st == S_RECOVERY) (borrow, trim, buffer, lender) = (false, true, false, false);
+        else if (st == S_RECOVERY) (borrow, trim, buffer, lender) = (false, true, true, false);
         assertEq(s.canBorrow, borrow, string.concat("canBorrow at ", at));
         assertEq(s.canTrim, trim, string.concat("canTrim at ", at));
         assertEq(s.canBuffer, buffer, string.concat("canBuffer at ", at));
@@ -874,7 +875,7 @@ contract SessionRiskPolicyTest is GateFixture {
         _row(_clean(ts[3]), S_FINAL, false, true, true, false, "FINAL_WINDOW");
         _row(_clean(ts[4]), S_CLOSED, false, false, false, false, "CLOSED");
         _row(_clean(ts[5]), S_WAIT, false, false, false, false, "REOPEN_WAIT");
-        _row(_clean(ts[0]), S_RECOVERY, false, true, false, false, "REOPEN_RECOVERY");
+        _row(_clean(ts[0]), S_RECOVERY, false, true, true, false, "REOPEN_RECOVERY");
         // GUARDED overrides every phase, and no row of it allows anything.
         for (uint256 k; k < 6; ++k) {
             _row(_with(ts[k], Reasons.STOPPED), S_GUARDED, false, false, false, false, "GUARDED (stop)");
@@ -1140,7 +1141,7 @@ contract SessionRiskPolicyTest is GateFixture {
         SessionRiskPolicy.Snapshot memory r = _clean(a + 10 minutes);
         _expectPhase(r, S_RECOVERY, S_RECOVERY, "recovery inside preparation");
         _expectLimits(r, K_EXTENDED, 0.7e18, 0, 0.65e18, "recovery: weekend limits");
-        assertTrue(r.canTrim && !r.canBuffer && !r.canBorrow);
+        assertTrue(r.canTrim && r.canBuffer && !r.canBorrow);
 
         SessionRiskPolicy.Snapshot memory p = _clean(a + 11 minutes);
         _expectPhase(p, S_PRE, S_PRE, "credit returns");

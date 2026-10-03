@@ -438,8 +438,8 @@ contract EscrowHandler is Test {
         (bool ok, uint256 repaid) = _ownerRepayAs(caller, amount);
         if (!ok) return;
         okOwnerRepay++;
-        if (amount > bal) overdraft++;
-        if (repaid != Math.min(amount, debt)) repayMismatch++;
+        if (repaid > bal) overdraft++;
+        if (repaid != _ownerRepayModel(amount, bal, debt)) repayMismatch++;
         RepaymentEscrow.Plan memory p = escrow.planOf(caller);
         if (p.balance + repaid != bal || !_sameAuthorization(p, pre.plan)) repayMismatch++;
         uint256 debtAfter = market.debtOf(caller);
@@ -449,6 +449,16 @@ contract EscrowHandler is Test {
         _othersUnchanged(pre, caller, caller);
         ghostBalance[caller] = _sub(ghostBalance[caller], repaid);
         ghostRepaid += repaid;
+    }
+
+    /// @dev Appendix R16: min(amount, balance, debt), stopping at exactly the minimum loan instead of leaving
+    /// non-zero debt below it; never above the cap.
+    function _ownerRepayModel(uint256 amount, uint256 bal, uint256 debt) internal view returns (uint256) {
+        uint256 cap = Math.min(amount, bal);
+        if (cap >= debt) return debt;
+        uint256 minLoan = market.minLoan();
+        if (debt - cap >= minLoan) return cap;
+        return debt > minLoan ? debt - minLoan : 0;
     }
 
     /// @dev Set a plan; one call in six cancels it instead.
@@ -961,7 +971,7 @@ contract EscrowInvariantsTest is GateFixture {
         assertEq(handler.wrongCredit(), 0, "deposits credit exactly the named account");
         assertEq(handler.depositRejected(), 0, "anyone may deposit for any account at any time");
         assertEq(handler.wrongPayout(), 0, "withdrawals pay exactly the chosen receiver");
-        assertEq(handler.repayMismatch(), 0, "ownerRepay takes min(amount, debt) from the caller's plan");
+        assertEq(handler.repayMismatch(), 0, "ownerRepay takes min(amount, balance, debt) (R16) from the caller's plan");
         assertEq(handler.cashMismatch(), 0, "escrow tokens move only by the amounts repaid or withdrawn");
     }
 

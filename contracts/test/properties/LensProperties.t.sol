@@ -86,7 +86,8 @@ abstract contract LensPropertyChecks is MarketFixture {
         assertEq(m.valuationIndicative, b.indicative, "indicative");
         assertEq(m.valuationPriceWad, b.priceWad, "valuation price");
         // INV-LENS-02
-        assertEq(m.totalAssets, m.cash + m.recoverable, "totalAssets = cash + recoverable");
+        // Idle cash only in wind-down (appendix R19).
+        assertEq(m.totalAssets, s.windDown ? m.cash : m.cash + m.recoverable, "totalAssets = cash + recoverable");
         assertLe(m.recoverable, m.totalDebt, "recoverable <= debt");
         assertEq(m.impaired, m.recoverable < m.totalDebt, "impaired iff recoverable < debt");
         // INV-LENS-03
@@ -118,10 +119,11 @@ abstract contract LensPropertyChecks is MarketFixture {
         } else if (s.time >= s.open && s.time < s.prepAt) {
             assertEq(m.lenderWindowOpensAt, s.creditAt != 0 ? s.creditAt : s.open + SessionTiming.CREDIT_AFTER);
             assertEq(m.lenderWindowClosesAt, s.prepAt);
+        } else if (s.session + 2 >= cal.sessionCount()) {
+            // The next session is the last loaded one, which opens in wind-down: no window is projected.
+            assertEq(m.lenderWindowOpensAt, 0, "no window in wind-down");
+            assertEq(m.lenderWindowClosesAt, 0, "no window in wind-down");
         } else {
-            // A covered snapshot always has a next session; from the second-to-last session's A the projection is
-            // the last loaded session's window, which opens in wind-down.
-            assertLt(s.session + 1, cal.sessionCount(), "covered implies a next session");
             (uint64 o, uint64 c) = cal.sessionAt(s.session + 1);
             assertEq(m.lenderWindowOpensAt, o + SessionTiming.CREDIT_AFTER, "next session opens");
             assertEq(m.lenderWindowClosesAt, c - SessionTiming.PREP, "next session A");
@@ -160,8 +162,9 @@ abstract contract LensPropertyChecks is MarketFixture {
         if (v.borrowCapacity != 0) assertTrue(s.canBorrow, "capacity implies canBorrow");
         _checkPlan(v, s, price);
         _checkTrims(v, account, s, price);
+        _checkReopening(v, account, s);
         _checkBuffer(v, account, s);
-        _checkMissed(v, s);
+        _checkMissed(v, account, s);
     }
 
     /// @dev INV-LENS-04, INV-LENS-10: debt, value and LTV equal the market's.
@@ -182,7 +185,8 @@ abstract contract LensPropertyChecks is MarketFixture {
         assertEq(v.ltvWad, ltv, "ltvWad");
     }
 
-    /// @dev INV-LENS-11: zero when a borrow guard fails, else min(B * V - debt - 1, cash, utilization room).
+    /// @dev INV-LENS-11: zero when a borrow guard fails, else min(B * V - debt - 1, cash, utilization room), and zero
+    /// when that cannot lift the debt to the minimum loan.
     function _expectedCapacity(address account, SessionRiskPolicy.Snapshot memory s, uint256 debt, uint256 value)
         internal
         view
@@ -197,7 +201,8 @@ abstract contract LensPropertyChecks is MarketFixture {
         uint256 cash = market.cash();
         uint256 room = Math.mulDiv(0.9e18, cash + b.totalDebt, WAD);
         room = room > b.totalDebt ? room - b.totalDebt : 0;
-        return Math.min(limit - debt - 1, Math.min(cash, room));
+        uint256 cap = Math.min(limit - debt - 1, Math.min(cash, room));
+        return debt + cap < market.minLoan() ? 0 : cap;
     }
 
     /// @dev INV-LENS-15, INV-LENS-16: the target of the governing closure, and the least whole repayment and
@@ -239,7 +244,7 @@ abstract contract LensPropertyChecks is MarketFixture {
         view
         returns (SessionRiskPolicy.Snapshot memory f)
     {
-        f.time = s.time;
+        f.time = s.time < s.finalAt ? s.finalAt : s.time; // debt accrues to F
         f.state = SessionRiskPolicy.State.FINAL_WINDOW;
         f.phase = SessionRiskPolicy.State.FINAL_WINDOW;
         f.priceWad = price;
@@ -307,25 +312,93 @@ abstract contract LensPropertyChecks is MarketFixture {
             assertTrue(v.bufferActive, "executable implies active");
         }
         assertEq(v.trimNow.bufferPending, v.trimNow.eligible && nowAmount != 0, "bufferPending");
-        assertLe(v.bufferCoverage, v.debt, "coverage within debt");
-        assertLe(v.bufferCoverage, p.balance, "coverage within balance");
-        assertLe(v.bufferCoverage, capLeft, "coverage within the cap left");
-        if (!v.bufferActive) assertEq(v.bufferCoverage, 0, "no coverage without an active plan");
         if (s.canBuffer) assertEq(v.bufferCoverage, nowAmount, "coverage is the executable amount while buffers run");
+        _checkCoverage(v, account, s, p);
     }
 
-    /// @dev INV-LENS-24 inside calendar coverage: flagged iff CLOSED or REOPEN_WAIT with debt above the closure's LT;
-    /// exposure is then repayToTarget.
-    function _checkMissed(StockReefLens.AccountView memory v, SessionRiskPolicy.Snapshot memory s) internal pure {
-        if (s.covered) {
-            bool closedPhase =
-                s.phase == SessionRiskPolicy.State.CLOSED || s.phase == SessionRiskPolicy.State.REOPEN_WAIT;
-            assertEq(
-                v.missedExecution,
-                closedPhase && v.debt != 0 && v.debt * WAD > s.ltWad * v.collateralValue,
-                "missedExecution"
-            );
+    /// @dev Coverage is sized at the next execution window, with the debt accrued to it and that session's
+    /// allowance.
+    function _checkCoverage(
+        StockReefLens.AccountView memory v,
+        address account,
+        SessionRiskPolicy.Snapshot memory s,
+        RepaymentEscrow.Plan memory p
+    ) internal view {
+        (bool exists, SessionRiskPolicy.Snapshot memory w) = _coverageWindow(s);
+        if (!exists) {
+            assertEq(v.bufferCoverage, 0, "no window left");
+            return;
         }
+        uint256 debtThen = market.debtAt(account, w.time);
+        assertEq(v.bufferCoverage, escrow.executableAmount(account, w, debtThen, v.collateralValue), "coverage");
+        uint256 spentThen = p.spentSession == uint32(w.session + 1) ? p.spent : 0;
+        assertLe(v.bufferCoverage, debtThen, "coverage within the debt then");
+        assertLe(v.bufferCoverage, p.balance, "coverage within balance");
+        assertLe(v.bufferCoverage, p.perSessionCap > spentThen ? p.perSessionCap - spentThen : 0, "within that cap");
+        if (p.targetWad == 0 || w.time >= p.expiry) assertEq(v.bufferCoverage, 0, "no coverage without a plan then");
+    }
+
+    /// @dev The next time buffers can execute (appendix R20): now in PRE_CLOSE, FINAL_WINDOW and REOPEN_RECOVERY;
+    /// A in OPEN; the earliest admission in REOPEN_WAIT; the next session's earliest admission in CLOSED unless that
+    /// session is wind-down; none outside coverage.
+    function _coverageWindow(SessionRiskPolicy.Snapshot memory s)
+        internal
+        view
+        returns (bool exists, SessionRiskPolicy.Snapshot memory w)
+    {
+        if (!s.covered) return (false, w);
+        w.canBuffer = true;
+        w.session = s.session;
+        w.time = s.time;
+        if (s.phase == SessionRiskPolicy.State.OPEN) {
+            w.time = s.prepAt;
+        } else if (s.phase == SessionRiskPolicy.State.REOPEN_WAIT) {
+            uint64 admit = s.open + SessionTiming.ADMIT_AFTER;
+            if (admit > s.time) w.time = admit;
+        } else if (s.phase == SessionRiskPolicy.State.CLOSED) {
+            if (s.session + 2 >= cal.sessionCount()) return (false, w);
+            w.time = s.nextOpen + SessionTiming.ADMIT_AFTER;
+            w.session = s.session + 1;
+        }
+        exists = true;
+    }
+
+    /// @dev The reopening projection: debt accrued to the next open (to now from O), judged at the closure's LT;
+    /// nothing outside coverage or when the next open is wind-down.
+    function _checkReopening(StockReefLens.AccountView memory v, address account, SessionRiskPolicy.Snapshot memory s)
+        internal
+        view
+    {
+        bool reopening =
+            s.phase == SessionRiskPolicy.State.REOPEN_WAIT || s.phase == SessionRiskPolicy.State.REOPEN_RECOVERY;
+        if (!s.covered || (!reopening && s.session + 2 >= cal.sessionCount())) {
+            assertEq(v.projectedDebtAtReopen, 0, "no reopening");
+            assertFalse(v.trimmableAtReopen, "no reopening");
+            return;
+        }
+        uint256 d = market.debtAt(account, reopening ? s.time : s.nextOpen);
+        assertEq(v.projectedDebtAtReopen, d, "debt at the reopening");
+        assertGe(d, v.debt, "interest only adds");
+        assertEq(v.trimmableAtReopen, d * WAD > policy.ltFinalOf(s.closureClass) * v.collateralValue, "trimmable then");
+    }
+
+    /// @dev INV-LENS-24: flagged iff CLOSED or REOPEN_WAIT, or wind-down, with the debt at the close that started
+    /// the closure above the closure's LT (appendix R19); exposure is then repayToTarget.
+    function _checkMissed(StockReefLens.AccountView memory v, address account, SessionRiskPolicy.Snapshot memory s)
+        internal
+        view
+    {
+        uint64 closeAt;
+        if (s.windDown) {
+            (, closeAt) = cal.sessionAt(cal.sessionCount() - 2);
+        } else if (s.covered && s.phase == SessionRiskPolicy.State.CLOSED) {
+            closeAt = s.close;
+        } else if (s.covered && s.phase == SessionRiskPolicy.State.REOPEN_WAIT && s.session != 0) {
+            (, closeAt) = cal.sessionAt(s.session - 1);
+        }
+        bool expected =
+            closeAt != 0 && v.debt != 0 && market.debtAt(account, closeAt) * WAD > s.ltWad * v.collateralValue;
+        assertEq(v.missedExecution, expected, "missedExecution");
         assertEq(v.exposure, v.missedExecution ? v.repayToTarget : 0, "exposure");
         if (v.missedExecution) assertGt(v.exposure, 0, "missed implies exposure");
     }
@@ -545,7 +618,15 @@ contract LensDifferentialTest is LensPropertyChecks {
             if (v.planTargetWad > escrow.MAX_TARGET()) return;
             _authorize(bob, v.planTargetWad, 10_000_000 * USDG, 10_000_000 * USDG, uint64(block.timestamp + 10 days));
             a = _view(bob);
-            if (noDust) assertEq(a.bufferCoverage, a.repayToTarget, "the escrow needs exactly repayToTarget");
+            if (noDust) {
+                // Coverage is sized at the next execution window: exactly repayToTarget while buffers run now,
+                // otherwise at least it, since interest to that window only adds.
+                if (policy.snapshot().canBuffer) {
+                    assertEq(a.bufferCoverage, a.repayToTarget, "the escrow needs exactly repayToTarget");
+                } else if (a.bufferCoverage != 0) {
+                    assertGe(a.bufferCoverage, a.repayToTarget, "interest to the next window only adds");
+                }
+            }
         } else if (how % 3 == 1) {
             if (!noDust) return; // INV-LENS-17: such a repayment reverts BelowMinimumLoan
             _repay(bob, v.repayToTarget);
@@ -627,10 +708,9 @@ contract LensWeekTest is LensPropertyChecks {
         assertFalse(x.missedExecution);
     }
 
-    /// INV-LENS-06, INV-LENS-08, mutant `s.session + 1 >= sessionCount -> s.session + 2 >= sessionCount`: across
-    /// the last three loaded sessions, their closures and wind-down, both window fields match their sources; half
-    /// the runs fall between the second-to-last session's A and the last open, where the snapshot is still covered
-    /// and the Lens projects the last session's window.
+    /// INV-LENS-06, INV-LENS-08: across the last three loaded sessions, their closures and wind-down, both window
+    /// fields match their sources; half the runs fall between the second-to-last session's A and the last open,
+    /// where the snapshot is still covered and the Lens projects no window, because the next session is wind-down.
     function testFuzz_lenderWindowAcrossTheEndOfCoverage(uint256 tSeed) public {
         uint256 n = cal.sessionCount();
         (uint64 first,) = cal.sessionAt(n - 3);
@@ -643,7 +723,8 @@ contract LensWeekTest is LensPropertyChecks {
         if (t >= close - SessionTiming.PREP && t < cal.lastOpen()) {
             assertTrue(m.policy.covered, "covered until the last open");
             assertEq(m.policy.session, n - 2);
-            assertGt(m.lenderWindowOpensAt, cal.lastOpen(), "the last session's window");
+            assertEq(m.lenderWindowOpensAt, 0, "no window: the next session is wind-down");
+            assertEq(m.lenderWindowClosesAt, 0, "no window: the next session is wind-down");
         }
         _checkAllAccountViews();
     }

@@ -42,6 +42,18 @@ contract MarketERC4626PropertiesTest is MarketFixture {
         assertEq(market.bookValuation().impaired, impair, "impairment as requested");
     }
 
+    /// @dev Appendix R21: while the book is impaired, deposits and mints are closed even in the lender window.
+    function _expectEntryClosedWhileImpaired() internal {
+        assertEq(market.maxDeposit(depositor), 0, "no deposits while impaired");
+        assertEq(market.maxMint(depositor), 0, "no mints while impaired");
+        vm.startPrank(depositor);
+        vm.expectRevert(abi.encodeWithSelector(ERC4626.ERC4626ExceededMaxDeposit.selector, depositor, 1, 0));
+        market.deposit(1, depositor);
+        vm.expectRevert(abi.encodeWithSelector(ERC4626.ERC4626ExceededMaxMint.selector, depositor, 1, 0));
+        market.mint(1, depositor);
+        vm.stopPrank();
+    }
+
     function _sharesFloor(uint256 assets) internal view returns (uint256) {
         return Math.mulDiv(assets, market.totalSupply() + OFFSET, market.totalAssets() + 1, Math.Rounding.Floor);
     }
@@ -96,6 +108,10 @@ contract MarketERC4626PropertiesTest is MarketFixture {
     /// INV-MKT-42, INV-MKT-56
     function testFuzz_deposit_mintsThePreviewAndMovesExactlyTheAssets(uint256 assets, uint256 dt, bool impair) public {
         _live(dt, impair);
+        if (impair) {
+            _expectEntryClosedWhileImpaired();
+            return;
+        }
         assets = bound(assets, 0, 5_000_000 * USDG);
         uint256 preview = market.previewDeposit(assets);
         uint256 cash0 = market.cash();
@@ -114,6 +130,10 @@ contract MarketERC4626PropertiesTest is MarketFixture {
     /// INV-MKT-42, INV-MKT-56
     function testFuzz_mint_chargesThePreview(uint256 shares, uint256 dt, bool impair) public {
         _live(dt, impair);
+        if (impair) {
+            _expectEntryClosedWhileImpaired();
+            return;
+        }
         shares = bound(shares, 0, 5_000_000 * USDG * OFFSET);
         uint256 preview = market.previewMint(shares);
         uint256 cash0 = market.cash();
@@ -164,6 +184,10 @@ contract MarketERC4626PropertiesTest is MarketFixture {
     /// INV-MKT-45
     function testFuzz_roundTrip_depositThenRedeem(uint256 assets, uint256 dt, bool impair) public {
         _live(dt, impair);
+        if (impair) {
+            _expectEntryClosedWhileImpaired();
+            return;
+        }
         assets = bound(assets, 0, 5_000_000 * USDG);
         vm.startPrank(depositor);
         uint256 shares = market.deposit(assets, depositor);
@@ -176,6 +200,10 @@ contract MarketERC4626PropertiesTest is MarketFixture {
     /// INV-MKT-45
     function testFuzz_roundTrip_depositThenWithdraw(uint256 assets, uint256 dt, bool impair) public {
         _live(dt, impair);
+        if (impair) {
+            _expectEntryClosedWhileImpaired();
+            return;
+        }
         assets = bound(assets, 0, 5_000_000 * USDG);
         vm.startPrank(depositor);
         uint256 minted = market.deposit(assets, depositor);
@@ -187,6 +215,10 @@ contract MarketERC4626PropertiesTest is MarketFixture {
     /// INV-MKT-45
     function testFuzz_roundTrip_mintThenRedeem(uint256 shares, uint256 dt, bool impair) public {
         _live(dt, impair);
+        if (impair) {
+            _expectEntryClosedWhileImpaired();
+            return;
+        }
         shares = bound(shares, 0, 5_000_000 * USDG * OFFSET);
         vm.startPrank(depositor);
         uint256 paid = market.mint(shares, depositor);
@@ -199,6 +231,10 @@ contract MarketERC4626PropertiesTest is MarketFixture {
     /// INV-MKT-45
     function testFuzz_roundTrip_mintThenWithdraw(uint256 shares, uint256 dt, bool impair) public {
         _live(dt, impair);
+        if (impair) {
+            _expectEntryClosedWhileImpaired();
+            return;
+        }
         shares = bound(shares, 0, 5_000_000 * USDG * OFFSET);
         vm.startPrank(depositor);
         uint256 paid = market.mint(shares, depositor);
@@ -211,6 +247,10 @@ contract MarketERC4626PropertiesTest is MarketFixture {
     /// INV-MKT-45
     function testFuzz_roundTrip_redeemThenDeposit(uint256 shares, uint256 dt, bool impair) public {
         _live(dt, impair);
+        if (impair) {
+            _expectEntryClosedWhileImpaired();
+            return;
+        }
         shares = bound(shares, 0, market.maxRedeem(depositor));
         vm.startPrank(depositor);
         uint256 assets = market.redeem(shares, depositor, depositor);
@@ -222,6 +262,10 @@ contract MarketERC4626PropertiesTest is MarketFixture {
     /// INV-MKT-45
     function testFuzz_roundTrip_redeemThenMint(uint256 shares, uint256 dt, bool impair) public {
         _live(dt, impair);
+        if (impair) {
+            _expectEntryClosedWhileImpaired();
+            return;
+        }
         shares = bound(shares, 0, market.maxRedeem(depositor));
         uint256 expectPaid = _assetsFloor(shares);
         vm.prank(depositor);
@@ -239,6 +283,10 @@ contract MarketERC4626PropertiesTest is MarketFixture {
     /// INV-MKT-45
     function testFuzz_roundTrip_withdrawThenMint(uint256 assets, uint256 dt, bool impair) public {
         _live(dt, impair);
+        if (impair) {
+            _expectEntryClosedWhileImpaired();
+            return;
+        }
         assets = bound(assets, 0, market.maxWithdraw(depositor));
         vm.startPrank(depositor);
         uint256 burned = market.withdraw(assets, depositor, depositor);
@@ -250,6 +298,10 @@ contract MarketERC4626PropertiesTest is MarketFixture {
     /// INV-MKT-45
     function testFuzz_roundTrip_withdrawThenDeposit(uint256 assets, uint256 dt, bool impair) public {
         _live(dt, impair);
+        if (impair) {
+            _expectEntryClosedWhileImpaired();
+            return;
+        }
         assets = bound(assets, 0, market.maxWithdraw(depositor));
         vm.startPrank(depositor);
         uint256 burned = market.withdraw(assets, depositor, depositor);
@@ -321,6 +373,10 @@ contract MarketERC4626PropertiesTest is MarketFixture {
     /// INV-MKT-41, INV-MKT-44
     function testFuzz_max_entryIsUnlimitedWhileOpen(uint256 assets, uint256 shares, uint256 dt, bool impair) public {
         _live(dt, impair);
+        if (impair) {
+            _expectEntryClosedWhileImpaired();
+            return;
+        }
         assertEq(market.maxDeposit(depositor), type(uint256).max);
         assertEq(market.maxMint(other), type(uint256).max);
         assets = bound(assets, 0, 40_000_000 * USDG);

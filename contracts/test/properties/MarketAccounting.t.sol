@@ -15,7 +15,7 @@ contract MarketAccountingPropertiesTest is MarketFixture {
     uint256 internal constant WAD = 1e18;
     uint256 internal constant SHARE_UNIT = 1e36;
     /// @dev Slot of StockReefMarket._activeSlot (forge inspect StockReefMarket storageLayout).
-    uint256 internal constant ACTIVE_SLOT_MAPPING = 11;
+    uint256 internal constant ACTIVE_SLOT_MAPPING = 10; // forge inspect StockReefMarket storageLayout
     /// @dev First clock offset from `epoch` at which expWad(RATE_PER_SECOND * dt) overflows (about 1353 years).
     uint256 internal constant INDEX_OVERFLOW_DT = 42_670_099_967;
 

@@ -163,6 +163,10 @@ contract EscrowProbeMarket {
         return collateral;
     }
 
+    function accountOf(address) external view returns (uint256, uint256, uint256) {
+        return (collateral, debt * 1e18, debt);
+    }
+
     function repay(uint256 amount, address account) external returns (uint256 paid) {
         seenAllowance = token.allowance(msg.sender, address(this));
         RepaymentEscrow.Plan memory p = RepaymentEscrow(msg.sender).planOf(account);
@@ -708,29 +712,35 @@ contract RepaymentEscrowTest is MarketFixture {
     /// INV-ESC-18; kills M12 (ownerRepay without the balance check)
     function test_ownerRepay_revertPaths() public {
         _aliceWithBuffer(1_000 * USDG, 100 * USDG);
-        vm.startPrank(alice);
+        vm.prank(alice);
         vm.expectRevert(RepaymentEscrow.ZeroAmount.selector);
         escrow.ownerRepay(0);
-        vm.expectRevert(
-            abi.encodeWithSelector(RepaymentEscrow.InsufficientBalance.selector, 1_000 * USDG + 1, 1_000 * USDG)
-        );
-        escrow.ownerRepay(1_000 * USDG + 1);
-        vm.stopPrank();
 
         _fund(carol, 10 * USDG); // no debt
         vm.prank(carol);
         vm.expectRevert(RepaymentEscrow.NothingToRepay.selector);
         escrow.ownerRepay(10 * USDG);
 
-        // Leaving non-zero debt below the minimum loan is rejected by the market and rolls back.
+        // `amount` is a cap (appendix R16): above the balance it spends the balance, never more.
+        uint256 debt = market.debtOf(alice);
+        vm.prank(alice);
+        assertEq(escrow.ownerRepay(1_000 * USDG + 1), 1_000 * USDG);
+        assertEq(escrow.planOf(alice).balance, 0);
+        assertApproxEqAbs(market.debtOf(alice), debt - 1_000 * USDG, 1);
+
+        // A cap that would leave non-zero debt below the minimum loan stops at the minimum instead.
         _fundCollateral(bob, 0.025e18);
         _borrow(bob, 7 * USDG);
         _fund(bob, 10 * USDG);
+        uint256 bobDebt = market.debtOf(bob);
         vm.prank(bob);
-        vm.expectPartialRevert(StockReefMarket.BelowMinimumLoan.selector);
-        escrow.ownerRepay(3 * USDG);
-        assertEq(escrow.planOf(bob).balance, 10 * USDG);
-        assertEq(escrow.planOf(alice).balance, 1_000 * USDG);
+        assertEq(escrow.ownerRepay(3 * USDG), bobDebt - MIN_LOAN);
+        assertEq(escrow.planOf(bob).balance, 10 * USDG - (bobDebt - MIN_LOAN));
+
+        // At the minimum, only clearing the whole debt is possible.
+        vm.prank(bob);
+        vm.expectRevert(RepaymentEscrow.NothingToRepay.selector);
+        escrow.ownerRepay(1 * USDG);
     }
 
     /// INV-ESC-18, INV-ESC-21
