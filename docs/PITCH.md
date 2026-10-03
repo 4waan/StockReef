@@ -43,7 +43,7 @@ still exists.
 > - a calendar of NYSE sessions verified on-chain;
 > - Chainlink feeds checked for freshness, issuer pauses and stock-split multipliers;
 > - real Paxos USDG on testnet;
-> - 149 tests, including a fork of mainnet with the real Tesla token.
+> - 535 tests, including a fork of mainnet with the real Tesla token.
 >
 > Stock markets close. Loans don't. StockReef gets the debt ready before the bell.
 
@@ -66,7 +66,7 @@ Every step on camera is one click in **Operations → Demo controls**, which is 
 | 1:10 | Click **45 min before close**. B's row shows *Trim now*; the keeper trims; receipt appears on B's loan | "Bob didn't prepare. The threshold has fallen past his loan, so a liquidator repays part of his debt at the current price and takes collateral with a 2% bonus. Bob is back at 65% before the bell." |
 | 1:40 | Click **Close + 1 h**. State: Market closed. Borrow is disabled. Operations: *Missed execution: 1*. C's banner shows the exposure | "The market closes. New borrowing stops. Carol had no buffer and nobody acted, so StockReef detects it and reports the exact exposure. It doesn't paint a green badge on it." |
 | 2:05 | Click **Next open + 1 min** (price −6%), then **+5 min**. State: waiting, then recovery; C's recovery trim lands | "Monday. The first price must be published after the open. Once it's admitted, recovery trims run before anyone can borrow again." |
-| 2:30 | Click **+15 min**. State: Open. Evidence view | "Credit returns. Every number here comes from a committed script or test: 149 tests, a fork of mainnet with the real Tesla token, and a scenario harness against fixed-limit lenders." |
+| 2:30 | Click **+15 min**. State: Open. Evidence view | "Credit returns. Every number here comes from a committed script or test: 535 tests, a fork of mainnet with the real Tesla token, and a scenario harness against fixed-limit lenders." |
 | 2:50 | Title card | "Stock markets close. Loans don't. StockReef." |
 
 ## Likely questions

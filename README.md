@@ -46,13 +46,13 @@ timezone data and checked on-chain.
 | Part | Path | Notes |
 |---|---|---|
 | Contracts | `contracts/src` | SessionCalendar, PriceGate, SessionRiskPolicy, StockReefMarket (ERC-4626 lender shares), RepaymentEscrow, StockReefLens; demo clock and feed for the testnet |
-| Tests | `contracts/test` | 149 tests: unit and fuzz tests, a market invariant suite, and a fork suite against Robinhood Chain mainnet |
+| Tests | `contracts/test` | 535 tests: unit, fuzz and property tests, invariant suites for the market, escrow and gate, regression tests for every audit fix, and a fork suite against Robinhood Chain mainnet |
 | Keeper | `ops/keeper` | Refreshes the gate, runs funded buffers, simulates and sends capital-funded trims, reports exposure |
 | Web app | `app` | Next.js. My loan, Lend, Operations (with labelled demo controls), Evidence |
 | Calendar and golden values | `tools/calendar`, `tools/golden` | Exact rational arithmetic, independent of the Solidity code |
 | Scenario harness | `tools/scenarios` | Baselines against gaps, ramps and repeated sessions |
 | Specification | `docs/SPEC.md` | The product decisions, with a reconciliation appendix |
-| Security notes | `docs/SECURITY.md` | Trust boundaries, permission map, invariants, Slither triage |
+| Security notes | `docs/SECURITY.md` | Trust boundaries, permission map, invariants, audit findings and fixes, mutation and Slither results |
 
 ## Evidence
 
@@ -71,7 +71,7 @@ Every number below is reproduced by a committed script or test.
 
   The liquidator who held trimmed collateral through that gap loses 741.54, and the table shows it. On an unchanged weekend the unmanaged loan pays a 5% recovery bonus at the reopening, where a fixed 80% lender would not act. That is the cost of the policy, shown rather than hidden.
 - **Mainnet fork** (`contracts/test/fork`, `evidence/fork-4663.json`). The real TSLA Stock Token, Paxos USDG and Chainlink feeds at a pinned block pass every gate check. Reopening admission works on a live round, and the real tokens move through the market with exact amounts.
-- **Gas at the 32-account cap** (`evidence/gas.json`): borrowing about 470k, a lender deposit about 520k.
+- **Gas at the 32-account cap** (`evidence/gas.json`): borrowing about 470k, a lender deposit about 390k.
 
 ## Run it locally
 
