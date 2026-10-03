@@ -125,7 +125,7 @@ function ClosurePlan({ v, s, phase }: { v: View; s: Market['policy']; phase: str
             .
           </p>
           <p className="mt-1 text-xs text-faint">
-            Either keeps your collateral. A funded buffer can do the repayment for you during preparation.
+            Either keeps your collateral. A funded buffer can do the repayment for you during preparation or reopening recovery.
           </p>
         </div>
       ) : (
@@ -148,6 +148,12 @@ function ClosurePlan({ v, s, phase }: { v: View; s: Market['policy']; phase: str
           </p>
         ) : (
           <p className="mt-1">Your loan stays under the closing threshold at today’s price: it enters the closure as it is, with no trim.</p>
+        )}
+        {beforeClose && v.projectedDebtAtReopen > 0n && (
+          <p className="mt-1 text-xs text-muted">
+            At the reopening, interest brings the debt to <b className="num">{usdg(v.projectedDebtAtReopen)} USDG</b>
+            {v.trimmableAtReopen ? ': above the closing threshold at today’s price, so a recovery trim could follow.' : ': still under the closing threshold at today’s price.'}
+          </p>
         )}
       </div>
     </div>
@@ -186,7 +192,7 @@ function BufferCard({ account, own, v }: { account: Address; own: boolean; v: Vi
     <Card title="Repayment buffer" aside={v.bufferCommitted ? <Badge tone="prep">Committed</Badge> : v.bufferActive ? <Badge tone="ok">Authorized</Badge> : <Badge tone="closed">Not set</Badge>}>
       <div className="grid grid-cols-3 gap-4">
         <Stat label="Escrowed" value={`${usdg(p.balance)}`} sub="USDG, yours" />
-        <Stat label="Would repay" value={`${usdg(v.bufferCoverage)}`} sub="USDG in preparation" />
+        <Stat label="Would repay" value={`${usdg(v.bufferCoverage)}`} sub="USDG at the next window" />
         <Stat label="Target" value={p.targetWad > 0n ? pct(p.targetWad, 0) : '—'} sub={p.expiry > 0n ? `until ${nyTime(p.expiry)}` : undefined} />
       </div>
       <p className="mt-3 text-xs text-faint">
@@ -214,7 +220,7 @@ function BufferCard({ account, own, v }: { account: Address; own: boolean; v: Vi
                   args: [650000000000000000n, p.balance > 0n ? p.balance : 10_000_000n, expiry],
                 })
               }
-              title="Authorize repayment toward 65% during preparation, for 30 days"
+              title="Authorize repayment toward 65% during preparation and reopening recovery, for 30 days"
             >
               Authorize 65% plan
             </Button>

@@ -8,7 +8,7 @@ export const STATE_COPY: Record<StateName, { label: string; meaning: string; ton
   FINAL_WINDOW: { label: 'Final window', meaning: 'No new borrowing. Last chance for buffers and trims before the close.', tone: 'final' },
   CLOSED: { label: 'Market closed', meaning: 'No new borrowing and no price-dependent actions. Repay and add collateral any time.', tone: 'closed' },
   REOPEN_WAIT: { label: 'Waiting for a fresh price', meaning: 'Reopened. A regular-session price must arrive before anything price-dependent runs.', tone: 'closed' },
-  REOPEN_RECOVERY: { label: 'Reopening recovery', meaning: 'Fresh price admitted. Recovery trims may run; credit returns after the recovery window.', tone: 'final' },
+  REOPEN_RECOVERY: { label: 'Reopening recovery', meaning: 'Fresh price admitted. Funded buffers run first, then recovery trims may run; credit returns after the recovery window.', tone: 'final' },
   GUARDED: { label: 'Guarded', meaning: 'Price unusable, guardian stop, or outside the calendar. Repay and add collateral still work.', tone: 'guarded' },
 }
 
