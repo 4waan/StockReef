@@ -43,8 +43,13 @@ export function PriceStrip({ prices, current, x0, x1, now, priceWad, indicative 
   const hi0 = values.length ? Math.max(...values) : current * 1.01
   const pad = Math.max((hi0 - lo0) * 0.15, current * 0.004)
   const ticks = niceTicks(lo0 - pad, hi0 + pad, 4)
-  const lo = Math.min(lo0 - pad, ticks[0])
-  const hi = Math.max(hi0 + pad, ticks[ticks.length - 1])
+  let lo = Math.min(lo0 - pad, ticks[0])
+  let hi = Math.max(hi0 + pad, ticks[ticks.length - 1])
+  // No price yet (or one flat value at zero): give the axis some height instead of dividing by zero.
+  if (!(hi > lo)) {
+    lo -= 1
+    hi += 1
+  }
   const w = Math.max(0, width - PAD.l - PAD.r)
   const x = (t: number) => PAD.l + ((t - x0) / (x1 - x0)) * w
   const y = (p: number) => PAD.t + (1 - (p - lo) / (hi - lo)) * (H - PAD.t - PAD.b)
@@ -69,14 +74,15 @@ export function PriceStrip({ prices, current, x0, x1, now, priceWad, indicative 
             </defs>
             <line x1={PAD.l} x2={width - PAD.r} y1={H - PAD.b} y2={H - PAD.b} stroke="#3a3f46" />
             <line x1={width - PAD.r + 8} x2={width - PAD.r + 8} y1={PAD.t - 6} y2={H - PAD.b} stroke="#3a3f46" />
-            {ticks.map(v => (
+            {series.length > 0 &&
+              ticks.map(v => (
               <g key={v}>
                 <line x1={width - PAD.r + 8} x2={width - PAD.r + 12} y1={y(v)} y2={y(v)} stroke="#3a3f46" />
                 <text x={width - PAD.r + 16} y={y(v) + 4} className="num fill-dk-muted text-[11px]">
                   {v.toFixed(v < 100 ? 2 : 0)}
                 </text>
               </g>
-            ))}
+              ))}
             {quarterTicks(x0, x1).map(t => (
               <text key={t} x={x(t)} y={H - 6} textAnchor="middle" className="num fill-dk-muted text-[11px]">
                 {nyClock(t)}

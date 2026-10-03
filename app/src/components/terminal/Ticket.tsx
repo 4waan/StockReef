@@ -467,7 +467,7 @@ function BufferForm({ account, canSign, signHint, v, m, k, now, usdgWallet }: Ct
         />
       </div>
       {mode === 'fund' && <FundBuffer account={account} canSign={canSign} signHint={signHint} wallet={usdgWallet} />}
-      {mode === 'plan' && <AuthorizeBuffer canSign={canSign} signHint={signHint} v={v} k={k} now={now} />}
+      {mode === 'plan' && <AuthorizeBuffer key={account} canSign={canSign} signHint={signHint} v={v} k={k} now={now} />}
       {mode === 'withdraw' && <WithdrawBuffer account={account} canSign={canSign} signHint={signHint} v={v} />}
       <Note>
         Escrow is your money, kept apart from lender liquidity. It earns no yield. During preparation anyone can run your plan, within its target and per-session cap. It repays debt

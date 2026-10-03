@@ -114,7 +114,7 @@ export function ExposureChart({
       position.push({ t: end, v: ltvNow })
     }
   }
-  const callouts = inWindow.filter(e => CALLOUT[e.kind] && e.ltvAfter !== undefined).slice(-2)
+  const callouts = inWindow.filter(e => CALLOUT[e.kind] && e.ltvAfter !== undefined)
 
   // Price mode: prices against the liquidation price debt / (collateral × LT(t)) for today's debt and collateral.
   const priceSeries = stepSeries(prices, x0, end, currentPrice)
@@ -141,6 +141,10 @@ export function ExposureChart({
     hi = Math.max(b + pad, ticks[ticks.length - 1])
   }
 
+  if (!(hi > lo)) {
+    lo -= 1
+    hi += 1
+  }
   const w = Math.max(0, width - PAD.l - PAD.r)
   const ih = H - PAD.t - PAD.b
   const x = (t: number) => PAD.l + ((t - x0) / (x1 - x0)) * w
