@@ -23,6 +23,24 @@
   --color-guarded-soft: #fdecea;
   --color-sim: #6b3fa0;
   --color-sim-soft: #f1ebf8;
+
+  /* Trading view (dark), from the mockup. Money green is the primary; amber only marks the threshold. */
+  --color-dk-bg: #0f1114;
+  --color-dk-panel: #14171b;
+  --color-dk-raised: #1a1e23;
+  --color-dk-line: #262a30;
+  --color-dk-ink: #e8eaed;
+  --color-dk-muted: #9097a0;
+  --color-dk-faint: #5f666f;
+  --color-dk-up: #3ecf8e;
+  --color-dk-down: #f0585e;
+  --color-dk-warn: #f2b84b;
+  --color-dk-sim: #a48bf0;
+
+  /* Brand, from the logo sheet: burnt orange for the mark and accents only, cream and charcoal for the landing page. */
+  --color-brand: #c56430;
+  --color-cream: #fcfbf4;
+  --color-charcoal: #2c2e32;
 }
 
 html,
@@ -32,6 +50,5 @@ body {
 }
 
 .num {
-  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }

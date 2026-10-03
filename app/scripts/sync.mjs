@@ -17,6 +17,7 @@ const abis = {
   escrowAbi: 'RepaymentEscrow',
   gateAbi: 'PriceGate',
   demoAbi: 'DemoController',
+  policyAbi: 'SessionRiskPolicy',
   erc20Abi: 'MockUSDG',
 }
 let abiTs = header
@@ -29,7 +30,14 @@ writeFileSync(join(out, 'abi.ts'), abiTs)
 const deployments = {}
 for (const f of readdirSync(join(repo, 'deployments'))) {
   const m = f.match(/^addresses\.(\d+)\.json$/)
-  if (m) deployments[m[1]] = JSON.parse(readFileSync(join(repo, 'deployments', f), 'utf8'))
+  if (!m) continue
+  deployments[m[1]] = JSON.parse(readFileSync(join(repo, 'deployments', f), 'utf8'))
+  // The first deployment block, from the deployment evidence, so the app reads logs from there and no earlier.
+  const evidenceFile = join(repo, 'evidence', `deploy-${m[1]}.json`)
+  if (existsSync(evidenceFile)) {
+    const blocks = (JSON.parse(readFileSync(evidenceFile, 'utf8')).transactions ?? []).map(t => t.blockNumber).filter(Number.isInteger)
+    if (blocks.length) deployments[m[1]].deployBlock = Math.min(...blocks)
+  }
 }
 writeFileSync(join(out, 'deployments.ts'), `${header}export const deployments: Record<string, Record<string, string | number>> = ${JSON.stringify(deployments, null, 1)}\n`)
 

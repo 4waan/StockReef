@@ -178,7 +178,17 @@ RPC_URL=http://127.0.0.1:8545 npm run keeper -- once
 
 The command above simulates only. For execution, configure `KEEPER_KEY` and a USDG-funded `LIQUIDATOR_KEY` from the [environment template](ops/keeper/.env.example), then run `npm run keeper -- watch --execute`. Load those environment variables in the shell that runs the keeper; its entry point does not automatically load `.env` files. Use test accounts locally; never commit keys.
 
-The app has **My loan**, **Lend**, **Operations**, and **Evidence** views. The scripted run completes the whole closure cycle; the next cycle can be stepped through with the operator-only demo controls. Advancing the clock does not itself execute buffers or trims; the keeper or a caller must submit those transactions.
+The app opens on a landing page and has five views:
+
+| View | What it does |
+|---|---|
+| **Trade** (`/trade`) | Borrow, repay, add or withdraw collateral, and fund or authorize a repayment buffer. Charts the loan's LTV against the falling threshold for the session, with each execution marked. |
+| **Earn** (`/earn`) | Lender deposits (slippage-checked), withdrawals and redemptions, the lender window, and the book valuation. |
+| **Portfolio** (`/portfolio`) | One account's loan, buffer, lending, wallet, interest accrued, and full history. |
+| **Operations** (`/operations`) | Keeper queue, buffer runs, trims, missed execution, the price gate and its log, the guardian stop, and the operator-only demo controls. |
+| **Evidence** (`/evidence`) | The worked example, the scripted demo, the scenario harness, and the testnet deployment. |
+
+Set `NEXT_PUBLIC_DEMO_ACCOUNTS` to label the seeded accounts; they then appear in the status bar's scenario picker. The scripted run completes the whole closure cycle; the next cycle can be stepped through with the operator-only demo controls. Advancing the clock does not itself execute buffers or trims; the keeper or a caller must submit those transactions.
 
 ## Robinhood Chain configuration
 
@@ -200,6 +210,16 @@ forge script script/Deploy.s.sol --rpc-url https://rpc.testnet.chain.robinhood.c
 ```
 
 For the testnet demo, fund the actor wallets and set `OPERATOR_KEY`, `ALICE_KEY`, `BOB_KEY`, `CAROL_KEY`, and `LIQUIDATOR_KEY` before running `DemoRun.s.sol`. Sync the app and configure its [environment](app/.env.example) for chain `46630`.
+
+To host the app on Vercel, import the repository with **Root Directory** `app`, the Next.js preset, and these environment variables:
+
+```
+NEXT_PUBLIC_CHAIN_ID=46630
+NEXT_PUBLIC_RPC_URL=https://rpc.testnet.chain.robinhood.com
+NEXT_PUBLIC_DEMO_ACCOUNTS=Funded buffer (A):0x…,Trimmed (B):0x…,Untouched (C):0x…
+```
+
+The app reads its history from the deployment block recorded in `evidence/deploy-46630.json`, so no indexer is needed.
 
 The separate [mainnet fork manifest](deployments/manifest.4663-fork.json) uses stock and USDG price feeds with a block clock. Neither configuration establishes production economic safety.
 

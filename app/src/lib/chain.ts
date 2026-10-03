@@ -20,9 +20,11 @@ export interface Contracts {
   market: Address
   escrow: Address
   gate: Address
+  policy: Address
   demoController: Address
   loanToken: Address
   collateralToken: Address
+  deployBlock: bigint // first deployment block; logs are read from here
 }
 
 const raw = deployments[String(chainId)]
@@ -32,9 +34,11 @@ export const contracts: Contracts | undefined = raw
       market: raw.market as Address,
       escrow: raw.escrow as Address,
       gate: raw.gate as Address,
+      policy: raw.policy as Address,
       demoController: raw.demoController as Address,
       loanToken: raw.loanToken as Address,
       collateralToken: raw.collateralToken as Address,
+      deployBlock: BigInt(raw.deployBlock ?? 0),
     }
   : undefined
 

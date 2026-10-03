@@ -66,3 +66,33 @@ export function duration(seconds: bigint | number): string {
   if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`
   return `${m}m ${String(sec).padStart(2, '0')}s`
 }
+
+const nyClockFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hour12: false })
+const nyClockSecFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+
+/** A protocol time as a New York wall clock, "14:32" or "14:30:08". */
+export function nyClock(t: bigint | number | undefined, seconds = false): string {
+  if (t === undefined || Number(t) === 0) return '—'
+  return (seconds ? nyClockSecFmt : nyClockFmt).format(new Date(Number(t) * 1000))
+}
+
+/** A countdown as "01:28" (hours:minutes), or "3d 04h" beyond a day. */
+export function hhmm(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds))
+  const d = Math.floor(s / 86400)
+  const h = Math.floor((s % 86400) / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  if (d > 0) return `${d}d ${String(h).padStart(2, '0')}h`
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+/** A fraction (0.65) as a percentage ("65.0%"). */
+export function pctOf(f: number | undefined, digits = 1): string {
+  if (f === undefined || !Number.isFinite(f)) return '—'
+  return `${(f * 100).toFixed(digits)}%`
+}
+
+/** A WAD ratio as a fraction. */
+export function frac(v: bigint): number {
+  return Number(v) / 1e18
+}
