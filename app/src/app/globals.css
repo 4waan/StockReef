@@ -36,6 +36,11 @@
   --color-dk-down: #f0585e;
   --color-dk-warn: #f2b84b;
   --color-dk-sim: #a48bf0;
+
+  /* Brand, from the logo sheet: burnt orange for the mark and accents only, cream and charcoal for the landing page. */
+  --color-brand: #c56430;
+  --color-cream: #fcfbf4;
+  --color-charcoal: #2c2e32;
 }
 
 html,
@@ -45,11 +50,5 @@ body {
 }
 
 .num {
-  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-}
-
-/* The trading view prints numbers in the sans face with tabular figures, as in the mockup. */
-.terminal .num {
-  font-family: var(--font-sans);
 }

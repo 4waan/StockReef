@@ -51,7 +51,7 @@ export function Ticket({ tab, onTab, ...ctx }: Ctx & { tab: TicketTab; onTab: (t
 
 // ------------------------------------------------------------------ shared pieces
 
-function useAmount(decimals: number, mined?: string) {
+export function useAmount(decimals: number, mined?: string) {
   const [text, setText] = useState('')
   const [isMax, setIsMax] = useState(false)
   useEffect(() => {
@@ -85,7 +85,7 @@ function useAmount(decimals: number, mined?: string) {
   }
 }
 
-function trim(s: string, digits: number) {
+export function trim(s: string, digits: number) {
   const [i, f = ''] = s.split('.')
   const cut = f.slice(0, digits).replace(/0+$/, '')
   return cut ? `${i}.${cut}` : i
@@ -100,7 +100,7 @@ function Head({ title, aside }: { title: string; aside?: ReactNode }) {
   )
 }
 
-function AmountBox({ value, onChange, unit, disabled }: { value: string; onChange: (s: string) => void; unit: string; disabled?: boolean }) {
+export function AmountBox({ value, onChange, unit, disabled }: { value: string; onChange: (s: string) => void; unit: string; disabled?: boolean }) {
   return (
     <div className="flex items-center rounded-md border border-dk-line bg-dk-bg px-4 focus-within:border-dk-muted">
       <input
@@ -116,7 +116,7 @@ function AmountBox({ value, onChange, unit, disabled }: { value: string; onChang
   )
 }
 
-function Chips({ max, onPick, disabled }: { max: bigint; onPick: (v: bigint, isMax: boolean) => void; disabled?: boolean }) {
+export function Chips({ max, onPick, disabled }: { max: bigint; onPick: (v: bigint, isMax: boolean) => void; disabled?: boolean }) {
   return (
     <div className="mt-3 grid grid-cols-4 gap-2">
       {[25n, 50n, 75n, 100n].map(p => (
@@ -134,7 +134,7 @@ function Chips({ max, onPick, disabled }: { max: bigint; onPick: (v: bigint, isM
   )
 }
 
-function Submit({ label, disabled, onClick }: { label: string; disabled: boolean; onClick: () => void }) {
+export function Submit({ label, disabled, onClick }: { label: string; disabled: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
@@ -147,7 +147,7 @@ function Submit({ label, disabled, onClick }: { label: string; disabled: boolean
   )
 }
 
-function Note({ children, tone }: { children: ReactNode; tone?: 'warn' | 'down' }) {
+export function Note({ children, tone }: { children: ReactNode; tone?: 'warn' | 'down' }) {
   const c = tone === 'warn' ? 'text-dk-warn' : tone === 'down' ? 'text-dk-down' : 'text-dk-faint'
   return <p className={`mt-2 text-sm ${c}`}>{children}</p>
 }

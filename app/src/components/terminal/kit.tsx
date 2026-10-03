@@ -197,3 +197,29 @@ export function niceTicks(lo: number, hi: number, count = 4): number[] {
   for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(Number(v.toFixed(10)))
   return out
 }
+
+/** A titled block on the app's dark pages. */
+export function Panel({ title, aside, children, className = '' }: { title?: ReactNode; aside?: ReactNode; children: ReactNode; className?: string }) {
+  return (
+    <section className={`border-b border-dk-line px-5 py-4 ${className}`}>
+      {(title || aside) && (
+        <header className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          {title && <h2 className="text-lg font-semibold">{title}</h2>}
+          {aside}
+        </header>
+      )}
+      {children}
+    </section>
+  )
+}
+
+/** A labelled number, as in the trading view's KPI row. */
+export function Metric({ label, value, sub, tone = '', big = false }: { label: ReactNode; value: ReactNode; sub?: ReactNode; tone?: string; big?: boolean }) {
+  return (
+    <div>
+      <div className="text-sm text-dk-muted">{label}</div>
+      <div className={`num mt-0.5 font-semibold ${big ? 'text-[28px] leading-tight' : 'text-lg'} ${tone}`}>{value}</div>
+      {sub && <div className="mt-0.5 text-xs text-dk-faint">{sub}</div>}
+    </div>
+  )
+}

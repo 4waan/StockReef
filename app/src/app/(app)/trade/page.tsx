@@ -1,8 +1,6 @@
 'use client'
 
-import { Suspense, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { isAddress, type Address } from 'viem'
+import { useState } from 'react'
 import { useAccount } from 'wagmi'
 import { Alerts } from '@/components/terminal/Alerts'
 import { Automation } from '@/components/terminal/Automation'
@@ -10,31 +8,17 @@ import { BottomTabs } from '@/components/terminal/BottomTabs'
 import { ExposureChart, type ChartMode, type ChartWindow } from '@/components/terminal/ExposureChart'
 import { Kpis } from '@/components/terminal/Kpis'
 import { PriceStrip } from '@/components/terminal/PriceStrip'
-import { StatusBar } from '@/components/terminal/StatusBar'
 import { Ticker } from '@/components/terminal/Ticker'
 import { Ticket, type TicketTab } from '@/components/terminal/Ticket'
-import { TopBar } from '@/components/terminal/TopBar'
-import { chain, contracts, demoAccounts } from '@/lib/chain'
-import { short } from '@/lib/format'
+import { chain, contracts } from '@/lib/chain'
 import { useHistory } from '@/lib/history'
 import { stateName } from '@/lib/policy'
+import { useViewing } from '@/lib/viewing'
 import { useAccountView, useActiveAccounts, useDemoOperator, useLtCurve, useMarketView, useProtocolConstants, useProtocolNow, useTokenBalance } from '@/lib/hooks'
 
 export default function TradePage() {
-  return (
-    <Suspense>
-      <Trade />
-    </Suspense>
-  )
-}
-
-function Trade() {
   const { address, chainId, isConnected } = useAccount()
-  const params = useSearchParams()
-  const fromQuery = params.get('account')
-  const [picked, setPicked] = useState<Address>()
-  const viewing: Address | undefined = picked ?? (fromQuery && isAddress(fromQuery) ? fromQuery : address)
-  const own = !!address && viewing?.toLowerCase() === address.toLowerCase()
+  const { viewing, own, label, pick } = useViewing()
 
   const { data: m } = useMarketView()
   const { data: v } = useAccountView(viewing)
@@ -42,7 +26,7 @@ function Trade() {
   const { isOperator } = useDemoOperator()
   const { data: k } = useProtocolConstants()
   const now = useProtocolNow(m?.policy.time)
-  const { data: history, error: historyError } = useHistory(viewing, v?.collateral)
+  const { data: history } = useHistory(viewing, v?.collateral)
   const { data: usdgWallet } = useTokenBalance(contracts?.loanToken, own ? address : undefined)
   const { data: tslaWallet } = useTokenBalance(contracts?.collateralToken, own ? address : undefined)
 
@@ -63,26 +47,11 @@ function Trade() {
   const reopenUntil = s && reopening ? Math.max(Number(s.creditAt), now ?? 0, Number(s.open) + 900) : undefined
   const curve = reopenUntil !== undefined && ramp && s ? [{ t: x0, lt: s.ltWad }, { t: reopenUntil, lt: s.ltWad }, { t: reopenUntil + 1, lt: ramp.find(p => p.t > reopenUntil)?.lt ?? ramp[0].lt }, ...ramp.filter(p => p.t > reopenUntil + 1)] : ramp
 
-  if (!contracts) {
-    return (
-      <>
-        <TopBar active="lend" simulation={false} />
-        <p className="px-5 py-10 text-dk-muted">No StockReef deployment is configured for {chain.name} yet.</p>
-      </>
-    )
-  }
-  if (!m || !s || now === undefined) {
-    return (
-      <>
-        <TopBar active="lend" simulation={false} />
-        <p className="px-5 py-10 text-dk-muted">Reading the market…</p>
-      </>
-    )
-  }
+  if (!contracts) return <p className="px-5 py-10 text-dk-muted">No StockReef deployment is configured for {chain.name} yet.</p>
+  if (!m || !s || now === undefined) return <p className="px-5 py-10 text-dk-muted">Reading the market…</p>
 
-  const demoLabel = demoAccounts.find(d => viewing && d.address.toLowerCase() === viewing.toLowerCase())?.label
   const canSign = own && isConnected && chainId === chain.id
-  const signHint = !isConnected ? 'Connect wallet' : chainId !== chain.id ? `Switch to ${chain.name}` : `Read-only: viewing ${demoLabel ?? (viewing ? short(viewing) : '')}`
+  const signHint = !isConnected ? 'Connect wallet' : chainId !== chain.id ? `Switch to ${chain.name}` : `Read-only: viewing ${label ?? ''}`
   const items = history?.items ?? []
   const prices = history?.prices ?? []
   const current = Number(m.valuationPriceWad) / 1e18
@@ -90,8 +59,7 @@ function Trade() {
   const positions = isOperator && active ? active : v && (v.debt > 0n || v.collateral > 0n) ? [v] : []
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <TopBar active="lend" simulation={m.simulationClock} />
+    <div className="flex flex-1 flex-col">
       <Ticker m={m} now={now} prices={prices} />
       <Alerts m={m} v={v} />
       <div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_440px]">
@@ -118,9 +86,9 @@ function Trade() {
           <div className="lg:absolute lg:inset-0 lg:overflow-y-auto">
           {viewing && !own && (
             <p className="border-b border-dk-line px-6 py-2 text-sm text-dk-muted">
-              Viewing {demoLabel ?? short(viewing)} · read only
+              Viewing {label} · read only
               {address && (
-                <button type="button" onClick={() => setPicked(address)} className="ml-2 text-dk-up hover:underline">
+                <button type="button" onClick={() => pick(address)} className="ml-2 text-dk-up hover:underline">
                   Back to your loan
                 </button>
               )}
@@ -131,8 +99,7 @@ function Trade() {
           </div>
         </aside>
       </div>
-      <BottomTabs positions={positions} s={s} items={items} viewing={viewing} onView={setPicked} />
-      <StatusBar m={m} now={now} gate={history?.gate ?? []} feedDecimals={history?.feedDecimals ?? 8} historyError={!!historyError} viewing={viewing} onView={setPicked} />
+      <BottomTabs positions={positions} s={s} items={items} viewing={viewing} onView={pick} />
     </div>
   )
 }

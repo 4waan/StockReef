@@ -5,7 +5,11 @@ import { GeistMono } from 'geist/font/mono'
 import { Providers } from '@/components/Providers'
 import './globals.css'
 
+// Vercel sets VERCEL_PROJECT_PRODUCTION_URL; locally the preview image resolves against localhost.
+const site = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(site),
   title: 'StockReef',
   description: 'Stock markets close. Loans don’t. Automatic risk control for tokenized stock borrowers and USDG lenders on Robinhood Chain.',
 }

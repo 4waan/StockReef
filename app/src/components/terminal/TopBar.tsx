@@ -1,34 +1,47 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi'
 import { chain } from '@/lib/chain'
 import { short } from '@/lib/format'
+import { useMarketView } from '@/lib/hooks'
+import { Logo } from '@/components/brand/Logo'
 import { Chevron } from './kit'
 
-// Labels as in the mockup. Only one market exists, so Markets and Lend both open the trading view for now.
 const NAV = [
-  { key: 'markets', label: 'Markets', href: '/trade' },
-  { key: 'portfolio', label: 'Portfolio', href: '/' },
-  { key: 'lend', label: 'Lend', href: '/trade' },
+  { label: 'Trade', href: '/trade' },
+  { label: 'Earn', href: '/earn' },
+  { label: 'Portfolio', href: '/portfolio' },
+  { label: 'Operations', href: '/operations' },
+  { label: 'Evidence', href: '/evidence' },
 ] as const
 
-export function TopBar({ active, simulation }: { active: (typeof NAV)[number]['key']; simulation: boolean }) {
+export function TopBar() {
+  const path = usePathname()
+  const { data: m } = useMarketView()
   return (
     <header className="flex min-h-12 flex-wrap items-stretch gap-y-2 border-b border-dk-line px-5 py-0 max-lg:py-2">
-      <Link href="/" className="mr-10 flex items-center text-xl font-bold tracking-tight max-sm:mr-5">
-        StockReef
+      <Link href="/" className="mr-10 flex items-center max-sm:mr-5" aria-label="StockReef home">
+        <Logo markClassName="h-6 w-auto text-brand" wordClassName="text-xl" />
       </Link>
-      <nav className="flex items-stretch gap-8 max-sm:gap-4">
-        {NAV.map(n => (
-          <Link key={n.key} href={n.href} className={`relative flex items-center text-[15px] ${active === n.key ? 'text-dk-ink' : 'text-dk-muted hover:text-dk-ink'}`}>
-            {n.label}
-            {active === n.key && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-dk-up" />}
-          </Link>
-        ))}
+      <nav className="flex items-stretch gap-7 overflow-x-auto max-sm:gap-4" aria-label="Main">
+        {NAV.map(n => {
+          const active = path === n.href || path.startsWith(`${n.href}/`)
+          return (
+            <Link key={n.href} href={n.href} aria-current={active ? 'page' : undefined} className={`relative flex items-center text-[15px] whitespace-nowrap ${active ? 'text-dk-ink' : 'text-dk-muted hover:text-dk-ink'}`}>
+              {n.label}
+              {active && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-dk-up" />}
+            </Link>
+          )
+        })}
       </nav>
       <div className="ml-auto flex flex-wrap items-center gap-4 max-sm:gap-3">
-        {simulation && <span className="rounded border border-dk-warn px-2.5 py-0.5 text-sm font-medium text-dk-warn">DEMO</span>}
+        {m?.simulationClock && (
+          <span className="rounded border border-dk-warn px-2.5 py-0.5 text-sm font-medium text-dk-warn" title="Simulated TSLA price and market clock">
+            DEMO
+          </span>
+        )}
         <Network />
         <span className="h-6 w-px bg-dk-line" />
         <Wallet />
