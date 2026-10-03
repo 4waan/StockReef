@@ -94,7 +94,10 @@ contract Deploy is Script {
     }
 
     function _resolveTokens(Deployed memory d, address deployer) internal {
+        // Deployer-issued mock tokens exist only on the local chain and Robinhood Chain testnet (appendix R22).
+        bool testChain = block.chainid == 31337 || block.chainid == 46630;
         if (_eq(vm.parseJsonString(manifest, ".loanToken.address"), "mock")) {
+            require(testChain, "mock tokens are only deployed on test chains");
             MockUSDG usdg = new MockUSDG();
             usdg.mint(deployer, 1_000_000e6);
             d.loanToken = address(usdg);
@@ -102,6 +105,7 @@ contract Deploy is Script {
             d.loanToken = vm.parseJsonAddress(manifest, ".loanToken.address");
         }
         if (_eq(vm.parseJsonString(manifest, ".collateralToken.address"), "mock")) {
+            require(testChain, "mock tokens are only deployed on test chains");
             MockStockToken tsla = new MockStockToken(
                 "Tesla Stock Token (mock)", "TSLA", vm.parseJsonBool(manifest, ".collateralToken.pauseFlagRequired")
             );

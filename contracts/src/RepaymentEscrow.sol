@@ -3,20 +3,23 @@ pragma solidity 0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ReentrancyGuardTransient} from "@openzeppelin/contracts/utils/ReentrancyGuardTransient.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {IClock} from "./interfaces/IClock.sol";
 import {PriceGate} from "./PriceGate.sol";
 import {SessionRiskPolicy} from "./SessionRiskPolicy.sol";
 import {StockReefMarket} from "./StockReefMarket.sol";
+import {SessionRules} from "./libraries/SessionRules.sol";
+import {StockReefMath} from "./libraries/StockReefMath.sol";
 
 /// @title RepaymentEscrow
 /// @notice Holds loan tokens (USDG) that borrowers set aside to repay their own debt before a close
 /// (docs/SPEC.md §4 "Prefunded buffer", appendix R2, R16 and R17). Escrowed funds belong to the borrower: they
 /// are neither lender liquidity nor collateral, and they earn nothing. A borrower authorizes a plan (target LTV,
-/// spending cap per session, expiry); anyone can then call `executeBuffer` during PRE_CLOSE or FINAL_WINDOW with
-/// a usable price to repay that borrower's debt toward the target. Execution only repays debt, never sells
-/// collateral and pays no reward. A borrower can also repay a fixed amount from escrow at any time, with no price.
+/// spending cap per session, expiry); anyone can then call `executeBuffer` during preparation (PRE_CLOSE and
+/// FINAL_WINDOW) or reopening recovery with a usable price to repay that borrower's debt toward the target
+/// (appendix R20). Execution only repays debt, never sells collateral and pays no reward. A borrower can also repay
+/// from escrow at any time, up to an amount of its choosing, with no price.
 /// @dev StockReefMarket's constructor deploys one escrow per market. Units: loan amounts and balances in loan-token
 /// base units (USDG: 6 decimals); collateral in raw stock-token units (18 decimals); targets, LTVs and `priceWad`
 /// in WAD (1e18 = 100% or 1.0); times are UTC seconds from `clock` (DemoClock on demo deployments).
@@ -34,8 +37,9 @@ import {StockReefMarket} from "./StockReefMarket.sol";
 /// - every repayment is capped at the account's current debt, so the market takes exactly the amount requested;
 ///   balances are updated before the market call, and every state-changing token path is `nonReentrant`;
 /// - while a plan is committed (see `committed`) its owner cannot re-authorize, cancel or withdraw.
-contract RepaymentEscrow is ReentrancyGuard {
+contract RepaymentEscrow is ReentrancyGuardTransient {
     using SafeERC20 for IERC20;
+    using StockReefMath for uint256;
 
     /// @notice One account's escrow balance and buffer authorization. The authorization is active while
     /// `targetWad` is non-zero and the clock is before `expiry`; `cancel` clears it but keeps the balance.
@@ -48,23 +52,23 @@ contract RepaymentEscrow is ReentrancyGuard {
         uint256 spent; // spent in `spentSession` by executeBuffer, base units; ownerRepay is not counted
     }
 
-    /// @dev The WAD unit: 1e18 = 100% or 1.0.
-    uint256 internal constant WAD = 1e18;
     /// @notice Highest LTV target a plan may authorize, WAD (0.65e18 = 65%; appendix R2).
     /// @dev The deepest closure target (EXTENDED class, SessionRiskPolicy.TARGET_EXTENDED). Plans may target lower,
     /// never higher.
-    uint256 public constant MAX_TARGET = 0.65e18;
+    uint256 public constant MAX_TARGET = SessionRules.TARGET_EXTENDED;
 
     /// @notice Market whose debt this escrow repays; it deployed this escrow.
     StockReefMarket public immutable market;
     /// @notice Token held in escrow and used for repayment: the market's loan token (USDG, 6 decimals).
     IERC20 public immutable loanToken;
-    /// @notice Price gate, taken from `policy`; `executeBuffer` refreshes it and values collateral with it.
+    /// @notice Price gate, taken from `policy`; `executeBuffer` refreshes it and values collateral at its price.
     PriceGate public immutable gate;
     /// @notice Session policy that decides when buffers may execute and which schedule phase applies.
     SessionRiskPolicy public immutable policy;
     /// @notice Time source, taken from `policy` (DemoClock on demo deployments); UTC seconds.
     IClock public immutable clock;
+    /// @dev PriceGate.VALUE_SCALE, read at deployment: collateral value is raw * priceWad / VALUE_SCALE.
+    uint256 private immutable VALUE_SCALE;
 
     /// @dev Plan of each account, keyed by the borrower's address.
     mapping(address => Plan) internal _plans;
@@ -128,14 +132,17 @@ contract RepaymentEscrow is ReentrancyGuard {
     /// @notice `executeBuffer` was called for an account without an active authorization (none, cancelled or
     /// expired).
     error NotAuthorized();
-    /// @notice Buffers cannot execute now: the effective state is not PRE_CLOSE or FINAL_WINDOW, for example
-    /// because the time is outside preparation, the price is unusable or the guardian has stopped the gate.
+    /// @notice Buffers cannot execute now: the effective state is not PRE_CLOSE, FINAL_WINDOW or REOPEN_RECOVERY, for
+    /// example because the time is outside preparation and recovery, the price is unusable or the guardian has
+    /// stopped the gate.
     /// @param state Effective market state from SessionRiskPolicy.
     /// @param reasons PriceGate Reasons bits; zero when the price is usable.
     error NotAllowedNow(SessionRiskPolicy.State state, uint32 reasons);
     /// @notice Nothing can be repaid: the account has no debt, the plan has no executable amount, or the market
     /// took a different amount than requested.
     error NothingToRepay();
+    /// @notice An account or receiver is the zero address.
+    error ZeroAddress();
     /// @notice A deposit did not arrive in full; fee-on-transfer and similar token behavior is not supported.
     /// @param expected Amount requested, loan-token base units.
     /// @param received Amount that arrived, loan-token base units.
@@ -143,8 +150,8 @@ contract RepaymentEscrow is ReentrancyGuard {
 
     /// @notice Bind the escrow to its market, loan token and session policy. StockReefMarket's constructor deploys
     /// it with its own loan token and policy.
-    /// @dev `gate` and `clock` are read from `policy_`. Nothing is checked here; the market checks the gate's
-    /// tokens against its own before deploying the escrow.
+    /// @dev `gate`, `clock` and the gate's VALUE_SCALE are read from `policy_`. Nothing is checked here; the market
+    /// checks the gate's tokens against its own before deploying the escrow.
     /// @param market_ Market whose debt the escrow repays.
     /// @param loanToken_ Token held in escrow; must be the market's loan token.
     /// @param policy_ Session policy shared with the market.
@@ -154,6 +161,7 @@ contract RepaymentEscrow is ReentrancyGuard {
         policy = policy_;
         gate = policy_.gate();
         clock = policy_.clock();
+        VALUE_SCALE = gate.VALUE_SCALE();
     }
 
     // ---------------------------------------------------------------- owner actions
@@ -162,12 +170,13 @@ contract RepaymentEscrow is ReentrancyGuard {
     /// with no price; the funds then belong to `account`, and only `account` can withdraw them. A deposit does not
     /// authorize execution by itself (docs/SPEC.md §4).
     /// @dev Pulls `amount` from the caller, which needs an allowance, and requires exactly `amount` to arrive.
-    /// `account` is not validated. Reverts with ZeroAmount for a zero amount and UnsupportedTransfer when a
+    /// Reverts with ZeroAmount for a zero amount, ZeroAddress for a zero `account`, and UnsupportedTransfer when a
     /// different amount arrives.
     /// @param amount Amount to deposit, loan-token base units.
-    /// @param account Plan owner to credit.
+    /// @param account Plan owner to credit; not the zero address.
     function deposit(uint256 amount, address account) external nonReentrant {
         if (amount == 0) revert ZeroAmount();
+        if (account == address(0)) revert ZeroAddress();
         uint256 before = loanToken.balanceOf(address(this));
         loanToken.safeTransferFrom(msg.sender, address(this), amount);
         uint256 received = loanToken.balanceOf(address(this)) - before;
@@ -177,7 +186,7 @@ contract RepaymentEscrow is ReentrancyGuard {
     }
 
     /// @notice Authorize anyone to repay the caller's debt from the caller's escrow toward `targetWad` during
-    /// preparation (PRE_CLOSE and FINAL_WINDOW), spending at most `perSessionCap` per calendar session, until
+    /// preparation (PRE_CLOSE and FINAL_WINDOW) and reopening recovery, spending at most `perSessionCap` per calendar session, until
     /// `expiry` (docs/SPEC.md §4, appendix R2). Replaces any earlier authorization. Allowed only while the
     /// caller's plan is not committed.
     /// @dev Needs no balance. Keeps the spend already recorded for the current session, so re-authorizing within
@@ -217,11 +226,12 @@ contract RepaymentEscrow is ReentrancyGuard {
     /// plan is not committed: in the OPEN phase (after a valid full reopening and before A), with no debt, with no
     /// active authorization, or in wind-down (docs/SPEC.md §4, appendix R17). An expired authorization never
     /// blocks withdrawal.
-    /// @dev Reverts with ZeroAmount, Committed or InsufficientBalance.
+    /// @dev Reverts with ZeroAmount, ZeroAddress, Committed or InsufficientBalance.
     /// @param amount Amount to withdraw, loan-token base units; at most the caller's balance.
-    /// @param receiver Address that receives the tokens.
+    /// @param receiver Address that receives the tokens; not the zero address.
     function withdraw(uint256 amount, address receiver) external nonReentrant {
         if (amount == 0) revert ZeroAmount();
+        if (receiver == address(0)) revert ZeroAddress();
         if (committed(msg.sender)) revert Committed();
         Plan storage p = _plans[msg.sender];
         if (amount > p.balance) revert InsufficientBalance(amount, p.balance);
@@ -230,21 +240,22 @@ contract RepaymentEscrow is ReentrancyGuard {
         emit Withdrawn(msg.sender, amount);
     }
 
-    /// @notice Repay a fixed amount of the caller's own debt from the caller's escrow, in any state (including
-    /// CLOSED, GUARDED and wind-down) and with no price (docs/SPEC.md §4). Works with no authorization, an expired
-    /// one, or a committed plan.
-    /// @dev Repays min(`amount`, current debt including interest), so the caller never overpays; the rest stays in
-    /// escrow. `amount` is checked against the balance before that cap. Does not count toward the per-session
-    /// buffer allowance. The market rejects a repayment that would leave non-zero debt below its minimum loan
-    /// (StockReefMarket.BelowMinimumLoan, appendix R16). Reverts with ZeroAmount, InsufficientBalance when
-    /// `amount` exceeds the balance, and NothingToRepay when the caller has no debt.
-    /// @param amount Most to repay, loan-token base units; at most the caller's escrow balance.
+    /// @notice Repay the caller's own debt from the caller's escrow, up to `amount`, in any state (including CLOSED,
+    /// GUARDED and wind-down) and with no price (docs/SPEC.md §4). Works with no authorization, an expired one, or
+    /// a committed plan. Pass type(uint256).max to repay everything the balance covers, including interest up to
+    /// this second.
+    /// @dev `amount` is a cap: the repayment is min(`amount`, balance, current debt including interest), so the
+    /// caller never overpays and the rest stays in escrow. When that would leave non-zero debt below the market's
+    /// minimum loan, it stops at exactly the minimum instead (appendix R16), never above the cap. Does not count
+    /// toward the per-session buffer allowance. Reverts with ZeroAmount, or NothingToRepay when nothing can be
+    /// repaid (no debt, no balance, or a debt at or below the minimum that the cap does not clear).
+    /// @param amount Most to repay, loan-token base units; type(uint256).max for all.
     /// @return repaid Amount taken from escrow and repaid, loan-token base units.
     function ownerRepay(uint256 amount) external nonReentrant returns (uint256 repaid) {
         if (amount == 0) revert ZeroAmount();
         Plan storage p = _plans[msg.sender];
-        if (amount > p.balance) revert InsufficientBalance(amount, p.balance);
-        repaid = Math.min(amount, market.debtOf(msg.sender));
+        uint256 cap = Math.min(amount, p.balance);
+        repaid = _withinMinimumLoan(cap, cap, market.debtOf(msg.sender));
         if (repaid == 0) revert NothingToRepay();
         p.balance -= repaid; // effects before the call; the market repays exactly this amount
         emit OwnerRepaid(msg.sender, repaid);
@@ -256,8 +267,8 @@ contract RepaymentEscrow is ReentrancyGuard {
     /// @notice Repay `account`'s debt from its escrow toward its authorized target. Anyone may call it; it pays no
     /// reward and never sells collateral (docs/SPEC.md §4, appendix R2 and R16).
     /// @dev Refreshes the gate (which may record reopening admission, outages or checkpoints), then evaluates the
-    /// policy at the current clock time. Requires `canBuffer` (effective state PRE_CLOSE or FINAL_WINDOW, so a
-    /// usable price and no guardian stop) and an authorization active at that time. Debt includes interest;
+    /// policy at the current clock time. Requires `canBuffer` (effective state PRE_CLOSE, FINAL_WINDOW or
+    /// REOPEN_RECOVERY, so a usable price and no guardian stop) and an authorization active at that time. Debt includes interest;
     /// collateral is valued at the refreshed price, rounded down. The amount comes from `_executableAmount`: the
     /// cash needed to reach the target (rounded up), capped by the balance and the session allowance, then
     /// adjusted for the market's minimum loan; it is counted against this session's allowance. Reverts with
@@ -270,8 +281,8 @@ contract RepaymentEscrow is ReentrancyGuard {
         Plan storage p = _plans[account];
         if (!_active(p, s.time)) revert NotAuthorized();
 
-        uint256 debt = market.debtOf(account);
-        uint256 value = gate.valueOf(market.collateralOf(account), s.priceWad);
+        (uint256 collateral,, uint256 debt) = market.accountOf(account);
+        uint256 value = collateral.toValueDown(s.priceWad, VALUE_SCALE);
         uint256 amount = _executableAmount(p, s, debt, value);
         if (amount == 0) revert NothingToRepay();
 
@@ -347,8 +358,7 @@ contract RepaymentEscrow is ReentrancyGuard {
         view
         returns (bool)
     {
-        Plan storage p = _plans[account];
-        return s.canBuffer && _active(p, s.time) && _executableAmount(p, s, debt, value) != 0;
+        return _executableAt(_plans[account], s, debt, value) != 0;
     }
 
     /// @notice What `executeBuffer` would repay for `account` at snapshot `s`, in loan-token base units; zero when
@@ -368,9 +378,7 @@ contract RepaymentEscrow is ReentrancyGuard {
         view
         returns (uint256)
     {
-        Plan storage p = _plans[account];
-        if (!s.canBuffer || !_active(p, s.time)) return 0;
-        return _executableAmount(p, s, debt, value);
+        return _executableAt(_plans[account], s, debt, value);
     }
 
     // ---------------------------------------------------------------- internals
@@ -382,6 +390,17 @@ contract RepaymentEscrow is ReentrancyGuard {
     /// @return True when the authorization is active at `t`.
     function _active(Plan storage p, uint64 t) internal view returns (bool) {
         return p.targetWad != 0 && t < p.expiry;
+    }
+
+    /// @dev `_executableAmount` where buffers can run at `s` and the authorization is active at `s.time`; zero
+    /// otherwise.
+    function _executableAt(Plan storage p, SessionRiskPolicy.Snapshot memory s, uint256 debt, uint256 value)
+        internal
+        view
+        returns (uint256)
+    {
+        if (!s.canBuffer || !_active(p, s.time)) return 0;
+        return _executableAmount(p, s, debt, value);
     }
 
     /// @dev Returns zero at once, before any other rule, when the position is at or below its target
@@ -404,19 +423,28 @@ contract RepaymentEscrow is ReentrancyGuard {
         view
         returns (uint256)
     {
-        if (debt * WAD <= p.targetWad * value) return 0;
-        uint256 need = Math.ceilDiv(debt * WAD - p.targetWad * value, WAD);
+        if (!debt.exceeds(value, p.targetWad)) return 0;
+        uint256 need = debt.repayToReachUp(value, p.targetWad);
         uint256 spent = p.spentSession == uint32(s.session + 1) ? p.spent : 0;
         uint256 allowance = p.perSessionCap > spent ? p.perSessionCap - spent : 0;
         uint256 available = Math.min(p.balance, allowance);
-        uint256 amount = Math.min(need, available);
-        // Never leave dust below the minimum loan: repay in full if funds allow, else stop at the minimum.
+        return _withinMinimumLoan(Math.min(need, available), available, debt);
+    }
+
+    /// @dev The minimum-loan rule shared by buffer execution and owner repayment (appendix R16): a repayment of
+    /// `amount` (at most `limit`) that would leave non-zero debt below `market.minLoan()` becomes the whole debt
+    /// when `limit` covers it, otherwise the repayment down to exactly minLoan, or nothing when the debt is at most
+    /// minLoan. The result never exceeds `debt` or `limit`.
+    /// @param amount Proposed repayment, loan-token base units; at most `limit`.
+    /// @param limit Most that may be spent, loan-token base units.
+    /// @param debt Debt including interest, loan-token base units.
+    /// @return Repayment, loan-token base units.
+    function _withinMinimumLoan(uint256 amount, uint256 limit, uint256 debt) internal view returns (uint256) {
+        if (amount >= debt) return debt;
         uint256 minLoan = market.minLoan();
-        if (amount < debt && debt - amount < minLoan) {
-            if (available >= debt) return debt;
-            return debt > minLoan ? debt - minLoan : 0;
-        }
-        return amount;
+        if (debt - amount >= minLoan) return amount;
+        if (limit >= debt) return debt;
+        return debt > minLoan ? debt - minLoan : 0;
     }
 
     /// @dev Pay `amount` of `account`'s debt to the market from this contract's tokens: approve exactly `amount`,

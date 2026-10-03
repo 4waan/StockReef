@@ -5,13 +5,15 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ReentrancyGuardTransient} from "@openzeppelin/contracts/utils/ReentrancyGuardTransient.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 import {IClock} from "./interfaces/IClock.sol";
 import {PriceGate} from "./PriceGate.sol";
 import {SessionRiskPolicy} from "./SessionRiskPolicy.sol";
 import {RepaymentEscrow} from "./RepaymentEscrow.sol";
+import {SessionRules} from "./libraries/SessionRules.sol";
+import {StockReefMath} from "./libraries/StockReefMath.sol";
 
 /// @title StockReefMarket
 /// @notice Reference lending market for one tokenized stock. Borrowers post the stock token as collateral and
@@ -22,7 +24,7 @@ import {RepaymentEscrow} from "./RepaymentEscrow.sol";
 /// (18 decimals); ratios, bonuses, LT, B, targets, the debt index and `priceWad` in WAD (1e18 = 100% or 1.0),
 /// where `priceWad` is loan-token whole units per collateral whole unit; times in UTC seconds from the IClock.
 /// Debt shares are scaled so that one base unit of debt at index 1.0 is 1e18 shares, which keeps share rounding
-/// far below one base unit.
+/// far below one base unit. The formulas live in StockReefMath and the session rules in SessionRules.
 ///
 /// Every price-dependent entry point first calls `gate.refresh()` and evaluates the policy at the clock time, so
 /// permission, limits and price come from one snapshot. Repayment and collateral deposits need no price and work
@@ -37,12 +39,15 @@ import {RepaymentEscrow} from "./RepaymentEscrow.sol";
 /// accounts with debt and never more than MAX_ACCOUNTS; the loan-token balance is at least `cash` and the
 /// collateral-token balance at least the sum of account collateral (equal unless tokens are sent directly).
 /// Every entry point that moves loan tokens or collateral is `nonReentrant` or calls one that is; share
-/// transfers and approvals are plain ERC-20.
-contract StockReefMarket is ERC4626, ReentrancyGuard {
+/// transfers and approvals are plain ERC-20. The guard uses transient storage (EIP-1153).
+contract StockReefMarket is ERC4626, ReentrancyGuardTransient {
     using SafeERC20 for IERC20;
     using Math for uint256;
+    using StockReefMath for uint256;
 
-    /// @dev One borrower's position. Debt in loan-token base units is ceil(debtShares * index / SHARE_UNIT).
+    /// @dev One borrower's position. Debt in loan-token base units is ceil(debtShares * index / 1e36). Both fields
+    /// stay full-width: at 1e18 shares per base unit, a 128-bit share count would cap an 18-decimal loan token's
+    /// debt at a few hundred whole tokens.
     struct Account {
         uint256 collateral; // raw stock-token units
         uint256 debtShares; // debt shares: 1e18 per base unit of debt at index 1.0
@@ -72,9 +77,7 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     }
 
     /// @dev Fixed-point one (1e18) for WAD ratios, prices and the debt index.
-    uint256 internal constant WAD = 1e18;
-    /// @dev Debt shares per loan-token base unit at index 1.0, times WAD, so debt = shares * index / SHARE_UNIT.
-    uint256 internal constant SHARE_UNIT = 1e36;
+    uint256 internal constant WAD = StockReefMath.WAD;
     /// @notice Most accounts that may hold debt at once; it bounds the lender valuation loop (appendix R8).
     uint256 public constant MAX_ACCOUNTS = 32;
     /// @notice Highest share of cash plus total debt that total debt may reach after a borrow, WAD (90%)
@@ -106,6 +109,9 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     /// @notice Copied from PriceGate.VALUE_SCALE at deployment: 10^(token decimals + 18 - loan decimals), so
     /// collateral value in loan-token base units is raw * priceWad / VALUE_SCALE.
     uint256 public immutable VALUE_SCALE;
+    /// @dev Open of the last loaded calendar session, UTC seconds: wind-down starts here (appendix R17), as
+    /// SessionRiskPolicy reports with `windDown`.
+    uint64 private immutable WIND_DOWN_AT;
 
     /// @notice Idle loan tokens held for lenders, base units. Excludes tokens sent to the market directly and the
     /// escrow's balance; it rises with deposits, repayments and trims and falls with borrowing and lender exits.
@@ -225,6 +231,8 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     error TargetMissed(uint256 debtAfter, uint256 valueAfter, uint256 targetWad);
     /// @notice The policy's gate prices a different loan token or collateral token than the market was given.
     error ConfigMismatch();
+    /// @notice An account or receiver is the zero address.
+    error ZeroAddress();
 
     /// @notice Deploy the market and its RepaymentEscrow, and start the debt index at 1.0 at the current clock
     /// time. All settings are fixed for the life of the deployment (docs/SPEC.md §2).
@@ -252,6 +260,7 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
             revert ConfigMismatch();
         }
         VALUE_SCALE = gate.VALUE_SCALE();
+        WIND_DOWN_AT = gate.calendar().lastOpen();
         minLoan = minLoan_;
         epoch = clock.time();
         escrow = new RepaymentEscrow(this, loanToken, policy_);
@@ -261,11 +270,12 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
 
     /// @notice Add collateral for `account`, paid by the caller. Anyone may call, for any account. Needs no price
     /// and is allowed in every state (docs/SPEC.md §4).
-    /// @dev Reverts with ZeroAmount, or UnsupportedTransfer if the market receives a different amount.
+    /// @dev Reverts with ZeroAmount, ZeroAddress, or UnsupportedTransfer if the market receives a different amount.
     /// @param amount Collateral to add, raw stock-token units.
-    /// @param account Account to credit.
+    /// @param account Account to credit; not the zero address.
     function depositCollateral(uint256 amount, address account) external nonReentrant {
         if (amount == 0) revert ZeroAmount();
+        if (account == address(0)) revert ZeroAddress();
         _pullExact(collateralToken, msg.sender, amount);
         _accounts[account].collateral += amount;
         emit CollateralDeposited(account, msg.sender, amount);
@@ -275,20 +285,23 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     /// in every state. With debt it is a borrow-limit action: it refreshes the gate and needs a state that allows
     /// borrowing (OPEN or PRE_CLOSE with a usable price), no active escrow authorization at or after A, and debt
     /// at most B times the remaining collateral value (docs/SPEC.md §3, §4).
-    /// @dev Reverts with ZeroAmount, InsufficientCollateral, NotAllowedNow, BufferAuthorizationActive or
-    /// AboveBorrowLimit. Debt rounds up and value rounds down, both against the borrower.
+    /// @dev Reverts with ZeroAmount, ZeroAddress, InsufficientCollateral, NotAllowedNow, BufferAuthorizationActive
+    /// or AboveBorrowLimit. Debt rounds up and value rounds down, both against the borrower.
     /// @param amount Collateral to withdraw, raw stock-token units.
-    /// @param receiver Address that receives the collateral.
+    /// @param receiver Address that receives the collateral; not the zero address.
     function withdrawCollateral(uint256 amount, address receiver) external nonReentrant {
         if (amount == 0) revert ZeroAmount();
+        if (receiver == address(0)) revert ZeroAddress();
         Account storage a = _accounts[msg.sender];
-        if (amount > a.collateral) revert InsufficientCollateral(amount, a.collateral);
-        a.collateral -= amount;
+        uint256 collateral = a.collateral;
+        if (amount > collateral) revert InsufficientCollateral(amount, collateral);
+        collateral -= amount;
+        a.collateral = collateral;
         if (a.debtShares != 0) {
             SessionRiskPolicy.Snapshot memory s = _refresh();
             _requireBorrowable(s, msg.sender);
-            uint256 debt = _debt(a.debtShares, _index(s.time));
-            _requireWithinLimit(s, debt, _value(a.collateral, s.priceWad));
+            uint256 debt = a.debtShares.toDebtUp(_index(s.time));
+            _requireWithinLimit(s, debt, _value(collateral, s.priceWad));
         }
         collateralToken.safeTransfer(receiver, amount);
         emit CollateralWithdrawn(msg.sender, receiver, amount);
@@ -296,7 +309,8 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
 
     /// @notice Borrow `amount` loan tokens against the caller's collateral. Refreshes the gate first; allowed only
     /// in OPEN or PRE_CLOSE with a usable price, within the borrow limit B (docs/SPEC.md §3, §7; appendix R8).
-    /// @dev Checks, in order: a non-zero amount (ZeroAmount); borrowing allowed after the refresh (NotAllowedNow);
+    /// @dev Checks, in order: a non-zero amount (ZeroAmount); a receiver (ZeroAddress); borrowing allowed after the
+    /// refresh (NotAllowedNow);
     /// no escrow authorization active at or after A (BufferAuthorizationActive); enough idle cash
     /// (InsufficientCash); no impaired account at the current price (MarketImpaired); total debt after the borrow
     /// at most UTILIZATION_CAP of cash plus total debt (UtilizationCapExceeded); a free active slot for an account
@@ -304,35 +318,14 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     /// debt at most B times the collateral value (AboveBorrowLimit). New debt shares round up, so recorded debt
     /// can exceed the previous debt plus `amount` by one base unit.
     /// @param amount Loan tokens to borrow, base units.
-    /// @param receiver Address that receives the loan tokens.
+    /// @param receiver Address that receives the loan tokens; not the zero address.
     function borrow(uint256 amount, address receiver) external nonReentrant {
         if (amount == 0) revert ZeroAmount();
+        if (receiver == address(0)) revert ZeroAddress();
         SessionRiskPolicy.Snapshot memory s = _refresh();
-        _requireBorrowable(s, msg.sender);
-        if (amount > cash) revert InsufficientCash(amount, cash);
-
         uint256 idx = _index(s.time);
-        Book memory book = _book(s.priceWad, false, idx);
-        if (book.impaired) revert MarketImpaired();
-        if ((book.totalDebt + amount) * WAD > UTILIZATION_CAP * (cash + book.totalDebt)) {
-            revert UtilizationCapExceeded();
-        }
-
-        Account storage a = _accounts[msg.sender];
-        if (a.debtShares == 0) {
-            if (_active.length >= MAX_ACCOUNTS) revert AccountCapReached();
-            _active.push(msg.sender);
-            _activeSlot[msg.sender] = _active.length;
-        }
-        // The minimum applies to principal; the share rounding below adds at most one base unit of debt.
-        uint256 debtBefore = _debt(a.debtShares, idx);
-        if (debtBefore + amount < minLoan) revert BelowMinimumLoan(debtBefore + amount, minLoan);
-        uint256 shares = amount.mulDiv(SHARE_UNIT, idx, Math.Rounding.Ceil);
-        a.debtShares += shares;
-        totalDebtShares += shares;
-        uint256 debtAfter = _debt(a.debtShares, idx);
-        _requireWithinLimit(s, debtAfter, _value(a.collateral, s.priceWad));
-
+        (uint256 shares, uint256 debtAfter) = _validateBorrow(s, msg.sender, amount, idx);
+        _mintDebt(msg.sender, shares);
         cash -= amount;
         IERC20(asset()).safeTransfer(receiver, amount);
         emit Borrowed(msg.sender, receiver, amount, debtAfter);
@@ -351,13 +344,12 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
         if (amount == 0) revert ZeroAmount();
         Account storage a = _accounts[account];
         if (a.debtShares == 0) revert NoDebt();
-        uint256 idx = _index(clock.time());
         uint256 debtAfter;
-        (paid, debtAfter) = _reduceDebt(account, a, amount, idx);
+        (paid, debtAfter) = _reduceDebt(account, a, amount, _index(clock.time()));
         // Repay everything or leave at least the minimum loan, so dust cannot hold an active slot.
         if (debtAfter != 0 && debtAfter < minLoan) revert BelowMinimumLoan(debtAfter, minLoan);
-        _pullExact(IERC20(asset()), msg.sender, paid);
         cash += paid;
+        _pullExact(IERC20(asset()), msg.sender, paid);
         emit Repaid(account, msg.sender, paid, debtAfter);
     }
 
@@ -390,37 +382,15 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
         if (s.time > deadline) revert DeadlinePassed();
         if (!s.canTrim) revert NotAllowedNow(s.state, s.reasons);
 
-        TrimQuote memory t = quoteTrim(account, s, maxRepay);
-        if (!t.eligible) revert NotEligible(t.debt, t.value, s.ltWad);
-        if (t.bufferPending) revert BufferPending();
-        repaid = t.repaid;
-        collateralOut = t.collateralOut;
-        if (repaid == 0 || collateralOut == 0) revert ZeroAmount();
-        if (collateralOut < minCollateralOut) revert Slippage();
+        TrimQuote memory tq = quoteTrim(account, s, maxRepay);
+        _validateTrim(s, tq, minCollateralOut);
+        (repaid, collateralOut) = (tq.repaid, tq.collateralOut);
+        (uint256 debtAfter, uint256 collateralAfter) = _applyTrim(account, s, tq);
 
-        Account storage a = _accounts[account];
-        (, uint256 debtAfter) = _reduceDebt(account, a, repaid, _index(s.time));
-        a.collateral -= collateralOut;
-        if (a.collateral == 0 && debtAfter != 0) {
-            // Collateral exhausted: recognize the residual as bad debt; lenders already marked it down.
-            totalDebtShares -= a.debtShares;
-            a.debtShares = 0;
-            _deactivate(account);
-            totalBadDebt += debtAfter;
-            emit BadDebtWrittenOff(account, debtAfter);
-            debtAfter = 0;
-        } else if (t.fullFill) {
-            // A full solvent fill reaches the target within one loan-token base unit.
-            uint256 valueAfter = _value(a.collateral, s.priceWad);
-            if (debtAfter * WAD > s.targetWad * valueAfter + WAD) {
-                revert TargetMissed(debtAfter, valueAfter, s.targetWad);
-            }
-        }
-
-        _pullExact(IERC20(asset()), msg.sender, repaid);
         cash += repaid;
+        _pullExact(IERC20(asset()), msg.sender, repaid);
         collateralToken.safeTransfer(msg.sender, collateralOut);
-        emit Trimmed(account, msg.sender, repaid, collateralOut, t.bonusWad, s.state, debtAfter, a.collateral);
+        emit Trimmed(account, msg.sender, repaid, collateralOut, tq.bonusWad, s.state, debtAfter, collateralAfter);
     }
 
     /// @notice What `trim(account, maxRepay, ...)` would do at snapshot `s`. StockReefLens uses it to preview
@@ -440,12 +410,14 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
         returns (TrimQuote memory t)
     {
         Account storage a = _accounts[account];
-        t.debt = _debt(a.debtShares, _index(s.time));
+        t.debt = a.debtShares.toDebtUp(_index(s.time));
         t.value = _value(a.collateral, s.priceWad);
-        t.eligible = s.canTrim && t.debt != 0 && t.debt * WAD > s.ltWad * t.value;
+        // Zero debt never exceeds LT, so it needs no separate check.
+        t.eligible = s.canTrim && t.debt.exceeds(t.value, s.ltWad);
         if (!t.eligible) return t;
         t.bufferPending = escrow.executable(account, s, t.debt, t.value);
-        t.bonusWad = policy.bonusFor(s, _ltvCeil(t.debt, t.value));
+        // `policy.bonusFor` for an eligible snapshot, which always allows trims.
+        t.bonusWad = SessionRules.bonus(_preparing(s.state), t.debt.ltvUp(t.value));
         (t.repaid, t.collateralOut, t.fullFill) = _trimAmounts(a.collateral, t.debt, t.value, s, t.bonusWad, maxRepay);
     }
 
@@ -453,7 +425,10 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     /// Solvent (D*(1+b) < V): x = ceil((D - T*V) / (1 - T*(1+b))), capped at D and at `maxRepay`; the seized
     /// collateral is worth x*(1+b), rounded down and capped at the account's collateral.
     /// Insolvent (D*(1+b) >= V): repaying floor(V/(1+b)) takes all collateral; a smaller `maxRepay` takes
-    /// collateral worth maxRepay*(1+b), rounded down. This branch never sets `fullFill`.
+    /// collateral worth maxRepay*(1+b), rounded down. When floor(V/(1+b)) is zero the collateral is economically
+    /// worthless dust (worth less than one base unit plus the bonus): one base unit takes all of it, and `trim`
+    /// writes off what is left, so a write-off is always reachable (docs/SPEC.md §5). This branch never sets
+    /// `fullFill`.
     /// @param collateral Account collateral, raw units.
     /// @param debt Accrued debt D, loan-token base units.
     /// @param value Collateral value V at `s.priceWad`, loan-token base units.
@@ -472,92 +447,145 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
         uint256 maxRepay
     ) internal view returns (uint256 repaid, uint256 collateralOut, bool fullFill) {
         uint256 onePlusB = WAD + bonusWad;
-        if (debt * onePlusB >= value * WAD) {
-            uint256 all = value.mulDiv(WAD, onePlusB);
+        if (debt.insolventAt(value, onePlusB)) {
+            uint256 all = value.divWadDown(onePlusB);
+            if (all == 0) return maxRepay == 0 ? (0, 0, false) : (1, collateral, false); // worthless dust
             repaid = Math.min(maxRepay, all);
-            collateralOut = repaid == all ? collateral : _collateralFor(repaid, onePlusB, s.priceWad);
+            collateralOut = repaid == all ? collateral : repaid.seizeDown(onePlusB, s.priceWad, VALUE_SCALE);
         } else {
-            uint256 need =
-                (debt * WAD - s.targetWad * value).mulDiv(WAD, WAD * WAD - s.targetWad * onePlusB, Math.Rounding.Ceil);
-            need = Math.min(need, debt);
+            uint256 need = Math.min(debt.trimRepayUp(value, s.targetWad, onePlusB), debt);
             repaid = Math.min(maxRepay, need);
             fullFill = repaid == need;
-            collateralOut = Math.min(_collateralFor(repaid, onePlusB, s.priceWad), collateral);
+            collateralOut = Math.min(repaid.seizeDown(onePlusB, s.priceWad, VALUE_SCALE), collateral);
         }
     }
 
-    /// @dev Raw collateral worth `repaid` times (1 + b) at `priceWad`, rounded down:
-    /// repaid * onePlusB * VALUE_SCALE / (priceWad * WAD).
-    /// @param repaid Repayment, loan-token base units.
-    /// @param onePlusB One plus the bonus, WAD.
-    /// @param priceWad Collateral price, WAD.
-    /// @return Collateral, raw units.
-    function _collateralFor(uint256 repaid, uint256 onePlusB, uint256 priceWad) internal view returns (uint256) {
-        return (repaid * onePlusB).mulDiv(VALUE_SCALE, priceWad * WAD);
+    /// @dev Trim checks after the quote, in order: eligibility (NotEligible), no pending buffer (BufferPending),
+    /// something to repay and to release (ZeroAmount), and the caller's minimum (Slippage).
+    /// @param s Refreshed snapshot of this transaction.
+    /// @param tq Quote at `s`.
+    /// @param minCollateralOut Least raw collateral the caller accepts.
+    function _validateTrim(SessionRiskPolicy.Snapshot memory s, TrimQuote memory tq, uint256 minCollateralOut)
+        internal
+        pure
+    {
+        if (!tq.eligible) revert NotEligible(tq.debt, tq.value, s.ltWad);
+        if (tq.bufferPending) revert BufferPending();
+        if (tq.repaid == 0 || tq.collateralOut == 0) revert ZeroAmount();
+        if (tq.collateralOut < minCollateralOut) revert Slippage();
+    }
+
+    /// @dev Applies a validated trim to `account`: reduces the debt by `tq.repaid` and the collateral by
+    /// `tq.collateralOut`. When that exhausts the collateral with debt left, the residual is written off; otherwise
+    /// a full solvent fill must land within one base unit of target times value (TargetMissed). Moves no tokens.
+    /// @param account Trimmed account.
+    /// @param s Refreshed snapshot of this transaction.
+    /// @param tq Validated quote at `s`.
+    /// @return debtAfter Remaining debt, loan-token base units, rounded up; zero after a write-off.
+    /// @return collateralAfter Remaining collateral, raw units.
+    function _applyTrim(address account, SessionRiskPolicy.Snapshot memory s, TrimQuote memory tq)
+        internal
+        returns (uint256 debtAfter, uint256 collateralAfter)
+    {
+        Account storage a = _accounts[account];
+        (, debtAfter) = _reduceDebt(account, a, tq.repaid, _index(s.time));
+        collateralAfter = a.collateral - tq.collateralOut; // collateralOut is capped at the collateral
+        a.collateral = collateralAfter;
+        if (collateralAfter == 0 && debtAfter != 0) {
+            // Collateral exhausted: recognize the residual as bad debt; lenders already marked it down.
+            _clearDebt(account, a);
+            totalBadDebt += debtAfter;
+            emit BadDebtWrittenOff(account, debtAfter);
+            return (0, 0);
+        }
+        if (tq.fullFill) {
+            // A full solvent fill reaches the target within one loan-token base unit.
+            uint256 valueAfter = _value(collateralAfter, s.priceWad);
+            if (debtAfter * WAD > s.targetWad * valueAfter + WAD) {
+                revert TargetMissed(debtAfter, valueAfter, s.targetWad);
+            }
+        }
     }
 
     // =============================================================== lenders (ERC-4626)
 
     /// @inheritdoc ERC4626
     /// @notice Deposit `assets` loan tokens and mint lender shares to `receiver`. Allowed only in OPEN with a
-    /// usable price (docs/SPEC.md §7).
-    /// @dev Refreshes the gate, then values the book at that price before converting. Reverts with NotAllowedNow
-    /// outside the lender window, ERC4626ExceededMaxDeposit in run-off (lender assets zero while shares remain)
-    /// and UnsupportedTransfer when the amount received differs from `assets`. Shares round down.
+    /// usable price and an unimpaired book (docs/SPEC.md §7, appendix R21).
+    /// @dev Refreshes the gate, then values the book once at that price and converts with it. Reverts with
+    /// NotAllowedNow outside the lender window, ERC4626ExceededMaxDeposit while the book is impaired or in run-off
+    /// (lender assets zero while shares remain) and UnsupportedTransfer when the amount received differs from
+    /// `assets`. Shares round down.
     /// @param assets Loan tokens to deposit, base units.
     /// @param receiver Address that receives the shares.
     /// @return Shares minted.
     function deposit(uint256 assets, address receiver) public override nonReentrant returns (uint256) {
-        _requireLenderWindow();
-        return super.deposit(assets, receiver);
+        (uint256 lenderAssets, bool impaired) = _lenderAssets(_requireLenderWindow());
+        uint256 maxAssets = _entryOpen(lenderAssets, impaired) ? type(uint256).max : 0;
+        if (assets > maxAssets) revert ERC4626ExceededMaxDeposit(receiver, assets, maxAssets);
+        uint256 shares = _toShares(assets, lenderAssets, Math.Rounding.Floor);
+        _deposit(msg.sender, receiver, assets, shares);
+        return shares;
     }
 
     /// @inheritdoc ERC4626
     /// @notice Mint exactly `shares` lender shares to `receiver`, paying the loan tokens they cost. Allowed only
-    /// in OPEN with a usable price (docs/SPEC.md §7).
-    /// @dev Same refresh and lender-window rules as `deposit`; in run-off it reverts with ERC4626ExceededMaxMint,
-    /// and with UnsupportedTransfer when the amount received differs. The assets charged round up, against the
-    /// caller.
+    /// in OPEN with a usable price and an unimpaired book (docs/SPEC.md §7, appendix R21).
+    /// @dev Same refresh, valuation and lender-window rules as `deposit`; while impaired or in run-off it reverts
+    /// with ERC4626ExceededMaxMint, and with UnsupportedTransfer when the amount received differs. The assets charged
+    /// round up, against the caller.
     /// @param shares Shares to mint.
     /// @param receiver Address that receives the shares.
     /// @return Loan tokens taken from the caller, base units.
     function mint(uint256 shares, address receiver) public override nonReentrant returns (uint256) {
-        _requireLenderWindow();
-        return super.mint(shares, receiver);
+        (uint256 lenderAssets, bool impaired) = _lenderAssets(_requireLenderWindow());
+        uint256 maxShares = _entryOpen(lenderAssets, impaired) ? type(uint256).max : 0;
+        if (shares > maxShares) revert ERC4626ExceededMaxMint(receiver, shares, maxShares);
+        uint256 assets = _toAssets(shares, lenderAssets, Math.Rounding.Ceil);
+        _deposit(msg.sender, receiver, assets, shares);
+        return assets;
     }
 
     /// @inheritdoc ERC4626
     /// @notice Withdraw exactly `assets` loan tokens to `receiver`, burning `owner`'s shares. Allowed in OPEN with
-    /// a usable price, or in wind-down (from the open of the last loaded session); limited by idle cash
-    /// (docs/SPEC.md §7; appendix R17).
-    /// @dev Refreshes the gate, then values the book before converting. Reverts with NotAllowedNow when exits
-    /// are closed, ERC4626ExceededMaxWithdraw above `maxWithdraw`, and ERC20InsufficientAllowance when a caller
-    /// other than `owner` lacks share allowance. `maxWithdraw` is already capped at idle cash, so the
-    /// InsufficientCash check in `_withdraw` is only a backstop. Shares burned round up, against the caller.
+    /// a usable price, or in wind-down (from the open of the last loaded session), where lender assets are idle
+    /// cash only; limited by idle cash (docs/SPEC.md §7; appendix R17, R19).
+    /// @dev Refreshes the gate, then values the book once and converts with it. Reverts with NotAllowedNow when
+    /// exits are closed, ERC4626ExceededMaxWithdraw above `maxWithdraw` (the value of `owner`'s shares, capped at
+    /// idle cash), and ERC20InsufficientAllowance when a caller other than `owner` lacks share allowance. Shares
+    /// burned round up, against the caller.
     /// @param assets Loan tokens to withdraw, base units.
     /// @param receiver Address that receives the loan tokens.
     /// @param owner Address whose shares are burned.
     /// @return Shares burned.
     function withdraw(uint256 assets, address receiver, address owner) public override nonReentrant returns (uint256) {
-        _requireLenderExit();
-        return super.withdraw(assets, receiver, owner);
+        (uint256 lenderAssets,) = _lenderAssets(_requireLenderExit());
+        uint256 maxAssets = Math.min(_toAssets(balanceOf(owner), lenderAssets, Math.Rounding.Floor), cash);
+        if (assets > maxAssets) revert ERC4626ExceededMaxWithdraw(owner, assets, maxAssets);
+        uint256 shares = _toShares(assets, lenderAssets, Math.Rounding.Ceil);
+        _withdraw(msg.sender, receiver, owner, assets, shares);
+        return shares;
     }
 
     /// @inheritdoc ERC4626
     /// @notice Redeem exactly `shares` of `owner`'s shares for loan tokens sent to `receiver`. Allowed in OPEN with
-    /// a usable price, or in wind-down (from the open of the last loaded session); limited by idle cash
-    /// (docs/SPEC.md §7; appendix R17).
-    /// @dev Refreshes the gate, then values the book before converting. Reverts with NotAllowedNow when exits
-    /// are closed, ERC4626ExceededMaxRedeem above `maxRedeem`, and ERC20InsufficientAllowance when a caller other
-    /// than `owner` lacks share allowance. `maxRedeem` is already capped at the shares worth the idle cash, so
-    /// the InsufficientCash check in `_withdraw` is only a backstop. Assets paid round down, against the caller.
+    /// a usable price, or in wind-down (from the open of the last loaded session), where lender assets are idle
+    /// cash only; limited by idle cash (docs/SPEC.md §7; appendix R17, R19).
+    /// @dev Refreshes the gate, then values the book once and converts with it. Reverts with NotAllowedNow when
+    /// exits are closed, ERC4626ExceededMaxRedeem above `maxRedeem` (the balance, capped at the shares worth the
+    /// idle cash), and ERC20InsufficientAllowance when a caller other than `owner` lacks share allowance. Assets
+    /// paid round down, against the caller.
     /// @param shares Shares to redeem.
     /// @param receiver Address that receives the loan tokens.
     /// @param owner Address whose shares are burned.
     /// @return Loan tokens paid, base units.
     function redeem(uint256 shares, address receiver, address owner) public override nonReentrant returns (uint256) {
-        _requireLenderExit();
-        return super.redeem(shares, receiver, owner);
+        (uint256 lenderAssets,) = _lenderAssets(_requireLenderExit());
+        uint256 maxShares = Math.min(balanceOf(owner), _toShares(cash, lenderAssets, Math.Rounding.Floor));
+        if (shares > maxShares) revert ERC4626ExceededMaxRedeem(owner, shares, maxShares);
+        uint256 assets = _toAssets(shares, lenderAssets, Math.Rounding.Floor);
+        _withdraw(msg.sender, receiver, owner, assets, shares);
+        return assets;
     }
 
     /// @notice `deposit` that reverts with Slippage when fewer than `minShares` shares are minted.
@@ -614,34 +642,37 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
 
     /// @inheritdoc ERC4626
     /// @notice Cash plus the recoverable value of every loan: sum of min(debt, collateral value / 1.05).
-    /// Uses the current price when usable, otherwise the last accepted price (indicative) (docs/SPEC.md §7).
+    /// Uses the current price when usable, otherwise the last accepted price (indicative) (docs/SPEC.md §7). In
+    /// wind-down, no trim can ever collect a loan's collateral, so lender assets are idle cash only: exits are pro
+    /// rata from cash, later repayments raise the share value, and no price or guardian stop affects it (appendix
+    /// R19).
     /// @dev View only: it reads the gate's current quote without refreshing it; the share entry and exit
     /// functions refresh first. Escrow balances and tokens sent to the market directly are not counted, and
     /// collateral counts only through each loan's recoverable amount. Recoverable amounts round down. Loops over
     /// at most MAX_ACCOUNTS accounts.
     /// @return Lender assets, loan-token base units.
     function totalAssets() public view override returns (uint256) {
+        if (clock.time() >= WIND_DOWN_AT) return cash;
         return cash + bookValuation().recoverable;
     }
 
     /// @inheritdoc ERC4626
     /// @notice Most loan tokens that can be deposited now, for any receiver (the address argument is ignored):
-    /// unlimited while the lender window is open, zero when it is closed or the vault is in run-off.
-    /// @dev Reads `policy.snapshot()` without refreshing the gate.
+    /// unlimited while the lender window is open, zero when it is closed, the book is impaired or the vault is in
+    /// run-off.
+    /// @dev Reads `policy.snapshot()` and `bookValuation()` without refreshing the gate.
     /// @return Loan-token base units; type(uint256).max when unlimited.
     function maxDeposit(address) public view override returns (uint256) {
-        if (!_lenderWindowOpen() || _inRunOff()) return 0;
-        return type(uint256).max;
+        return _entryOpenNow() ? type(uint256).max : 0;
     }
 
     /// @inheritdoc ERC4626
     /// @notice Most shares that can be minted now, for any receiver (the address argument is ignored): unlimited
-    /// while the lender window is open, zero when it is closed or the vault is in run-off.
-    /// @dev Reads `policy.snapshot()` without refreshing the gate.
+    /// while the lender window is open, zero when it is closed, the book is impaired or the vault is in run-off.
+    /// @dev Reads `policy.snapshot()` and `bookValuation()` without refreshing the gate.
     /// @return Shares; type(uint256).max when unlimited.
     function maxMint(address) public view override returns (uint256) {
-        if (!_lenderWindowOpen() || _inRunOff()) return 0;
-        return type(uint256).max;
+        return _entryOpenNow() ? type(uint256).max : 0;
     }
 
     /// @inheritdoc ERC4626
@@ -677,16 +708,27 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     }
 
     /// @inheritdoc ERC4626
-    /// @dev Requires `assets` to fit in idle cash (InsufficientCash otherwise) and takes them out of `cash`; the
-    /// base implementation then spends share allowance when `caller` is not `owner`, burns `shares`, transfers
-    /// the assets and emits Withdraw.
+    /// @dev Takes `assets` out of `cash`; the base implementation then spends share allowance when `caller` is
+    /// not `owner`, burns `shares`, transfers the assets and emits Withdraw. The callers cap `assets` at idle
+    /// cash first (the max checks), and the subtraction is checked.
     function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
         internal
         override
     {
-        if (assets > cash) revert InsufficientCash(assets, cash);
         cash -= assets;
         super._withdraw(caller, receiver, owner, assets, shares);
+    }
+
+    /// @inheritdoc ERC4626
+    /// @dev OpenZeppelin's formula at the current lender assets (`totalAssets`).
+    function _convertToShares(uint256 assets, Math.Rounding rounding) internal view override returns (uint256) {
+        return _toShares(assets, totalAssets(), rounding);
+    }
+
+    /// @inheritdoc ERC4626
+    /// @dev OpenZeppelin's formula at the current lender assets (`totalAssets`).
+    function _convertToAssets(uint256 shares, Math.Rounding rounding) internal view override returns (uint256) {
+        return _toAssets(shares, totalAssets(), rounding);
     }
 
     /// @inheritdoc ERC4626
@@ -706,14 +748,23 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     /// @return debt Accrued debt, loan-token base units, rounded up.
     function accountOf(address account) external view returns (uint256 collateral, uint256 debtShares, uint256 debt) {
         Account storage a = _accounts[account];
-        return (a.collateral, a.debtShares, _debt(a.debtShares, _index(clock.time())));
+        return (a.collateral, a.debtShares, a.debtShares.toDebtUp(_index(clock.time())));
     }
 
     /// @notice Accrued debt of `account` at the current clock time.
     /// @param account Account to read.
     /// @return Debt, loan-token base units, rounded up; zero without debt.
     function debtOf(address account) public view returns (uint256) {
-        return _debt(_accounts[account].debtShares, _index(clock.time()));
+        return _accounts[account].debtShares.toDebtUp(_index(clock.time()));
+    }
+
+    /// @notice Accrued debt of `account` at clock time `t`, at its current debt shares: the debt it will owe at
+    /// `t` if nothing changes before then. The Lens uses it to project debt to F, the close and the reopening.
+    /// @param account Account to read.
+    /// @param t Clock time, UTC seconds; at or after `epoch` (earlier times revert).
+    /// @return Debt, loan-token base units, rounded up; zero without debt.
+    function debtAt(address account, uint64 t) external view returns (uint256) {
+        return _accounts[account].debtShares.toDebtUp(_index(t));
     }
 
     /// @notice Collateral held for `account`.
@@ -742,8 +793,7 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     /// @return The valuation; see Book for fields and units.
     function bookValuation() public view returns (Book memory) {
         PriceGate.Quote memory q = gate.quote();
-        bool indicative = q.reasons != 0;
-        return _book(indicative ? gate.lastPriceWad() : q.priceWad, indicative, _index(clock.time()));
+        return _bookFor(q.reasons, q.priceWad, clock.time());
     }
 
     // =============================================================== internals
@@ -770,27 +820,110 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     /// @param debt Account debt after the action, loan-token base units, rounded up.
     /// @param value Collateral value after the action, loan-token base units, rounded down.
     function _requireWithinLimit(SessionRiskPolicy.Snapshot memory s, uint256 debt, uint256 value) internal pure {
-        if (debt * WAD > s.borrowLimitWad * value) revert AboveBorrowLimit(debt, value, s.borrowLimitWad);
+        if (debt.exceeds(value, s.borrowLimitWad)) revert AboveBorrowLimit(debt, value, s.borrowLimitWad);
+    }
+
+    /// @dev Every borrow check in the order documented on `borrow`, after ZeroAmount and the refresh.
+    /// @param s Refreshed snapshot of this transaction.
+    /// @param account Borrower (the caller).
+    /// @param amount Loan tokens to borrow, base units.
+    /// @param idx Debt index at `s.time`, WAD.
+    /// @return shares Debt shares to mint, rounded up.
+    /// @return debtAfter Account debt after the borrow, loan-token base units, rounded up.
+    function _validateBorrow(SessionRiskPolicy.Snapshot memory s, address account, uint256 amount, uint256 idx)
+        internal
+        view
+        returns (uint256 shares, uint256 debtAfter)
+    {
+        _requireBorrowable(s, account);
+        if (amount > cash) revert InsufficientCash(amount, cash);
+
+        Book memory book = _book(s.priceWad, false, idx);
+        if (book.impaired) revert MarketImpaired();
+        if ((book.totalDebt + amount).exceeds(cash + book.totalDebt, UTILIZATION_CAP)) {
+            revert UtilizationCapExceeded();
+        }
+
+        Account storage a = _accounts[account];
+        uint256 sharesBefore = a.debtShares;
+        if (sharesBefore == 0 && _active.length >= MAX_ACCOUNTS) revert AccountCapReached();
+        // The minimum applies to principal; the share rounding below adds at most one base unit of debt.
+        uint256 debtBefore = sharesBefore.toDebtUp(idx);
+        if (debtBefore + amount < minLoan) revert BelowMinimumLoan(debtBefore + amount, minLoan);
+        shares = amount.toSharesUp(idx);
+        debtAfter = (sharesBefore + shares).toDebtUp(idx);
+        _requireWithinLimit(s, debtAfter, _value(a.collateral, s.priceWad));
+    }
+
+    /// @dev Adds `shares` of debt to `account`, listing it as active when it had no debt.
+    /// @param account Borrower.
+    /// @param shares Debt shares to add.
+    function _mintDebt(address account, uint256 shares) internal {
+        Account storage a = _accounts[account];
+        if (a.debtShares == 0) {
+            _active.push(account);
+            _activeSlot[account] = _active.length;
+        }
+        a.debtShares += shares;
+        totalDebtShares += shares;
     }
 
     /// @dev Deposits and mints: refreshes, then reverts with NotAllowedNow unless the lender window is open
     /// (OPEN with a usable price).
-    function _requireLenderWindow() internal {
-        SessionRiskPolicy.Snapshot memory s = _refresh();
+    /// @return s The refreshed snapshot.
+    function _requireLenderWindow() internal returns (SessionRiskPolicy.Snapshot memory s) {
+        s = _refresh();
         if (!s.lenderOpen) revert NotAllowedNow(s.state, s.reasons);
     }
 
     /// @dev Withdrawals and redemptions: the scheduled window, or wind-down from the open of the last loaded
     /// session, when lenders exit against idle cash at the gate's last accepted price and repayments keep adding
     /// to that cash. Refreshes, then reverts with NotAllowedNow otherwise (appendix R17).
-    function _requireLenderExit() internal {
-        SessionRiskPolicy.Snapshot memory s = _refresh();
+    /// @return s The refreshed snapshot.
+    function _requireLenderExit() internal returns (SessionRiskPolicy.Snapshot memory s) {
+        s = _refresh();
         if (!s.lenderOpen && !s.windDown) revert NotAllowedNow(s.state, s.reasons);
     }
 
-    /// @dev View check for `maxDeposit` and `maxMint`: the lender window per `policy.snapshot()`, no refresh.
-    function _lenderWindowOpen() internal view returns (bool) {
-        return policy.snapshot().lenderOpen;
+    /// @dev Lender assets (`totalAssets`) for a refreshed snapshot of this transaction: after `gate.refresh()`,
+    /// the gate's view quote at the same time carries the same reasons and price, so this is the value
+    /// `totalAssets` would return, computed once. In wind-down it is idle cash only.
+    /// @param s Refreshed snapshot.
+    /// @return assets Cash plus recoverable (cash only in wind-down), loan-token base units.
+    /// @return impaired The book is impaired at that valuation; false in wind-down.
+    function _lenderAssets(SessionRiskPolicy.Snapshot memory s) internal view returns (uint256 assets, bool impaired) {
+        if (s.windDown) return (cash, false);
+        Book memory b = _bookFor(s.reasons, s.priceWad, s.time);
+        return (cash + b.recoverable, b.impaired);
+    }
+
+    /// @dev OpenZeppelin's ERC-4626 share conversion at lender assets `lenderAssets`: assets * (supply + 10^6) /
+    /// (lenderAssets + 1).
+    function _toShares(uint256 assets, uint256 lenderAssets, Math.Rounding rounding) internal view returns (uint256) {
+        return assets.mulDiv(totalSupply() + 10 ** _decimalsOffset(), lenderAssets + 1, rounding);
+    }
+
+    /// @dev OpenZeppelin's ERC-4626 asset conversion at lender assets `lenderAssets`: shares * (lenderAssets + 1) /
+    /// (supply + 10^6).
+    function _toAssets(uint256 shares, uint256 lenderAssets, Math.Rounding rounding) internal view returns (uint256) {
+        return shares.mulDiv(lenderAssets + 1, totalSupply() + 10 ** _decimalsOffset(), rounding);
+    }
+
+    /// @dev View check for `maxDeposit` and `maxMint`: the lender window per `policy.snapshot()` and the entry
+    /// rule of `_entryOpen` at `bookValuation()`, no refresh. The window is never open in wind-down.
+    function _entryOpenNow() internal view returns (bool) {
+        if (!policy.snapshot().lenderOpen) return false;
+        Book memory b = bookValuation();
+        return _entryOpen(cash + b.recoverable, b.impaired);
+    }
+
+    /// @dev Lender entry (deposit, mint) inside the window: closed while the book is impaired (appendix R21) or the
+    /// vault is in run-off, where shares exist but lender assets are zero, so deposits stop rather than
+    /// recapitalize through an arbitrary conversion (docs/SPEC.md §7).
+    /// @param lenderAssets Lender assets at this call's valuation, loan-token base units.
+    /// @param impaired The book is impaired at that valuation.
+    function _entryOpen(uint256 lenderAssets, bool impaired) internal view returns (bool) {
+        return !impaired && (totalSupply() == 0 || lenderAssets != 0);
     }
 
     /// @dev View check for `maxWithdraw` and `maxRedeem`: the lender window or wind-down per `policy.snapshot()`.
@@ -799,14 +932,8 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
         return s.lenderOpen || s.windDown;
     }
 
-    /// @dev Run-off: shares exist but lender assets are zero, so deposits and mints stop rather than recapitalize
-    /// through an arbitrary conversion (docs/SPEC.md §7).
-    function _inRunOff() internal view returns (bool) {
-        return totalSupply() != 0 && totalAssets() == 0;
-    }
-
     /// @dev Reduce `account`'s debt by up to `amount`; repaying everything clears the shares exactly and removes
-    /// the account from the active list. A partial reduction burns floor(amount * SHARE_UNIT / idx) shares, so
+    /// the account from the active list. A partial reduction burns floor(amount * 1e36 / idx) shares, so
     /// rounding favors the lenders. Updates `totalDebtShares`; moves no tokens.
     /// @param account Account whose debt is reduced.
     /// @param a Storage record of `account`.
@@ -818,30 +945,51 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
         internal
         returns (uint256 paid, uint256 debtAfter)
     {
-        uint256 debt = _debt(a.debtShares, idx);
+        uint256 shares = a.debtShares;
+        uint256 debt = shares.toDebtUp(idx);
         if (amount >= debt) {
-            paid = debt;
-            totalDebtShares -= a.debtShares;
-            a.debtShares = 0;
-            _deactivate(account);
-            return (paid, 0);
+            _clearDebt(account, a);
+            return (debt, 0);
         }
-        paid = amount;
-        uint256 shares = amount.mulDiv(SHARE_UNIT, idx);
-        a.debtShares -= shares;
-        totalDebtShares -= shares;
-        debtAfter = _debt(a.debtShares, idx);
+        // amount < debt = ceil(shares * idx / 1e36), so the burn is strictly below `shares`.
+        uint256 burn = amount.toSharesDown(idx);
+        shares -= burn;
+        a.debtShares = shares;
+        totalDebtShares -= burn;
+        return (amount, shares.toDebtUp(idx));
     }
 
-    /// @dev Removes `account` from the active list by moving the last entry into its slot; no-op if not listed.
+    /// @dev Clears all of `account`'s debt shares and removes it from the active list (full repayment or a
+    /// write-off).
+    /// @param account Account whose debt is cleared.
+    /// @param a Storage record of `account`.
+    function _clearDebt(address account, Account storage a) internal {
+        totalDebtShares -= a.debtShares;
+        a.debtShares = 0;
+        _deactivate(account);
+    }
+
+    /// @dev Removes `account` from the active list by moving the last entry into its slot. Called only for an
+    /// account with debt, which is always listed: borrow lists it when its shares go from zero, and only
+    /// `_clearDebt` sets them back to zero (a partial reduction never does). An unlisted account would panic here.
     function _deactivate(address account) internal {
         uint256 slot = _activeSlot[account];
-        if (slot == 0) return;
         address last = _active[_active.length - 1];
         _active[slot - 1] = last;
         _activeSlot[last] = slot;
         _active.pop();
         delete _activeSlot[account];
+    }
+
+    /// @dev The book at a quote's reasons and price: the price itself when `reasons` is zero, otherwise the gate's
+    /// last accepted price, flagged as indicative.
+    /// @param reasons Reasons bits of the quote.
+    /// @param priceWad Price of the quote, WAD.
+    /// @param t Clock time, UTC seconds.
+    /// @return The book valuation.
+    function _bookFor(uint32 reasons, uint256 priceWad, uint64 t) internal view returns (Book memory) {
+        bool indicative = reasons != 0;
+        return _book(indicative ? gate.lastPriceWad() : priceWad, indicative, _index(t));
     }
 
     /// @dev Values every active account at `priceWad` and index `idx`. Per account, debt rounds up and
@@ -857,12 +1005,18 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
         uint256 n = _active.length;
         for (uint256 i; i < n; ++i) {
             Account storage a = _accounts[_active[i]];
-            uint256 debt = _debt(a.debtShares, idx);
-            uint256 rec = Math.min(debt, _value(a.collateral, priceWad).mulDiv(WAD, WAD + RECOVERY_HAIRCUT));
+            uint256 debt = a.debtShares.toDebtUp(idx);
+            uint256 rec = debt.recoverableDown(_value(a.collateral, priceWad), RECOVERY_HAIRCUT);
             b.totalDebt += debt;
             b.recoverable += rec;
             if (rec < debt) b.impaired = true;
         }
+    }
+
+    /// @dev True in PRE_CLOSE and FINAL_WINDOW, where a position at or below 80% is trimmed at the scheduling
+    /// bonus (SessionRiskPolicy.bonusFor).
+    function _preparing(SessionRiskPolicy.State st) internal pure returns (bool) {
+        return st == SessionRiskPolicy.State.PRE_CLOSE || st == SessionRiskPolicy.State.FINAL_WINDOW;
     }
 
     /// @dev Debt index at clock time `t` (UTC seconds), WAD: expWad(RATE_PER_SECOND * (t - epoch)). It depends
@@ -878,23 +1032,7 @@ contract StockReefMarket is ERC4626, ReentrancyGuard {
     /// @param priceWad Price, WAD.
     /// @return Value, loan-token base units.
     function _value(uint256 raw, uint256 priceWad) internal view returns (uint256) {
-        return raw.mulDiv(priceWad, VALUE_SCALE);
-    }
-
-    /// @dev Debt for `shares` at index `idx` (WAD), loan-token base units, rounded up: shares * idx / SHARE_UNIT.
-    /// @param shares Debt shares (1e18 per base unit of debt at index 1.0).
-    /// @param idx Debt index, WAD.
-    /// @return Debt, loan-token base units, rounded up.
-    function _debt(uint256 shares, uint256 idx) internal pure returns (uint256) {
-        return shares.mulDiv(idx, SHARE_UNIT, Math.Rounding.Ceil);
-    }
-
-    /// @dev LTV = debt / value, WAD, rounded up; type(uint256).max when `value` is zero.
-    /// @param debt Debt, loan-token base units.
-    /// @param value Collateral value, loan-token base units.
-    /// @return LTV, WAD, rounded up.
-    function _ltvCeil(uint256 debt, uint256 value) internal pure returns (uint256) {
-        return value == 0 ? type(uint256).max : debt.mulDiv(WAD, value, Math.Rounding.Ceil);
+        return raw.toValueDown(priceWad, VALUE_SCALE);
     }
 
     /// @dev Transfer in and require the full amount to arrive (rejects fee-on-transfer behavior).

@@ -10,6 +10,7 @@ import {IStockToken} from "./interfaces/IStockToken.sol";
 import {SessionCalendar} from "./SessionCalendar.sol";
 import {Reasons} from "./libraries/Reasons.sol";
 import {SessionTiming} from "./libraries/SessionTiming.sol";
+import {StockReefMath} from "./libraries/StockReefMath.sol";
 
 /// @title PriceGate
 /// @notice Decides whether the collateral price can be used right now. It converts the stock feed's USD price
@@ -22,7 +23,7 @@ import {SessionTiming} from "./libraries/SessionTiming.sol";
 /// loanDecimals). Feed answers and answer bounds are in each feed's own decimals (8 for the Robinhood feeds).
 /// Times are UTC seconds from `clock`; durations are seconds.
 ///
-/// Trust: feeds are trusted for answer and timestamp only within the checks in `_sourceQuote`; session status
+/// Trust: feeds are trusted for answer and timestamp only within the checks in `_readFeed`; session status
 /// comes from `calendar`, since AggregatorV3 feeds carry none. Every address, decimal and limit is immutable and
 /// comes from the deployment manifest. The Robinhood stock feeds already include the ERC-8056 multiplier, so raw
 /// balances are valued directly. Feed, token and sequencer reads use try/catch, so a reverting source sets a
@@ -82,6 +83,12 @@ contract PriceGate is Ownable2Step {
     /// @notice Chain id of Robinhood Chain testnet (as listed in appendix R6), where the labelled 1:1 test peg is
     /// allowed (docs/SPEC.md §6).
     uint256 public constant ROBINHOOD_TESTNET_CHAIN_ID = 46630;
+    /// @notice Most decimals a feed may have (appendix R22).
+    uint8 public constant MAX_FEED_DECIMALS = 18;
+    /// @notice Highest usable price, WAD: 1e18 loan-token whole units per collateral whole unit. A stock answer that
+    /// would price the token above it is a bad answer (STOCK_BAD_ANSWER), so every usable price keeps the market's
+    /// and the lens's value, LTV and trim products inside uint256 and no quote overflows (appendix R12, R22).
+    uint256 public constant MAX_PRICE_WAD = 1e36;
 
     /// @notice Collateral stock token; read for its issuer pause flag and, for ERC-8056 tokens, `effectiveAt`.
     IStockToken public immutable token;
@@ -125,6 +132,10 @@ contract PriceGate is Ownable2Step {
     /// @notice Divisor that turns raw collateral times `priceWad` into loan-token base units:
     /// 10^(tokenDecimals + 18 - loanDecimals), which is 1e30 for an 18-decimal stock token and 6-decimal USDG.
     uint256 public immutable VALUE_SCALE;
+    /// @dev 10^stockFeedDecimals, fixed at deployment.
+    uint256 private immutable STOCK_SCALE;
+    /// @dev 10^loanFeedDecimals, or STOCK_SCALE with the peg, fixed at deployment.
+    uint256 private immutable LOAN_SCALE;
     /// @notice Label of the 1:1 test peg; empty when a loan feed is configured.
     string public pegLabel;
 
@@ -197,7 +208,9 @@ contract PriceGate is Ownable2Step {
     error PegNotAllowed(uint256 chainId);
     /// @notice The 1:1 test peg was configured without a label.
     error MissingPegLabel();
-    /// @notice A required address or limit is zero, or the loan token has more than tokenDecimals + 18 decimals.
+    /// @notice A required address or limit is zero, the loan token has more than tokenDecimals + 18 decimals, a
+    /// feed has more than MAX_FEED_DECIMALS decimals, or the loan feed's answer bound lets an in-range quote price
+    /// the token at zero.
     error InvalidConfig();
     /// @notice `requestResume` or `resume` was called while the gate is not stopped.
     error NotStopped();
@@ -215,7 +228,10 @@ contract PriceGate is Ownable2Step {
     /// token and stock feed report the manifest's decimals. With `c.loanFeed.feed == address(0)` the 1:1 peg is
     /// used: only on LOCAL_CHAIN_ID or ROBINHOOD_TESTNET_CHAIN_ID and only with a label; the loan feed's other
     /// fields are then stored unchecked. Otherwise the loan feed's maxAge, answer bound and decimals are checked
-    /// the same way. The sequencer feed and grace are not checked. Reverts with InvalidConfig, DecimalsMismatch,
+    /// the same way. Feed decimals must be at most MAX_FEED_DECIMALS, and a loan feed's answer bound must keep the
+    /// price of the smallest stock answer at or above one (loanAnswerBound * 10^stockFeedDecimals <= 1e18 *
+    /// 10^loanFeedDecimals), so every price product fits in uint256 (appendix R22). The sequencer feed and grace
+    /// are not checked. Reverts with InvalidConfig, DecimalsMismatch,
     /// PegNotAllowed, MissingPegLabel, or OwnableInvalidOwner for a zero guardian; a token or feed without
     /// `decimals()` reverts the deployment.
     /// @param c Deployment manifest; see `Config`.
@@ -226,6 +242,7 @@ contract PriceGate is Ownable2Step {
         if (address(c.clock) == address(0) || address(c.calendar) == address(0)) revert InvalidConfig();
         if (c.stockFeed.maxAge == 0 || c.stockFeed.answerBound == 0) revert InvalidConfig();
         if (uint256(c.tokenDecimals) + 18 < c.loanDecimals) revert InvalidConfig();
+        if (c.stockFeed.decimals > MAX_FEED_DECIMALS) revert InvalidConfig();
 
         _expectDecimals(c.token, c.tokenDecimals, IERC20Metadata(c.token).decimals());
         _expectDecimals(c.loanToken, c.loanDecimals, IERC20Metadata(c.loanToken).decimals());
@@ -239,6 +256,7 @@ contract PriceGate is Ownable2Step {
             pegLabel = c.pegLabel;
         } else {
             if (c.loanFeed.maxAge == 0 || c.loanFeed.answerBound == 0) revert InvalidConfig();
+            if (c.loanFeed.decimals > MAX_FEED_DECIMALS) revert InvalidConfig();
             _expectDecimals(address(c.loanFeed.feed), c.loanFeed.decimals, c.loanFeed.feed.decimals());
         }
 
@@ -261,6 +279,14 @@ contract PriceGate is Ownable2Step {
         clock = c.clock;
         calendar = c.calendar;
         VALUE_SCALE = 10 ** (uint256(c.tokenDecimals) + 18 - c.loanDecimals);
+        uint256 stockScale = 10 ** uint256(c.stockFeed.decimals);
+        bool peg = address(c.loanFeed.feed) == address(0);
+        uint256 loanScale = peg ? stockScale : 10 ** uint256(c.loanFeed.decimals);
+        // priceWad = stockAnswer * 1e18 * loanScale / (loanAnswer * stockScale), rounded down: at least one for any
+        // in-range answers, and loanAnswer * stockScale stays at most 1e36.
+        if (!peg && c.loanFeed.answerBound > Math.mulDiv(1e18, loanScale, stockScale)) revert InvalidConfig();
+        STOCK_SCALE = stockScale;
+        LOAN_SCALE = loanScale;
     }
 
     // ---------------------------------------------------------------- reads
@@ -276,10 +302,10 @@ contract PriceGate is Ownable2Step {
     /// @return q The quote; `q.priceWad` is usable only when `q.reasons` is zero.
     function quote() public view returns (Quote memory q) {
         uint64 t = clock.time();
-        q = _sourceQuote(t);
-        if (stopped) q.reasons |= Reasons.STOPPED;
-        if (outageSession != 0 && outageSession == _sessionId(t)) q.reasons |= Reasons.OUTAGE_UNRESOLVED;
-        if (_gracePending(t, q.updatedAt)) q.reasons |= Reasons.RECOVERY_GRACE;
+        q = _baseQuote(t);
+        // The calendar is read only while an outage is marked.
+        bool outage = outageSession != 0 && outageSession == _sessionId(t);
+        q.reasons |= _stateReasons(t, outage, q.updatedAt);
     }
 
     /// @notice Admission time recorded for session `index`, or zero if that session has none.
@@ -304,7 +330,7 @@ contract PriceGate is Ownable2Step {
     /// @param priceWad Price in WAD loan-token whole units per collateral whole unit.
     /// @return Value in loan-token base units, rounded down.
     function valueOf(uint256 raw, uint256 priceWad) public view returns (uint256) {
-        return Math.mulDiv(raw, priceWad, VALUE_SCALE);
+        return StockReefMath.toValueDown(raw, priceWad, VALUE_SCALE);
     }
 
     /// @notice Raw collateral worth `value` loan-token base units at `priceWad`.
@@ -315,7 +341,7 @@ contract PriceGate is Ownable2Step {
     /// @param rounding Rounding direction (Math.Rounding); use Ceil for collateral a borrower must add.
     /// @return Collateral amount in raw stock-token units, rounded as `rounding` asks.
     function rawForValue(uint256 value, uint256 priceWad, Math.Rounding rounding) public view returns (uint256) {
-        return Math.mulDiv(value, VALUE_SCALE, priceWad, rounding);
+        return StockReefMath.toRaw(value, priceWad, VALUE_SCALE, rounding);
     }
 
     // ---------------------------------------------------------------- refresh
@@ -339,51 +365,13 @@ contract PriceGate is Ownable2Step {
     /// usable only when `q.reasons` is zero.
     function refresh() public returns (Quote memory q) {
         uint64 t = clock.time();
-        q = _sourceQuote(t);
-        if (stopped) q.reasons |= Reasons.STOPPED;
-        uint32 base = q.reasons;
-
+        q = _baseQuote(t);
         SessionCalendar.Context memory ctx = calendar.context(t);
         uint32 sid = uint32(ctx.index + 1);
-        if (outageSession != 0 && outageSession != sid) outageSession = 0;
-        if (checkpointAt != 0 && !_gracePending(t, q.updatedAt)) checkpointAt = 0;
-
-        if (ctx.covered && ctx.inSession) {
-            bool admitted = admittedSession == sid;
-            if (base == 0) {
-                if (outageSession == sid) {
-                    outageSession = 0;
-                    checkpointAt = t;
-                    emit RecoveryCheckpoint(t);
-                } else if (
-                    !admitted && checkpointAt == 0 && t >= ctx.open + SessionTiming.ADMIT_AFTER
-                        && q.updatedAt >= ctx.open + SessionTiming.FRESH_AFTER
-                ) {
-                    admittedSession = sid;
-                    admissionAt = t;
-                    emit Admitted(ctx.index, t, q.updatedAt);
-                }
-            } else if (admitted) {
-                if (t < SessionTiming.creditAt(ctx.open, admissionAt)) {
-                    // Interrupted reopening recovery: admission starts over once the source is valid again.
-                    admittedSession = 0;
-                    admissionAt = 0;
-                    emit AdmissionReset(ctx.index, t, base);
-                } else if (outageSession != sid) {
-                    outageSession = sid;
-                    emit OutageDetected(ctx.index, t, base);
-                }
-            }
-        }
-
-        if (outageSession == sid) q.reasons |= Reasons.OUTAGE_UNRESOLVED;
-        if (_gracePending(t, q.updatedAt)) q.reasons |= Reasons.RECOVERY_GRACE;
-
-        if (q.reasons == 0) {
-            lastPriceWad = q.priceWad;
-            lastUpdatedAt = q.updatedAt;
-            lastAcceptedAt = t;
-        }
+        _expire(t, sid, q.updatedAt);
+        if (ctx.covered && ctx.inSession) _transition(ctx, sid, t, q.reasons, q.updatedAt);
+        q.reasons |= _stateReasons(t, outageSession == sid, q.updatedAt);
+        if (q.reasons == 0) _accept(q, t);
     }
 
     // ---------------------------------------------------------------- guardian
@@ -424,10 +412,8 @@ contract PriceGate is Ownable2Step {
         if (t < resumeAvailableAt) revert ResumeTooEarly(resumeAvailableAt);
         stopped = false;
         resumeAvailableAt = 0;
-        outageSession = 0;
-        checkpointAt = t;
         emit Resumed(t);
-        emit RecoveryCheckpoint(t);
+        _checkpoint(t);
     }
 
     /// @inheritdoc Ownable
@@ -440,75 +426,174 @@ contract PriceGate is Ownable2Step {
 
     // ---------------------------------------------------------------- internals
 
+    // ---------------------------------------------------------------- refresh transitions
+
+    /// @dev Drops an outage mark from a session other than `sid` and a checkpoint whose grace has ended.
+    /// @param t Current clock time, UTC seconds.
+    /// @param sid Current session id (calendar index + 1).
+    /// @param stockUpdatedAt Stock feed timestamp of this refresh's quote, UTC seconds.
+    function _expire(uint64 t, uint32 sid, uint64 stockUpdatedAt) private {
+        if (outageSession != 0 && outageSession != sid) outageSession = 0;
+        if (checkpointAt != 0 && !_gracePending(t, stockUpdatedAt)) checkpointAt = 0;
+    }
+
+    /// @dev The in-session transition for source reasons plus STOPPED (`base`), as listed on `refresh`: recover
+    /// a marked outage, admit a reopening price, reset an interrupted recovery, or mark an outage.
+    /// @param ctx Calendar context at `t`; covered and in session.
+    /// @param sid Current session id (calendar index + 1).
+    /// @param t Current clock time, UTC seconds.
+    /// @param base Source reasons plus STOPPED.
+    /// @param stockUpdatedAt Stock feed timestamp of this refresh's quote, UTC seconds.
+    function _transition(SessionCalendar.Context memory ctx, uint32 sid, uint64 t, uint32 base, uint64 stockUpdatedAt)
+        private
+    {
+        bool admitted = admittedSession == sid;
+        if (base == 0) {
+            if (outageSession == sid) _checkpoint(t);
+            else if (!admitted && _admissible(ctx.open, t, stockUpdatedAt)) _admit(ctx.index, sid, t, stockUpdatedAt);
+        } else if (admitted) {
+            if (t < SessionTiming.creditAt(ctx.open, admissionAt)) _resetAdmission(ctx.index, t, base);
+            else if (outageSession != sid) _markOutage(ctx.index, sid, t, base);
+        }
+    }
+
+    /// @dev A valid quote can be admitted for the session opening at `open`: no pending checkpoint, the clock at
+    /// or after O + ADMIT_AFTER and the stock feed stamped at or after O + FRESH_AFTER (docs/SPEC.md §6 steps 1
+    /// and 2).
+    function _admissible(uint64 open, uint64 t, uint64 stockUpdatedAt) private view returns (bool) {
+        return checkpointAt == 0 && t >= open + SessionTiming.ADMIT_AFTER
+            && stockUpdatedAt >= open + SessionTiming.FRESH_AFTER;
+    }
+
+    /// @dev Records the reopening admission of session `index` (id `sid`) at `t`.
+    function _admit(uint256 index, uint32 sid, uint64 t, uint64 stockUpdatedAt) private {
+        admittedSession = sid;
+        admissionAt = t;
+        emit Admitted(index, t, stockUpdatedAt);
+    }
+
+    /// @dev Clears the admission after an interruption before credit returned; admission starts over once the
+    /// source is valid again.
+    function _resetAdmission(uint256 index, uint64 t, uint32 base) private {
+        admittedSession = 0;
+        admissionAt = 0;
+        emit AdmissionReset(index, t, base);
+    }
+
+    /// @dev Marks an outage for session `index` (id `sid`) after credit has returned.
+    function _markOutage(uint256 index, uint32 sid, uint64 t, uint32 base) private {
+        outageSession = sid;
+        emit OutageDetected(index, t, base);
+    }
+
+    /// @dev Clears any outage mark and records a recovery checkpoint at `t` (source recovery or guardian resume).
+    function _checkpoint(uint64 t) private {
+        outageSession = 0;
+        checkpointAt = t;
+        emit RecoveryCheckpoint(t);
+    }
+
+    /// @dev Stores `q` as the last accepted price, read at clock time `t`.
+    function _accept(Quote memory q, uint64 t) private {
+        lastPriceWad = q.priceWad;
+        lastUpdatedAt = q.updatedAt;
+        lastAcceptedAt = t;
+    }
+
+    // ---------------------------------------------------------------- sources
+
+    /// @dev The source quote plus STOPPED while the guardian's stop is in force.
+    /// @param t Current clock time, UTC seconds.
+    /// @return q Quote with source reasons and STOPPED only.
+    function _baseQuote(uint64 t) internal view returns (Quote memory q) {
+        q = _sourceQuote(t);
+        if (stopped) q.reasons |= Reasons.STOPPED;
+    }
+
+    /// @dev Gate-state reasons shared by `quote` and `refresh`: OUTAGE_UNRESOLVED when `outage`, and
+    /// RECOVERY_GRACE while a recovery checkpoint holds prices.
+    /// @param t Current clock time, UTC seconds.
+    /// @param outage An outage is marked for the current session.
+    /// @param stockUpdatedAt Stock feed timestamp of the quote, UTC seconds.
+    /// @return bits Reasons bits.
+    function _stateReasons(uint64 t, bool outage, uint64 stockUpdatedAt) internal view returns (uint32 bits) {
+        if (outage) bits |= Reasons.OUTAGE_UNRESOLVED;
+        if (_gracePending(t, stockUpdatedAt)) bits |= Reasons.RECOVERY_GRACE;
+    }
+
     /// @dev Reads the stock feed, the loan feed (or peg), the token flags and the sequencer feed at clock time
-    /// `t`, and returns the price-source reasons (bits inside Reasons.SOURCE_MASK). A reverting latestRoundData
-    /// sets STOCK_FEED_UNAVAILABLE or LOAN_FEED_UNAVAILABLE; a reverting or different decimals() sets
-    /// STOCK_DECIMALS_CHANGED or LOAN_DECIMALS_CHANGED; `_checkRound` supplies the answer and timestamp bits.
+    /// `t`, and returns the price-source reasons (bits inside Reasons.SOURCE_MASK): the stock feed's FEED_* bits
+    /// as STOCK_*, the loan feed's shifted to LOAN_*, then the token and sequencer bits.
     /// `priceWad` is stockAnswer * 1e18 * 10^loanFeedDecimals / (loanAnswer * 10^stockFeedDecimals), rounded
     /// down, using the manifest decimals. The peg values one loan-token whole unit at one USD: it uses
     /// loanAnswer = 10^stockFeedDecimals and 10^stockFeedDecimals in place of 10^loanFeedDecimals, so the price
     /// is stockAnswer * 1e18 / 10^stockFeedDecimals. `priceWad` is set whenever the stock answer and, with a loan
-    /// feed, the loan answer are positive and within their bounds, even when other reasons are set. The scale
-    /// products use checked arithmetic, so only a manifest with extreme decimals or bounds could make them revert.
+    /// feed, the loan answer are positive and within their bounds, even when other reasons are set, unless the
+    /// price would exceed MAX_PRICE_WAD: then STOCK_BAD_ANSWER is set and `priceWad` stays zero. The constructor's
+    /// decimals and loan-bound checks keep every product here inside uint256, so no answer makes a read revert.
     /// @param t Current clock time, UTC seconds.
     /// @return q Quote with source reasons only (no STOPPED, OUTAGE_UNRESOLVED or RECOVERY_GRACE).
     function _sourceQuote(uint64 t) internal view returns (Quote memory q) {
-        int256 stockAnswer;
-        uint256 stockUpdatedAt;
-        bool stockOk;
-        (stockOk, q.roundId, stockAnswer, stockUpdatedAt) = _latest(stockFeed);
-        if (!stockOk) {
-            q.reasons |= Reasons.STOCK_FEED_UNAVAILABLE;
-        } else {
-            q.reasons |= _checkRound(stockAnswer, stockUpdatedAt, t, stockMaxAge, stockAnswerBound) << 1;
-            q.updatedAt = stockUpdatedAt > type(uint64).max ? type(uint64).max : uint64(stockUpdatedAt);
-        }
-        if (!_decimalsMatch(stockFeed, stockFeedDecimals)) q.reasons |= Reasons.STOCK_DECIMALS_CHANGED;
+        (uint32 stockBits, uint256 stockAnswer, uint256 stockUpdatedAt, uint80 roundId) =
+            _readFeed(stockFeed, stockFeedDecimals, stockMaxAge, stockAnswerBound, t);
+        q.reasons = stockBits;
+        q.roundId = roundId;
+        q.updatedAt = stockUpdatedAt > type(uint64).max ? type(uint64).max : uint64(stockUpdatedAt);
 
-        uint256 loanAnswer = 10 ** uint256(stockFeedDecimals); // peg: one loan unit per USD
-        uint256 loanScale = 10 ** uint256(stockFeedDecimals);
+        uint256 loanAnswer = STOCK_SCALE; // peg: one loan-token whole unit per USD
         if (address(loanFeed) != address(0)) {
-            (bool loanOk,, int256 answer, uint256 updatedAt) = _latest(loanFeed);
-            if (!loanOk) {
-                q.reasons |= Reasons.LOAN_FEED_UNAVAILABLE;
-            } else {
-                q.reasons |= _checkRound(answer, updatedAt, t, loanMaxAge, loanAnswerBound) << 7;
-            }
-            if (!_decimalsMatch(loanFeed, loanFeedDecimals)) q.reasons |= Reasons.LOAN_DECIMALS_CHANGED;
-            loanAnswer = loanOk && answer > 0 && uint256(answer) <= loanAnswerBound ? uint256(answer) : 0;
-            loanScale = 10 ** uint256(loanFeedDecimals);
+            uint32 loanBits;
+            (loanBits, loanAnswer,,) = _readFeed(loanFeed, loanFeedDecimals, loanMaxAge, loanAnswerBound, t);
+            q.reasons |= loanBits << Reasons.LOAN_SHIFT;
         }
 
         q.reasons |= _tokenReasons(t, stockUpdatedAt);
         q.reasons |= _sequencerReasons(t);
 
         // Indicative price whenever both answers are in range; usable only if no reason is set.
-        if (stockOk && stockAnswer > 0 && uint256(stockAnswer) <= stockAnswerBound && loanAnswer > 0) {
-            // (USD per token / 10^sd) / (USD per loan unit / 10^ld) * 1e18, rounded down.
-            q.priceWad =
-                Math.mulDiv(uint256(stockAnswer), 1e18 * loanScale, loanAnswer * 10 ** uint256(stockFeedDecimals));
+        if (stockAnswer != 0 && loanAnswer != 0) {
+            // (USD per token / 10^sd) / (USD per loan unit / 10^ld) * 1e18, rounded down. Both factors are at most
+            // 1e36 (decimals <= 18 and the loan bound), so the ceiling check below cannot overflow.
+            uint256 denominator = loanAnswer * STOCK_SCALE;
+            if (stockAnswer > Math.mulDiv(MAX_PRICE_WAD, denominator, 1e18 * LOAN_SCALE)) {
+                q.reasons |= Reasons.STOCK_BAD_ANSWER; // the price would exceed MAX_PRICE_WAD
+            } else {
+                q.priceWad = Math.mulDiv(stockAnswer, 1e18 * LOAN_SCALE, denominator);
+            }
         }
     }
 
-    /// @dev Returns the four round checks as bits 0..3 (bad answer, no timestamp, future, stale). Callers
-    /// shift them onto the STOCK_* (<< 1) or LOAN_* (<< 7) positions in Reasons. Bad answer: `answer` <= 0 or
-    /// above `bound`. Stale: `t - updatedAt > maxAge`, so an age of exactly `maxAge` passes. The timestamp bits
-    /// are exclusive: no timestamp, else future, else stale.
-    /// @param answer Feed answer, in the feed's decimals.
-    /// @param updatedAt Round timestamp, UTC seconds.
-    /// @param t Current clock time, UTC seconds.
+    /// @dev Reads one feed and returns its FEED_* bits: FEED_UNAVAILABLE when latestRoundData reverts; otherwise
+    /// FEED_BAD_ANSWER when the answer is <= 0 or above `bound`, and one exclusive timestamp bit (no timestamp,
+    /// else future, else stale: `t - updatedAt > maxAge`, so an age of exactly `maxAge` passes); and
+    /// FEED_DECIMALS_CHANGED when decimals() reverts or differs from `decimals_`.
+    /// @param feed Feed to read.
+    /// @param decimals_ Decimals given in the manifest.
     /// @param maxAge Largest accepted age, seconds.
     /// @param bound Largest accepted answer, in the feed's decimals.
-    /// @return bits The failed checks; zero when the round passes.
-    function _checkRound(int256 answer, uint256 updatedAt, uint64 t, uint32 maxAge, uint256 bound)
+    /// @param t Current clock time, UTC seconds.
+    /// @return bits FEED_* bits; zero when the reading passes.
+    /// @return answer The answer when positive and within `bound`, otherwise zero.
+    /// @return updatedAt Round timestamp, UTC seconds; zero when the call reverted.
+    /// @return roundId Round id; zero when the call reverted.
+    function _readFeed(IAggregatorV3 feed, uint8 decimals_, uint32 maxAge, uint256 bound, uint64 t)
         internal
-        pure
-        returns (uint32 bits)
+        view
+        returns (uint32 bits, uint256 answer, uint256 updatedAt, uint80 roundId)
     {
-        if (answer <= 0 || uint256(answer) > bound) bits |= 1;
-        if (updatedAt == 0) bits |= 2;
-        else if (updatedAt > t) bits |= 4;
-        else if (t - updatedAt > maxAge) bits |= 8;
+        (bool ok, uint80 r, int256 a, uint256 u) = _latest(feed);
+        if (!ok) {
+            bits = Reasons.FEED_UNAVAILABLE;
+        } else {
+            bool inRange = a > 0 && uint256(a) <= bound;
+            if (!inRange) bits |= Reasons.FEED_BAD_ANSWER;
+            if (u == 0) bits |= Reasons.FEED_NO_TIMESTAMP;
+            else if (u > t) bits |= Reasons.FEED_FUTURE_TIMESTAMP;
+            else if (t - u > maxAge) bits |= Reasons.FEED_STALE;
+            answer = inRange ? uint256(a) : 0;
+            (updatedAt, roundId) = (u, r);
+        }
+        if (!_decimalsMatch(feed, decimals_)) bits |= Reasons.FEED_DECIMALS_CHANGED;
     }
 
     /// @dev Issuer and multiplier checks (appendix R4, R11). ISSUER_PAUSED when `oraclePaused()` is true;

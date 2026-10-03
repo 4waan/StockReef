@@ -6,8 +6,9 @@ pragma solidity 0.8.28;
 /// set. The app decodes the same bits, so their positions are part of the interface.
 /// @dev Bits 0 to 17 describe the price source and are set by PriceGate._sourceQuote (docs/SPEC.md §6, appendix
 /// R4, R11, R12, R14). Bits 18 to 20 describe gate state and are added by PriceGate.quote and PriceGate.refresh.
-/// The four round checks occupy the same relative positions for both feeds: PriceGate._checkRound returns them as
-/// bits 0 to 3, and PriceGate._sourceQuote shifts them left by 1 for the stock feed and by 7 for the loan feed.
+/// Both feeds use the same six relative bits (FEED_*): PriceGate._readFeed returns them, and PriceGate._sourceQuote
+/// keeps them at bits 0 to 5 for the stock feed (STOCK_*) and shifts them left by LOAN_SHIFT for the loan feed
+/// (LOAN_*).
 /// Bits 6 to 11 are never set when the gate uses the labelled test peg instead of a loan-token feed.
 /// Each constant is a uint32 mask with one bit set; a quote's `reasons` field (PriceGate.Quote) is the OR of the
 /// bits that apply, so zero means usable.
@@ -17,8 +18,8 @@ library Reasons {
     /// @dev Bit 0: the stock feed's latestRoundData call reverted. A reverting decimals() call sets
     /// STOCK_DECIMALS_CHANGED instead.
     uint32 internal constant STOCK_FEED_UNAVAILABLE = 1 << 0;
-    /// @dev Bit 1: the stock answer is <= 0 or above the feed's answerBound, in the feed's own decimals (appendix
-    /// R12).
+    /// @dev Bit 1: the stock answer is <= 0 or above the feed's answerBound, in the feed's own decimals, or it would
+    /// price the token above PriceGate.MAX_PRICE_WAD (appendix R12, R22).
     uint32 internal constant STOCK_BAD_ANSWER = 1 << 1;
     /// @dev Bit 2: the stock round's updatedAt is zero.
     uint32 internal constant STOCK_NO_TIMESTAMP = 1 << 2;
@@ -70,6 +71,17 @@ library Reasons {
     /// @dev Bit 20: a recovery checkpoint is pending: less than SessionTiming.RECOVERY_GRACE (5 minutes) has passed
     /// since it, or the stock feed has not updated strictly after it (docs/SPEC.md §6).
     uint32 internal constant RECOVERY_GRACE = 1 << 20;
+
+    /// @dev Feed-relative bits returned by PriceGate._readFeed: the STOCK_* values at bits 0 to 5, and the LOAN_*
+    /// values once shifted left by LOAN_SHIFT.
+    uint32 internal constant FEED_UNAVAILABLE = STOCK_FEED_UNAVAILABLE;
+    uint32 internal constant FEED_BAD_ANSWER = STOCK_BAD_ANSWER;
+    uint32 internal constant FEED_NO_TIMESTAMP = STOCK_NO_TIMESTAMP;
+    uint32 internal constant FEED_FUTURE_TIMESTAMP = STOCK_FUTURE_TIMESTAMP;
+    uint32 internal constant FEED_STALE = STOCK_STALE;
+    uint32 internal constant FEED_DECIMALS_CHANGED = STOCK_DECIMALS_CHANGED;
+    /// @dev Shift from a feed-relative bit to its LOAN_* position.
+    uint8 internal constant LOAN_SHIFT = 6;
 
     /// @dev Bits that describe the price source itself, as opposed to gate state: bits 0 to 17
     /// (STOCK_FEED_UNAVAILABLE through SEQUENCER_GRACE), value 0x3ffff. STOPPED, OUTAGE_UNRESOLVED and
