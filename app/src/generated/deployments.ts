@@ -14,5 +14,20 @@ export const deployments: Record<string, Record<string, string | number>> = {
   "market": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
   "policy": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
   "stockFeed": "0x9f1ac54BEF0DD2f6f3462EA0fa94fC62300d3a8e"
+ },
+ "46630": {
+  "calendar": "0x1e61C3cC1FBecc2d3c19bFF44403c7Ecd69816D5",
+  "chainId": 46630,
+  "clock": "0x704A9C1A189aa62C586ace0DddBf513c24f1854F",
+  "collateralToken": "0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E",
+  "demoController": "0xe7F80950f96E8c51578bC546b580dAe7cfe01Be6",
+  "escrow": "0xC4aD0B3D7319B35f4Db28099161dd54bD12471dF",
+  "gate": "0x1FEfE222c0006a235d706192F8E0efD3933cDE59",
+  "guardian": "0x8A60820Ebbf9643F7b0B560a2FE6AFE666c2A87a",
+  "lens": "0xBfbA1b11b35f65860F6b7B64aeBb310C99a347D0",
+  "loanToken": "0x7E955252E15c84f5768B83c41a71F9eba181802F",
+  "market": "0x75459B07b03F3Ea4768073854Ec06AA02DF9264F",
+  "policy": "0x7F7B55235CD3E392394b140D36e53EDeb805532e",
+  "stockFeed": "0x7EE7A5ff16C6fdA1b989d99954e6e52A09bEf85c"
  }
 }
