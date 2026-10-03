@@ -23,7 +23,7 @@ export function Ticker({ m, now, prices }: { m: MarketData; now: number; prices:
       {change !== undefined && (
         <>
           <Sep />
-          <span className={`num ${change < 0 ? 'text-dk-down' : 'text-dk-up'}`} title="Since the previous session's last demo price">
+          <span className={`num ${change < 0 ? 'text-dk-down' : 'text-dk-up'}`} title="Since the previous session's last stock price">
             {change >= 0 ? '+' : ''}
             {change.toFixed(2)}%
           </span>

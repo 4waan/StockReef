@@ -31,7 +31,7 @@ export default function EarnPage() {
   const { data: wallet } = useTokenBalance(contracts?.loanToken, address)
   const [mode, setMode] = useState<'deposit' | 'withdraw'>('deposit')
 
-  if (!contracts) return <p className="px-5 py-10 text-dk-muted">No StockReef deployment is configured for {chain.name} yet.</p>
+  if (!contracts) return <p className="px-5 py-10 text-dk-muted">No StockReef deployment is configured for chain {chain.id} yet.</p>
   if (!m || now === undefined) return <p className="px-5 py-10 text-dk-muted">Reading the market…</p>
 
   const s = m.policy
@@ -40,7 +40,7 @@ export default function EarnPage() {
   const sharePrice = m.totalShares > 0n ? Number(formatUnits(m.totalAssets, 6)) / Number(formatUnits(m.totalShares, 12)) : 1
   const apr = k ? (Number(k.ratePerSecond) * 31_536_000) / 1e18 : undefined
   const canSign = isConnected && chainId === chain.id
-  const signHint = !isConnected ? 'Connect wallet' : `Switch to ${chain.name}`
+  const signHint = !isConnected ? 'Connect wallet' : `Switch to chain ${chain.id}`
   const utilCap = k ? Number(k.utilizationCap) / 1e18 : 0.9
   const util = Number(m.utilizationWad) / 1e18
 
@@ -85,7 +85,7 @@ export default function EarnPage() {
               <Metric label="Known shortfall" value={`${usdg(allowance)} USDG`} tone={allowance > 0n ? 'text-dk-warn' : ''} sub="debt the collateral cannot recover" />
               <Metric label="Written off" value={`${usdg(m.totalBadDebt)} USDG`} tone={m.totalBadDebt > 0n ? 'text-dk-down' : ''} />
               <Metric label="Value per 1 USDG deposited" value={sharePrice.toFixed(6)} />
-              <Metric label="Borrow rate" value={apr !== undefined ? `${(apr * 100).toFixed(2)}%` : '—'} sub="fixed, paid by borrowers; not a lender APY" />
+              <Metric label="Borrow rate" value={apr !== undefined ? `${(apr * 100).toFixed(2)}%` : 'Unavailable'} sub="fixed rate paid by borrowers" />
             </div>
             <div className="mt-5">
               <div className="flex justify-between text-sm text-dk-muted">
@@ -101,18 +101,16 @@ export default function EarnPage() {
             </div>
           </Panel>
 
-          <Panel title="What lenders carry">
+          <Panel title="How lender value changes">
             <ul className="space-y-2 text-[15px] text-dk-muted">
               <li>
-                <b className="text-dk-ink">Lenders bear any shortfall left after collateral recovery.</b> Pre-close management reduces exposure; it does not insure the loan. There is no
-                reserve in this version.
+                <b className="text-dk-ink">Your vault shares represent available USDG plus the amount the market expects to recover from outstanding loans.</b>
               </li>
               <li>
-                Shares are valued at <span className="num text-dk-ink">cash + Σ min(accrued debt, collateral value ÷ 1.05)</span>, so a known shortfall shows in the share price before
-                collateral runs out, and nobody exits at face value ahead of it.
+                Borrower repayments and liquidator repayments return USDG to the vault. If collateral covers less than the debt, the recoverable amount and share value adjust with the accepted valuation.
               </li>
-              <li>Deposits and withdrawals open after reopening recovery and close when preparation starts. Withdrawals are limited by idle cash.</li>
-              <li>The borrow rate is not a promised return: utilization, losses and idle cash set what lenders earn.</li>
+              <li>Deposits and withdrawals open after reopening recovery and close when preparation starts. Withdrawals use available vault cash.</li>
+              <li>The displayed 10% rate is paid by borrowers. Lender returns depend on loans outstanding, idle cash and any collateral shortfall.</li>
             </ul>
           </Panel>
         </div>
@@ -120,8 +118,8 @@ export default function EarnPage() {
         <aside className="border-dk-line lg:border-l">
           <Panel title="Your position">
             <div className="grid grid-cols-2 gap-4">
-              <Metric big label="Value" value={address ? `${usdg(assets as bigint | undefined)} USDG` : '—'} />
-              <Metric label="Withdrawable now" value={address ? `${usdg(maxWithdraw)} USDG` : '—'} sub={shares !== undefined && shares > 0n ? `${formatUnits(shares, 12)} shares` : undefined} />
+              <Metric big label="Value" value={address ? `${usdg(assets as bigint | undefined)} USDG` : 'Unavailable'} />
+              <Metric label="Withdrawable now" value={address ? `${usdg(maxWithdraw)} USDG` : 'Unavailable'} sub={shares !== undefined && shares > 0n ? `${formatUnits(shares, 12)} shares` : undefined} />
             </div>
           </Panel>
           <div className="px-6 pt-4 pb-6">
@@ -183,8 +181,8 @@ function Deposit({ canSign, signHint, open, reason, wallet }: { canSign: boolean
       </p>
       <Chips max={bal} onPick={(x, mx) => a.fill(x, mx)} disabled={!open} />
       <div className="mt-4">
-        <Line label="Shares (preview)">{preview !== undefined ? formatUnits(preview, 12) : '—'}</Line>
-        <Line label="Least accepted">{minShares !== undefined ? `${formatUnits(minShares, 12)} (0.5% slippage)` : '—'}</Line>
+        <Line label="Shares (preview)">{preview !== undefined ? formatUnits(preview, 12) : 'Unavailable'}</Line>
+        <Line label="Least accepted">{minShares !== undefined ? `${formatUnits(minShares, 12)} (0.5% slippage)` : 'Unavailable'}</Line>
       </div>
       <Submit
         label={!canSign ? signHint : !open ? 'Window closed' : !a.amount ? 'Enter amount' : error ? 'Check amount' : `Deposit ${usdg(a.amount)} USDG`}

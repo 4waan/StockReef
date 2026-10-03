@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { parseUnits, type Address } from 'viem'
-import { useAccount, useReadContract } from 'wagmi'
+import { useAccount, useConnect, useReadContract } from 'wagmi'
 import { demoAbi, escrowAbi, gateAbi, marketAbi } from '@/generated/abi'
 import { Btn, Dot, Metric, Panel, TxStatusLine } from '@/components/terminal/kit'
 import { chain, contracts, demoAccounts } from '@/lib/chain'
@@ -14,13 +14,15 @@ import type { AccountData, Snapshot } from '@/lib/types'
 import { useViewing } from '@/lib/viewing'
 
 export default function OperationsPage() {
+  const { isConnected } = useAccount()
+  const { connect, connectors } = useConnect()
   const { data: m } = useMarketView()
   const { data: accounts } = useActiveAccounts()
   const now = useProtocolNow(m?.policy.time)
   const { data: history } = useHistory(undefined, undefined)
   const refresh = useTx()
 
-  if (!contracts) return <p className="px-5 py-10 text-dk-muted">No StockReef deployment is configured for {chain.name} yet.</p>
+  if (!contracts) return <p className="px-5 py-10 text-dk-muted">No StockReef deployment is configured for chain {chain.id} yet.</p>
   if (!m || now === undefined) return <p className="px-5 py-10 text-dk-muted">Reading the market…</p>
   const s = m.policy
   const state = stateName(s.state)
@@ -41,17 +43,17 @@ export default function OperationsPage() {
 
       <div className="grid border-b border-dk-line md:grid-cols-3">
         <Panel className="border-b-0 md:border-r">
-          <Metric big label="Keeper queue" value={queue.length} sub="buffers or trims executable now" />
+          <Metric big label="Actions ready" value={queue.length} sub="funded repayments or trims eligible now" />
           <p className="mt-2 text-sm text-dk-muted">The team keeper runs these. Anyone can run a funded buffer; trims need the caller’s own USDG.</p>
         </Panel>
         <Panel className="border-b-0 md:border-r">
-          <Metric big label="Missed execution" value={missed.length} tone={missed.length ? 'text-dk-down' : ''} sub={`${usdg(exposure)} USDG exposed`} />
-          <p className="mt-2 text-sm text-dk-muted">Loans that entered a closure above the closing threshold because nobody acted. Exposure is the repayment to reach the target at the indicative valuation, not a prediction of the reopening loss.</p>
+          <Metric big label="Loans needing recovery" value={missed.length} tone={missed.length ? 'text-dk-down' : ''} sub={`${usdg(exposure)} USDG to reach target`} />
+          <p className="mt-2 text-sm text-dk-muted">These loans crossed the closing threshold and carried excess debt into the closure. The USDG amount is the repayment needed to reach the target at the last accepted price.</p>
         </Panel>
         <Panel className="border-b-0">
           <div className="flex items-center gap-2">
             <Dot tone={s.reasons === 0 ? 'up' : 'down'} />
-            <span className="font-medium">{s.reasons === 0 ? 'Price usable' : 'Price not usable'}</span>
+            <span className="font-medium">Stock price status: {s.reasons === 0 ? 'accepted' : 'action needed'}</span>
           </div>
           {reasons.length > 0 && <p className="mt-1 text-sm text-dk-down">{reasons.join(' · ')}</p>}
           <p className="mt-2 text-sm text-dk-muted">
@@ -60,8 +62,8 @@ export default function OperationsPage() {
             <br />
             Reopening admission: {s.admissionAt > 0n ? <span className="num text-dk-ink">{nyTime(s.admissionAt)} ET</span> : 'none this session'}
           </p>
-          <Btn className="mt-3" onClick={() => refresh.send({ address: contracts!.gate, abi: gateAbi, functionName: 'refresh', args: [] })}>
-            Refresh gate
+          <Btn className="mt-3" disabled={!isConnected && connectors.length === 0} onClick={() => isConnected ? refresh.send({ address: contracts!.gate, abi: gateAbi, functionName: 'refresh', args: [] }) : connect({ connector: connectors[0], chainId: chain.id })}>
+            {isConnected ? 'Refresh gate' : 'Connect to refresh'}
           </Btn>
           <TxStatusLine status={refresh.status} />
         </Panel>
@@ -145,9 +147,9 @@ function Row({ v, s, now }: { v: AccountData; s: Snapshot; now: number }) {
       </td>
       <td className="num py-2.5 pr-4">{usdg(v.debt)}</td>
       <td className="num py-2.5 pr-4">{pct(v.ltvWad, 1)}</td>
-      <td className="num py-2.5 pr-4">{v.repayToTarget >= 10_000n ? usdg(v.repayToTarget) : '—'}</td>
-      <td className="num py-2.5 pr-4">{v.bufferExecutableNow > 0n ? usdg(v.bufferExecutableNow) : '—'}</td>
-      <td className="num py-2.5 pr-4">{v.trimNow.eligible ? `${usdg(v.trimNow.repaid)} for ${tokens(v.trimNow.collateralOut)} TSLA (${pct(v.trimNow.bonusWad, 0)})` : '—'}</td>
+      <td className="num py-2.5 pr-4">{v.repayToTarget >= 10_000n ? usdg(v.repayToTarget) : 'Unavailable'}</td>
+      <td className="num py-2.5 pr-4">{v.bufferExecutableNow > 0n ? usdg(v.bufferExecutableNow) : 'Unavailable'}</td>
+      <td className="num py-2.5 pr-4">{v.trimNow.eligible ? `${usdg(v.trimNow.repaid)} for ${tokens(v.trimNow.collateralOut)} TSLA (${pct(v.trimNow.bonusWad, 0)})` : 'Unavailable'}</td>
       <td className="py-2.5 pr-4">{status}</td>
       <td className="py-2.5">
         <div className="flex gap-2">
@@ -244,11 +246,11 @@ function DemoControls({ s, now, feedDecimals }: { s: Snapshot; now: number; feed
     .filter(st => Number(st.at) > now)
     .sort((a, b) => Number(a.at - b.at))
   return (
-    <Panel title="Demo controls" aside={<span className="text-sm text-dk-sim">Simulation: clock and price</span>}>
-      <p className="text-sm text-dk-muted">These move the labelled demo clock and publish the demo TSLA price. Everything else on this page is the real protocol.</p>
+    <Panel title="Market clock and stock price" aside={<span className="text-sm text-dk-sim">Operator controls</span>}>
+      <p className="text-sm text-dk-muted">The operator sets the market clock and publishes the TSLA price used by this deployment.</p>
       <div className="mt-3 flex flex-wrap items-end gap-2">
         <label className="text-sm text-dk-muted">
-          Demo price (USD)
+          TSLA price (USD)
           <input
             value={answer}
             onChange={e => setAnswer(e.target.value.replace(',', '.'))}
@@ -272,7 +274,7 @@ function DemoControls({ s, now, feedDecimals }: { s: Snapshot; now: number; feed
           </Btn>
         ))}
       </div>
-      {!isOperator && <p className="mt-2 text-xs text-dk-faint">Connect the demo operator ({operator ? short(operator) : '…'}) to use these.</p>}
+      {!isOperator && <p className="mt-2 text-xs text-dk-faint">Connect the clock operator ({operator ? short(operator) : '…'}) to use these.</p>}
       <TxStatusLine status={tx.status} />
       <p className="mt-2 text-xs text-dk-faint">Moving the clock does not execute buffers or trims; the keeper or a caller submits those.</p>
     </Panel>

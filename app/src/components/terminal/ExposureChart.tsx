@@ -314,7 +314,7 @@ export function ExposureChart({
       </div>
       <p className="px-5 pb-2 text-xs text-dk-faint">
         Forecast: flat price, accrued interest excluded.
-        {mode === 'ltv' ? ' History: on-chain events valued at the demo feed price of the moment.' : ' Liquidation price uses today’s debt and collateral.'}
+        {mode === 'ltv' ? ' History: on-chain events valued at the stock price feed reading of the moment.' : ' Liquidation price uses today’s debt and collateral.'}
       </p>
     </section>
   )

@@ -25,7 +25,7 @@ export function ViewingProvider({ children }: { children: ReactNode }) {
   const params = useSearchParams()
   const fromQuery = params.get('account')
   const [picked, pick] = useState<Address>()
-  const viewing: Address | undefined = picked ?? (fromQuery && isAddress(fromQuery) ? fromQuery : address)
+  const viewing: Address | undefined = picked ?? (fromQuery && isAddress(fromQuery) ? fromQuery : address ?? demoAccounts[0]?.address)
   const own = !!address && viewing?.toLowerCase() === address.toLowerCase()
   const demo = demoAccounts.find(d => viewing && d.address.toLowerCase() === viewing.toLowerCase())?.label
   const label = demo ?? (viewing ? short(viewing) : undefined)

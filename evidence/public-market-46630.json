@@ -1,0 +1,43 @@
+{
+  "chainId": 46630,
+  "market": "0x75459B07b03F3Ea4768073854Ec06AA02DF9264F",
+  "accounts": {
+    "borrower": "0x05802c4E1921b24854D603A46951864ca97b8DAf",
+    "lenderAndOperator": "0x8A60820Ebbf9643F7b0B560a2FE6AFE666c2A87a",
+    "liquidator": "0xD41ECc5dd9993B0F67d15dCD0916E73E03bEaA67"
+  },
+  "setup": {
+    "lenderDepositUsdg": "85.00",
+    "borrowerCollateralTsla": "0.25",
+    "borrowedUsdg": "72.00",
+    "borrowerBufferUsdg": "7.00",
+    "liquidatorWalletUsdg": "15.00",
+    "operatorSetTslaPriceUsdg": "400.00"
+  },
+  "verifiedContractRead": {
+    "lenderAssetsRaw": "85000056",
+    "lenderSharesRaw": "85000000000000",
+    "borrowerDebtRaw": "72000056",
+    "borrowerCollateralRaw": "250000000000000000",
+    "bufferBalanceRaw": "7000000",
+    "activeBorrowers": 1
+  },
+  "transactions": [
+    { "action": "borrower gas funding", "hash": "0x9c3f7ad3f7810793c825fc974d05bd6a1929a95a23119764d3492e8cfc7f1e93" },
+    { "action": "liquidator gas funding", "hash": "0xaaad55279451d723a8224c35e818dccb7817584f144d8d14b8c2774896cc9240" },
+    { "action": "transfer TSLA to borrower", "hash": "0xa7bf7ba5f4480b146ab488e3079fc62cf2bb50d5eb3b72db0c9e62952864ac57" },
+    { "action": "transfer USDG to liquidator", "hash": "0xa88d26c6aae1a6661ac70ef21fce7ee7ea69a28bfe1f2cc9838fa6682845ac11" },
+    { "action": "set price at reopening admission", "hash": "0x2fae492fc41abb80f5885625d0a9f8b71814f5e6da7d98d4721c675539387c75" },
+    { "action": "refresh price gate at admission", "hash": "0x4caf08c8a80403ecd2190fbcaaea7c5e41d7082ad5afb6790f24a9058b5a1050" },
+    { "action": "set price at credit reopening", "hash": "0x6370ce04edd8f710bf15c101d6b08fcf759f58ae22cf1f7016fc9016788170f8" },
+    { "action": "refresh price gate at credit reopening", "hash": "0x91b62652b1f14c8e6fa0398761eb4680f7db61dde3585de3247eb1c317bb735f" },
+    { "action": "approve lender USDG", "hash": "0x6ad0682f07ca69959780ef0680d6e4a92bdcb9dd6cd110982b7342212597ada3" },
+    { "action": "deposit lender USDG", "hash": "0x3a33abeba635473b380af09d29bff3095d832d4fda76aa28b258ccb566fa6782" },
+    { "action": "approve borrower TSLA", "hash": "0xf0d977a706c6e872306ceb5a21247c321367abe11ae6ba7fbf01323e013e0e12" },
+    { "action": "deposit borrower TSLA", "hash": "0x34573a0b1cca8aade12527b154a4e06b3534c22ce1bd3372c042d4fd5b6122a3" },
+    { "action": "borrow USDG", "hash": "0xcaacec82437144e95972674f00683609e2ca0919a92ed5b4ae7eca5a0c449e43" },
+    { "action": "approve buffer USDG", "hash": "0xde8d511e9ad07f2c36a2db4ae6016d2bdff100944800485009194792d8f2198f" },
+    { "action": "fund repayment buffer", "hash": "0xdb78d7937742e8fe0fd69120abb4a7c6aad12af59209086ed57b4c0b9d02667c" },
+    { "action": "authorize repayment buffer", "hash": "0x1fee09317ef2b57f0e5206f924865a00b1ee4324c090512dd1b2359814ffe415" }
+  ]
+}

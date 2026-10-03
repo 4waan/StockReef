@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 import { MARK_PATH, MARK_VIEWBOX } from '@/components/brand/Logo'
 
-export const alt = 'StockReef: stock markets close, loans don’t.'
+export const alt = 'StockReef: controlled risk for stock-backed lending on Robinhood Chain 46630.'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -15,8 +15,8 @@ export default function OpenGraphImage() {
           </svg>
           <div style={{ fontSize: 110, fontWeight: 800, letterSpacing: -3 }}>StockReef</div>
         </div>
-        <div style={{ marginTop: 48, fontSize: 52, fontWeight: 700 }}>Stock markets close. Loans don’t.</div>
-        <div style={{ marginTop: 16, fontSize: 30, color: '#b9b6ab' }}>Automatic risk control for tokenized stock loans on Robinhood Chain.</div>
+        <div style={{ marginTop: 48, fontSize: 48, fontWeight: 700 }}>Controlled risk for stock-backed lending.</div>
+        <div style={{ marginTop: 16, fontSize: 30, color: '#b9b6ab' }}>TSLA-backed USDG loans on Robinhood Chain 46630.</div>
       </div>
     ),
     size,

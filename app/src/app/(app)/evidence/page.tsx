@@ -32,6 +32,7 @@ export default function EvidencePage() {
   const gas = runs['gas'] as undefined | Record<string, number>
   const fork = runs['fork-4663'] as undefined | Record<string, string | number>
   const deploy = runs['deploy-46630'] as undefined | { sourceCommit?: string; transactions?: { contract: string; address: string; transactionHash: string; blockNumber: number }[] }
+  const publicMarket = runs['public-market-46630'] as undefined | { accounts: Record<string, string>; setup: Record<string, string>; transactions: { action: string; hash: string }[] }
   const explorer = 'https://explorer.testnet.chain.robinhood.com'
 
   return (
@@ -39,7 +40,7 @@ export default function EvidencePage() {
       <div className="flex h-10 items-center gap-4 overflow-x-auto border-b border-dk-line px-5 text-[15px] whitespace-nowrap">
         <span className="font-semibold">Evidence</span>
         <span className="h-4 w-px bg-dk-line" />
-        <span className="text-dk-muted">Every figure here is reproduced by a committed script or test. Limits are illustrative fixtures, not calibrated safe values.</span>
+        <span className="text-dk-muted">Review contract receipts, calculations, and measured behavior on chain 46630.</span>
       </div>
 
       <div className="grid border-b border-dk-line md:grid-cols-4">
@@ -47,15 +48,25 @@ export default function EvidencePage() {
           <Metric big label="Test entry points" value="535" sub="unit, fuzz, property and invariant suites, including 4 mainnet fork tests" />
         </Panel>
         <Panel className="border-b-0 md:border-r">
-          <Metric big label="Mainnet fork block" value={fork ? Number(fork.block).toLocaleString('en-US') : '—'} sub="real TSLA Stock Token, Paxos USDG and Chainlink feeds" />
+          <Metric big label="Mainnet fork block" value={fork ? Number(fork.block).toLocaleString('en-US') : 'Unavailable'} sub="real TSLA Stock Token, Paxos USDG and Chainlink feeds" />
         </Panel>
         <Panel className="border-b-0 md:border-r">
-          <Metric big label="Borrow gas at 32 accounts" value={gas ? `${Math.round(gas.borrowAt32 / 1000)}k` : '—'} sub={gas ? `lender deposit ${Math.round(gas.lenderDepositAt32 / 1000)}k` : undefined} />
+          <Metric big label="Borrow gas at 32 accounts" value={gas ? `${Math.round(gas.borrowAt32 / 1000)}k` : 'Unavailable'} sub={gas ? `lender deposit ${Math.round(gas.lenderDepositAt32 / 1000)}k` : undefined} />
         </Panel>
         <Panel className="border-b-0">
-          <Metric big label="Testnet deployment" value={deploy?.transactions ? `${deploy.transactions.length} contracts` : 'not yet'} sub={deploy?.sourceCommit ? `from source ${deploy.sourceCommit}` : undefined} />
+          <Metric big label="Chain 46630 deployment" value={deploy?.transactions ? `${deploy.transactions.length} contracts` : 'not yet'} sub={deploy?.sourceCommit ? `from source ${deploy.sourceCommit}` : undefined} />
         </Panel>
       </div>
+
+      {publicMarket && <Panel title="Public market on Robinhood Chain 46630">
+        <p className="text-sm text-dk-muted">The borrower posted {publicMarket.setup.borrowerCollateralTsla} TSLA, borrowed {publicMarket.setup.borrowedUsdg} USDG, and funded a {publicMarket.setup.borrowerBufferUsdg} USDG repayment buffer. The lender deposited {publicMarket.setup.lenderDepositUsdg} USDG. These setup amounts are recorded at the time of the transactions; current balances and debt are read in the app.</p>
+        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          {Object.entries(publicMarket.accounts).map(([role, address]) => <a key={role} href={`${explorer}/address/${address}`} target="_blank" rel="noreferrer" className="text-dk-up hover:underline">{role.replace(/([A-Z])/g, ' $1')}: <span className="num">{address.slice(0, 10)}…</span></a>)}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+          {publicMarket.transactions.filter(t => ['deposit lender USDG', 'borrow USDG', 'fund repayment buffer', 'authorize repayment buffer'].includes(t.action)).map(t => <a key={t.hash} href={`${explorer}/tx/${t.hash}`} target="_blank" rel="noreferrer" className="text-dk-up hover:underline">{t.action} ↗</a>)}
+        </div>
+      </Panel>}
 
       <Panel title="A Friday close in numbers">
         <p className="text-[15px] text-dk-muted">
@@ -98,7 +109,7 @@ export default function EvidencePage() {
       </Panel>
 
       {demo && (
-        <Panel title={`Scripted demonstration (${runs['demo-46630'] ? 'testnet' : 'local chain'}, 1/100 scale)`}>
+        <Panel title={`Recorded closure sequence (${runs['demo-46630'] ? 'chain 46630' : 'local chain'}, 1/100 scale)`}>
           <ul className="grid gap-3 text-[15px] md:grid-cols-2">
             <li>
               <b>A, funded buffer:</b> <span className="text-dk-muted">repaid</span> <span className="num">{u(demo.aliceBufferRepaidUsdg as number)} USDG</span>{' '}
@@ -158,7 +169,7 @@ export default function EvidencePage() {
       )}
 
       {deploy?.transactions && (
-        <Panel title="Robinhood Chain testnet deployment">
+        <Panel title="Robinhood Chain 46630 deployment">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
               <thead>
@@ -190,7 +201,7 @@ export default function EvidencePage() {
               </tbody>
             </table>
           </div>
-          <p className="mt-2 text-xs text-dk-faint">The app is reading {chain.name}. On testnet the TSLA price and the market clock are operator-controlled demo components; USDG is real Paxos USDG.</p>
+          <p className="mt-2 text-xs text-dk-faint">The app reads Robinhood Chain {chain.id}. Paxos USDG and faucet TSLA are the assets; the stock price and market clock are set by the operator.</p>
         </Panel>
       )}
 
@@ -207,9 +218,9 @@ export default function EvidencePage() {
         </Panel>
         <Panel title="Assumptions and limits">
           <ul className="list-disc space-y-1.5 pl-5 text-[15px] text-dk-muted">
-            <li>Thresholds, targets and bonuses are illustrative test settings, not calibrated production limits.</li>
+            <li>The deployed thresholds, targets and bonuses are the contract values shown in the policy table.</li>
             <li>Execution needs a transaction. The team runs a keeper; anyone can execute buffers or trim with their own capital. Nothing guarantees a buyer for seized stock.</li>
-            <li>Lenders bear any residual shortfall. There is no reserve or insurance in this version.</li>
+            <li>Lender shares reflect cash plus recoverable loan value. A collateral shortfall lowers that recoverable value.</li>
             <li>At most 32 borrowers hold debt at once, which keeps the lender valuation bounded and tested.</li>
             <li>Price-dependent actions use regular-session prices only. That is a conservative policy, not a claim that off-hours prices are wrong.</li>
           </ul>

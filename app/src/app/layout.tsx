@@ -11,7 +11,7 @@ const site = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.
 export const metadata: Metadata = {
   metadataBase: new URL(site),
   title: 'StockReef',
-  description: 'Stock markets close. Loans don’t. Automatic risk control for tokenized stock borrowers and USDG lenders on Robinhood Chain.',
+  description: 'Controlled risk for stock-backed lending. StockReef manages TSLA-backed USDG loans through market closures on Robinhood Chain 46630.',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

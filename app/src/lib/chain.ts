@@ -49,8 +49,8 @@ export function explorerTx(hash: string): string | undefined {
   return url ? `${url}/tx/${hash}` : undefined
 }
 
-/** Seeded demo accounts, labelled for quick viewing: NEXT_PUBLIC_DEMO_ACCOUNTS="A:0x..,B:0x..". */
-export const demoAccounts: { label: string; address: Address }[] = (process.env.NEXT_PUBLIC_DEMO_ACCOUNTS ?? '')
+/** Public role accounts. Override with NEXT_PUBLIC_DEMO_ACCOUNTS="Borrower:0x..,Lender:0x..". */
+const configuredDemoAccounts: { label: string; address: Address }[] = (process.env.NEXT_PUBLIC_DEMO_ACCOUNTS ?? '')
   .split(',')
   .map(s => s.trim())
   .filter(Boolean)
@@ -58,3 +58,14 @@ export const demoAccounts: { label: string; address: Address }[] = (process.env.
     const [label, address] = s.split(':')
     return { label, address: address as Address }
   })
+
+// Public, read-only accounts. Balances and positions are fetched from the chain.
+export const demoAccounts = configuredDemoAccounts.length
+  ? configuredDemoAccounts
+  : chainId === robinhoodTestnet.id
+    ? [
+        { label: 'Borrower', address: '0x05802c4E1921b24854D603A46951864ca97b8DAf' as Address },
+        { label: 'Lender', address: '0x8A60820Ebbf9643F7b0B560a2FE6AFE666c2A87a' as Address },
+        { label: 'Liquidator', address: '0xD41ECc5dd9993B0F67d15dCD0916E73E03bEaA67' as Address },
+      ]
+    : []

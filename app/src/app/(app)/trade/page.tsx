@@ -47,11 +47,11 @@ export default function TradePage() {
   const reopenUntil = s && reopening ? Math.max(Number(s.creditAt), now ?? 0, Number(s.open) + 900) : undefined
   const curve = reopenUntil !== undefined && ramp && s ? [{ t: x0, lt: s.ltWad }, { t: reopenUntil, lt: s.ltWad }, { t: reopenUntil + 1, lt: ramp.find(p => p.t > reopenUntil)?.lt ?? ramp[0].lt }, ...ramp.filter(p => p.t > reopenUntil + 1)] : ramp
 
-  if (!contracts) return <p className="px-5 py-10 text-dk-muted">No StockReef deployment is configured for {chain.name} yet.</p>
+  if (!contracts) return <p className="px-5 py-10 text-dk-muted">No StockReef deployment is configured for chain {chain.id} yet.</p>
   if (!m || !s || now === undefined) return <p className="px-5 py-10 text-dk-muted">Reading the market…</p>
 
   const canSign = own && isConnected && chainId === chain.id
-  const signHint = !isConnected ? 'Connect wallet' : chainId !== chain.id ? `Switch to ${chain.name}` : `Read-only: viewing ${label ?? ''}`
+  const signHint = !isConnected ? 'Connect wallet' : chainId !== chain.id ? `Switch to chain ${chain.id}` : `Read-only: viewing ${label ?? ''}`
   const items = history?.items ?? []
   const prices = history?.prices ?? []
   const current = Number(m.valuationPriceWad) / 1e18

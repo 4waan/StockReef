@@ -1,16 +1,28 @@
+<div align="center">
+
 # StockReef
 
-## Stock markets close. Loans don't.
+### Controlled risk for stock-backed lending.
 
-**StockReef is a risk-control protocol for tokenized stock borrowers and USDG lenders. It helps reduce outstanding debt before market closures through borrower-funded repayments, gradually tightening thresholds, and partial liquidation. Recovery gets priority when the market reopens.**
+StockReef helps reduce TSLA-backed debt before market closures and controls when new USDG credit can resume.
 
-The current implementation is a TSLA/USDG lending market for Robinhood Chain, with contracts, a keeper, and a web app. The keeper submits permissionless transactions; the contracts enforce the rules on every call.
+**[Open StockReef](https://stock-reef.vercel.app/)** · **[How risk is controlled](#how-stockreef-controls-risk)** · **[Friday example](#a-friday-close-in-numbers)** · **[Run locally](#run-locally)**
 
-**Prepare before the bell. Carry less debt through the closure. Recover before opening new credit.**
+`Robinhood Chain 46630` · `Paxos USDG` · `Faucet TSLA` · `Operator-set price and clock`
 
-[How it works](#how-stockreef-controls-risk) · [Friday walkthrough](#a-friday-close-in-numbers) · [Run the demo](#run-the-demo) · [Contracts](contracts/src) · [Security](docs/SECURITY.md)
+</div>
 
-> Built for the [Arbitrum Open House Singapore buildathon](https://www.hackquest.io/hackathons/Arbitrum-Open-House-Singapore-Online-Buildathon) on Robinhood Chain testnet. Risk parameters are illustrative test settings. The testnet configuration simulates the stock price and market clock; it is not a production deployment.
+The current implementation includes a TSLA/USDG lending market, a keeper, and a web app. The keeper submits permissionless transactions; the contracts enforce the rules on every call.
+
+```mermaid
+flowchart LR
+    A[Before close<br/>Funded repayment or eligible partial trim] --> B[While trading is closed<br/>New borrowing locked]
+    B --> C[At reopening<br/>Fresh price, recovery, then new credit]
+```
+
+The borrower funds a repayment buffer in advance. A liquidator supplies their own USDG for a trim. Either action reduces debt only after someone submits a successful transaction.
+
+Built for the [Arbitrum Open House Singapore buildathon](https://www.hackquest.io/hackathons/Arbitrum-Open-House-Singapore-Online-Buildathon). [Contracts](contracts/src) · [Evidence](evidence) · [Security](docs/SECURITY.md)
 
 ## The debt already exists
 
@@ -93,7 +105,7 @@ The [demo script](contracts/script/DemoRun.s.sol) runs all three routes at 1/100
 
 ## What happens to residual losses?
 
-**In this version, lenders bear any shortfall left after collateral recovery.** Pre-close management reduces exposure; it does not insure the loan.
+**Lender shares reflect the value recoverable from outstanding loans.** A collateral shortfall reduces share value as soon as the accepted valuation reflects it.
 
 Lender shares use recoverable-value accounting:
 
@@ -101,7 +113,7 @@ Lender shares use recoverable-value accounting:
 
 This recognizes a known shortfall in share value before collateral is exhausted, allowing for the 5% recovery bonus. When a trim exhausts collateral, the remaining debt is written off and added to `totalBadDebt`. Escrow is excluded from lender assets. When the price is unusable, the last accepted valuation is explicitly indicative.
 
-**The earlier premium-funded reserve and escalating reopening bonus are not implemented.** They must not be presented as current lender protection. The [concept review](docs/GAPGUARD_REVIEW.md) records both as dropped from v1. A reserve would require funded capital, premium collection, and explicit loss-coverage rules before it could absorb losses ahead of lenders.
+The [concept review](docs/GAPGUARD_REVIEW.md) records earlier design alternatives and why the current accounting and execution rules were selected.
 
 ## Lend with a defined session policy
 
@@ -133,7 +145,7 @@ It does not choose prices or risk parameters. Anyone can refresh the gate or exe
 
 See the [specification](docs/SPEC.md) for decisions and the [security notes](docs/SECURITY.md) for trust boundaries and known limits. Calibration against historical gaps, unbounded borrower scaling, and production deployment remain outside this prototype.
 
-## Run the demo
+## Run locally
 
 Requires Foundry, Python 3.12, and Node 22.
 
@@ -185,38 +197,42 @@ The app opens on a landing page and has five views:
 | **Trade** (`/trade`) | Borrow, repay, add or withdraw collateral, and fund or authorize a repayment buffer. Charts the loan's LTV against the falling threshold for the session, with each execution marked. |
 | **Earn** (`/earn`) | Lender deposits (slippage-checked), withdrawals and redemptions, the lender window, and the book valuation. |
 | **Portfolio** (`/portfolio`) | One account's loan, buffer, lending, wallet, interest accrued, and full history. |
-| **Operations** (`/operations`) | Keeper queue, buffer runs, trims, missed execution, the price gate and its log, the guardian stop, and the operator-only demo controls. |
-| **Evidence** (`/evidence`) | The worked example, the scripted demo, the scenario harness, and the testnet deployment. |
+| **Operations** (`/operations`) | Actions ready, loans needing recovery, stock price status, the guardian stop, and operator controls. |
+| **Evidence** (`/evidence`) | The worked example, the scripted closure sequence, the scenario harness, and the chain 46630 deployment. |
 
-Set `NEXT_PUBLIC_DEMO_ACCOUNTS` to label the seeded accounts; they then appear in the status bar's scenario picker. The scripted run completes the whole closure cycle; the next cycle can be stepped through with the operator-only demo controls. Advancing the clock does not itself execute buffers or trims; the keeper or a caller must submit those transactions.
+The app shows a [public borrower, lender, and liquidator](evidence/public-market-46630.json) in its profile menu. A visitor can inspect their on-chain balances and positions without connecting a wallet. Set `NEXT_PUBLIC_DEMO_ACCOUNTS` to override the role labels and addresses. Moving the operator-set clock does not itself execute buffers or trims; the keeper or a caller must submit those transactions.
 
 ## Robinhood Chain configuration
 
-The [testnet manifest](deployments/manifest.46630.json) configures Paxos USDG and the faucet TSLA token on chain `46630`, with an operator-controlled simulated TSLA feed, a simulated clock, and a labelled `1 USDG = 1 USD` test peg. The [testnet addresses](deployments/addresses.46630.json) and [deployment receipts](evidence/deploy-46630.json) record the current deployment.
+The [chain 46630 manifest](deployments/manifest.46630.json) configures Paxos USDG and faucet TSLA, with an operator-set TSLA price, an operator-set market clock, and a `1 USDG = 1 USD` reference. The [addresses](deployments/addresses.46630.json), [deployment receipts](evidence/deploy-46630.json), and [funded market receipts](evidence/public-market-46630.json) record the current deployment and public profiles.
 
-| Audited testnet contract | Address |
+| Audited chain 46630 contract | Address |
 |---|---|
 | Market | [`0x75459B07b03F3Ea4768073854Ec06AA02DF9264F`](https://explorer.testnet.chain.robinhood.com/address/0x75459B07b03F3Ea4768073854Ec06AA02DF9264F) |
 | Lens | [`0xBfbA1b11b35f65860F6b7B64aeBb310C99a347D0`](https://explorer.testnet.chain.robinhood.com/address/0xBfbA1b11b35f65860F6b7B64aeBb310C99a347D0) |
-| Demo controller | [`0xe7F80950f96E8c51578bC546b580dAe7cfe01Be6`](https://explorer.testnet.chain.robinhood.com/address/0xe7F80950f96E8c51578bC546b580dAe7cfe01Be6) |
+| Clock and price controller | [`0xe7F80950f96E8c51578bC546b580dAe7cfe01Be6`](https://explorer.testnet.chain.robinhood.com/address/0xe7F80950f96E8c51578bC546b580dAe7cfe01Be6) |
 
 The [initial deployment receipts](evidence/deploy-46630-initial.json) remain available for comparison. The app uses the audited addresses after `npm run sync`.
 
-From `contracts/`, deploy with a funded testnet account configured through Foundry:
+From `contracts/`, deploy with a funded chain 46630 account configured through Foundry:
 
 ```bash
 forge script script/Deploy.s.sol --rpc-url https://rpc.testnet.chain.robinhood.com \
   --broadcast --slow --gas-estimate-multiplier 300 --account <deployer-account>
 ```
 
-For the testnet demo, fund the actor wallets and set `OPERATOR_KEY`, `ALICE_KEY`, `BOB_KEY`, `CAROL_KEY`, and `LIQUIDATOR_KEY` before running `DemoRun.s.sol`. Sync the app and configure its [environment](app/.env.example) for chain `46630`.
+To replay the scripted closure sequence, fund the actor wallets and set `OPERATOR_KEY`, `ALICE_KEY`, `BOB_KEY`, `CAROL_KEY`, and `LIQUIDATOR_KEY` before running `DemoRun.s.sol`. Sync the app and configure its [environment](app/.env.example) for chain `46630`.
+
+The public borrower currently holds 0.25 TSLA collateral and 72 USDG of initial debt with a 7 USDG funded buffer. The lender deposited 85 USDG; the liquidator holds 15 USDG. These [transactions](evidence/public-market-46630.json) are on-chain. Accrued interest changes the displayed debt over time.
+
+To keep the stock price feed current while presenting, load the operator key from a local ignored file and run the keeper's `feed` mode with `--execute` and `--interval 60`. The price gate accepts a feed update for 120 seconds, so the operator process must keep running during the presentation.
 
 To host the app on Vercel, import the repository with **Root Directory** `app`, the Next.js preset, and these environment variables:
 
 ```
 NEXT_PUBLIC_CHAIN_ID=46630
 NEXT_PUBLIC_RPC_URL=https://rpc.testnet.chain.robinhood.com
-NEXT_PUBLIC_DEMO_ACCOUNTS=Funded buffer (A):0x…,Trimmed (B):0x…,Untouched (C):0x…
+NEXT_PUBLIC_DEMO_ACCOUNTS=Borrower:0x05802c4E1921b24854D603A46951864ca97b8DAf,Lender:0x8A60820Ebbf9643F7b0B560a2FE6AFE666c2A87a,Liquidator:0xD41ECc5dd9993B0F67d15dCD0916E73E03bEaA67
 ```
 
 The app reads its history from the deployment block recorded in `evidence/deploy-46630.json`, so no indexer is needed.

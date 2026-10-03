@@ -37,11 +37,11 @@ export default function PortfolioPage() {
     query: { enabled: !!contracts && shares !== undefined, refetchInterval: 2_000 },
   })
 
-  if (!contracts) return <p className="px-5 py-10 text-dk-muted">No StockReef deployment is configured for {chain.name} yet.</p>
+  if (!contracts) return <p className="px-5 py-10 text-dk-muted">No StockReef deployment is configured for chain {chain.id} yet.</p>
   if (!viewing)
     return (
       <div className="px-5 py-10">
-        <p className="text-dk-muted">Connect a wallet to see your portfolio{demoAccounts.length > 0 && ', or open a demo account'}.</p>
+        <p className="text-dk-muted">Connect a wallet to see your portfolio{demoAccounts.length > 0 && ', or choose a public account'}.</p>
         <div className="mt-4 flex flex-wrap gap-2">
           {demoAccounts.map(d => (
             <button key={d.address} type="button" onClick={() => pick(d.address)} className="rounded-md border border-dk-line px-3 py-1.5 text-sm hover:border-dk-muted">
@@ -72,7 +72,7 @@ export default function PortfolioPage() {
         <span className="h-4 w-px bg-dk-line" />
         <span className="num text-dk-muted">
           {label}
-          {!own && ' · read only'}
+          {!own && ' · public account · read-only view'}
         </span>
         <Link href="/trade" className="ml-auto text-dk-up hover:underline">
           Open in Trade →
@@ -87,7 +87,7 @@ export default function PortfolioPage() {
               <Metric
                 big
                 label="LTV"
-                value={v.debt > 0n ? pct(v.ltvWad, 1) : '—'}
+                value={v.debt > 0n ? pct(v.ltvWad, 1) : 'Unavailable'}
                 tone={v.debt === 0n ? '' : v.ltvWad > s.ltWad ? 'text-dk-down' : abovePlan(v.repayToTarget) ? 'text-dk-warn' : 'text-dk-up'}
               />
               <Metric label="Collateral" value={`${tokens(v.collateral)} TSLA`} sub={`${usdg(v.collateralValue)} USDG`} />
@@ -104,9 +104,9 @@ export default function PortfolioPage() {
         <Panel title="Buffer" className="lg:border-r" aside={<span className={`text-sm ${v.bufferCommitted ? 'text-dk-warn' : v.bufferActive ? 'text-dk-up' : 'text-dk-muted'}`}>{v.bufferCommitted ? 'Committed' : v.bufferActive ? 'Authorized' : 'Not set'}</span>}>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             <Metric big label="Escrowed" value={`${usdg(p.balance)} USDG`} sub="yours, earns no yield" />
-            <Metric label="Target" value={p.targetWad > 0n ? pct(p.targetWad, 1) : '—'} />
-            <Metric label="Cap per session" value={p.targetWad > 0n ? `${usdg(p.perSessionCap)} USDG` : '—'} />
-            <Metric label="Expires" value={p.expiry > 0n ? `${nyTime(p.expiry)} ET` : '—'} />
+            <Metric label="Target" value={p.targetWad > 0n ? pct(p.targetWad, 1) : 'Unavailable'} />
+            <Metric label="Cap per session" value={p.targetWad > 0n ? `${usdg(p.perSessionCap)} USDG` : 'Unavailable'} />
+            <Metric label="Expires" value={p.expiry > 0n ? `${nyTime(p.expiry)} ET` : 'Unavailable'} />
           </div>
         </Panel>
 
