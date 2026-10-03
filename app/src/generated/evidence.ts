@@ -202,6 +202,23 @@ export const evidence = {
    "reopened.state": 0,
    "totalBadDebtUsdg": 0
   },
+  "fork-4663": {
+   "block": 78471588,
+   "chainId": 4663,
+   "priceWadTslaPerUsdg": "372461376931153442327",
+   "reasons": 0,
+   "secondsSinceTslaRound": 786,
+   "tsla": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
+   "tslaUsdFeed": "0x4A1166a659A55625345e9515b32adECea5547C38",
+   "usdg": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+   "usdgUsdFeed": "0x61B7e5650328764B076A108EFF5fa7282a1B9aD2"
+  },
+  "gas": {
+   "activeAccounts": 32,
+   "borrowAt32": 468960,
+   "lenderDepositAt32": 388457,
+   "totalAssetsViewAt32": 297768
+  },
   "scenarios": {
    "start": {
     "collateral_usdg": "10,000.00",
