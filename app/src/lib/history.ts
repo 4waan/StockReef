@@ -1,15 +1,21 @@
 'use client'
 
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import type { Address, PublicClient } from 'viem'
+import { parseEventLogs, type Abi, type Address, type Log, type PublicClient } from 'viem'
 import { usePublicClient } from 'wagmi'
 import { demoAbi, escrowAbi, gateAbi, marketAbi } from '@/generated/abi'
 import { chain, contracts, ZERO } from './chain'
+import { nyClock } from './format'
 
 /**
  * Event history for the trading view, read from logs. Protocol time is block time plus the demo clock's offset,
  * which every DemoController.Step reveals (Step carries the clock time it moved to). Without a demo controller the
  * clock is the block clock and the offset is zero.
+ *
+ * Logs of the market, escrow, gate and demo controller are read once from the deployment block, in chunks, then only
+ * new blocks are read on each poll. Block times are fetched only for the account's events and the price step that
+ * precedes each one.
  */
 
 export type HistoryKind =
@@ -59,10 +65,77 @@ export interface GateEvent {
   detail?: string
 }
 
-const LOOKBACK = 200_000n
-const blockTimes = new Map<string, number>()
+export interface History {
+  prices: PricePoint[]
+  items: HistoryItem[]
+  gate: GateEvent[]
+  feedDecimals: number
+}
 
-async function timestamps(client: PublicClient, blocks: bigint[]) {
+// ------------------------------------------------------------------ log cache
+
+interface Ev {
+  address: string // lower case
+  eventName: string
+  args: Record<string, unknown>
+  blockNumber: bigint
+  logIndex: number
+  transactionHash: `0x${string}`
+}
+
+const FIRST_CHUNK = 2_000_000n
+const MIN_CHUNK = 2_000n
+
+const caches = new Map<number, { next: bigint; span: bigint; events: Ev[] }>()
+const blockTimes = new Map<string, number>()
+let syncing: Promise<unknown> = Promise.resolve()
+
+function decode(raw: Log[]): Ev[] {
+  const c = contracts!
+  const abis: [string, Abi][] = [
+    [c.market.toLowerCase(), marketAbi as Abi],
+    [c.escrow.toLowerCase(), escrowAbi as Abi],
+    [c.gate.toLowerCase(), gateAbi as Abi],
+    [c.demoController.toLowerCase(), demoAbi as Abi],
+  ]
+  const out: Ev[] = []
+  for (const [address, abi] of abis) {
+    const logs = raw.filter(l => l.address.toLowerCase() === address)
+    for (const e of parseEventLogs({ abi, logs })) {
+      out.push({ address, eventName: e.eventName, args: e.args as Record<string, unknown>, blockNumber: e.blockNumber!, logIndex: e.logIndex!, transactionHash: e.transactionHash! })
+    }
+  }
+  return out
+}
+
+/** Reads every log from where the cache stopped to the head, halving the range whenever the RPC refuses one. */
+async function catchUp(client: PublicClient): Promise<Ev[]> {
+  const c = contracts!
+  const head = await client.getBlockNumber()
+  let entry = caches.get(chain.id)
+  // A restarted local chain starts over below what was read.
+  if (!entry || head + 1n < entry.next) entry = { next: c.deployBlock, span: FIRST_CHUNK, events: [] }
+  caches.set(chain.id, entry)
+  const addresses = [c.market, c.escrow, c.gate, ...(c.demoController !== ZERO ? [c.demoController] : [])]
+  // The range the RPC last accepted is remembered, so later polls do not probe from the top again.
+  while (entry.next <= head) {
+    const span = entry.span
+    const to = entry.next + span - 1n < head ? entry.next + span - 1n : head
+    try {
+      const raw = await client.getLogs({ address: addresses, fromBlock: entry.next, toBlock: to })
+      const events = decode(raw)
+      events.sort((a, b) => (a.blockNumber === b.blockNumber ? a.logIndex - b.logIndex : a.blockNumber < b.blockNumber ? -1 : 1))
+      entry.events.push(...events)
+      entry.next = to + 1n
+    } catch (error) {
+      if (span <= MIN_CHUNK) throw error
+      entry.span = span / 4n
+    }
+  }
+  return entry.events
+}
+
+async function fetchBlockTimes(client: PublicClient, blocks: bigint[]) {
   const missing = [...new Set(blocks.map(String))].filter(b => !blockTimes.has(b))
   await Promise.all(
     missing.map(async b => {
@@ -73,7 +146,26 @@ async function timestamps(client: PublicClient, blocks: bigint[]) {
 }
 
 type Pos = { blockNumber: bigint; logIndex: number }
-const before = (a: Pos, b: Pos) => a.blockNumber < b.blockNumber || (a.blockNumber === b.blockNumber && a.logIndex <= b.logIndex)
+const atOrBefore = (a: Pos, b: Pos) => a.blockNumber < b.blockNumber || (a.blockNumber === b.blockNumber && a.logIndex <= b.logIndex)
+
+/** The last element of a sorted list at or before a position, by binary search. */
+function lastAtOrBefore<T extends Pos>(sorted: T[], at: Pos): T | undefined {
+  let lo = 0
+  let hi = sorted.length - 1
+  let found: T | undefined
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1
+    if (atOrBefore(sorted[mid], at)) {
+      found = sorted[mid]
+      lo = mid + 1
+    } else hi = mid - 1
+  }
+  return found
+}
+
+const forAccount = (e: Ev, account: string) => typeof e.args.account === 'string' && e.args.account.toLowerCase() === account
+
+// ------------------------------------------------------------------ derivation
 
 function ltv(debt: bigint | undefined, collateral: bigint, price: number | undefined): number | undefined {
   if (debt === undefined || price === undefined || price <= 0) return undefined
@@ -82,136 +174,119 @@ function ltv(debt: bigint | undefined, collateral: bigint, price: number | undef
   return value > 0 ? Number(debt) / 1e6 / value : undefined
 }
 
-export interface History {
-  prices: PricePoint[]
-  items: HistoryItem[]
-  gate: GateEvent[]
-  feedDecimals: number
-}
+const big = (v: unknown) => (typeof v === 'bigint' ? v : 0n)
 
-async function load(client: PublicClient, account: Address | undefined, currentCollateral: bigint | undefined, feedDecimals: number): Promise<History> {
+function derive(events: Ev[], account: Address | undefined, currentCollateral: bigint | undefined, feedDecimals: number): History {
   const c = contracts!
-  const head = await client.getBlockNumber()
-  const fromBlock = head > LOOKBACK ? head - LOOKBACK : 0n
-  const hasDemo = c.demoController !== ZERO
-  const acct = account ? { account } : undefined
-
-  const [steps, admitted, reset, outage, checkpoint, stopped, resumeRequested, resumed] = await Promise.all([
-    hasDemo ? client.getContractEvents({ address: c.demoController, abi: demoAbi, eventName: 'Step', fromBlock }) : Promise.resolve([]),
-    client.getContractEvents({ address: c.gate, abi: gateAbi, eventName: 'Admitted', fromBlock }),
-    client.getContractEvents({ address: c.gate, abi: gateAbi, eventName: 'AdmissionReset', fromBlock }),
-    client.getContractEvents({ address: c.gate, abi: gateAbi, eventName: 'OutageDetected', fromBlock }),
-    client.getContractEvents({ address: c.gate, abi: gateAbi, eventName: 'RecoveryCheckpoint', fromBlock }),
-    client.getContractEvents({ address: c.gate, abi: gateAbi, eventName: 'Stopped', fromBlock }),
-    client.getContractEvents({ address: c.gate, abi: gateAbi, eventName: 'ResumeRequested', fromBlock }),
-    client.getContractEvents({ address: c.gate, abi: gateAbi, eventName: 'Resumed', fromBlock }),
-  ])
-
+  const demo = c.demoController.toLowerCase()
+  const gateAddr = c.gate.toLowerCase()
   const scale = 10 ** feedDecimals
-  const prices: PricePoint[] = steps.filter(s => (s.args.answer ?? 0n) !== 0n).map(s => ({ t: Number(s.args.time ?? 0n), price: Number(s.args.answer!) / scale }))
 
-  const gate: GateEvent[] = [
-    ...admitted.map(e => ({ kind: 'Admitted' as const, hash: e.transactionHash, t: Number(e.args.admissionAt ?? 0n), detail: `price from ${Number(e.args.priceUpdatedAt ?? 0n)}` })),
-    ...reset.map(e => ({ kind: 'Admission reset' as const, hash: e.transactionHash, t: Number(e.args.at ?? 0n) })),
-    ...outage.map(e => ({ kind: 'Outage detected' as const, hash: e.transactionHash, t: Number(e.args.at ?? 0n) })),
-    ...checkpoint.map(e => ({ kind: 'Recovery checkpoint' as const, hash: e.transactionHash, t: Number(e.args.at ?? 0n) })),
-    ...stopped.map(e => ({ kind: 'Stopped' as const, hash: e.transactionHash, t: Number(e.args.at ?? 0n) })),
-    ...resumeRequested.map(e => ({ kind: 'Resume requested' as const, hash: e.transactionHash, t: Number(e.args.at ?? 0n), detail: `available ${Number(e.args.availableAt ?? 0n)}` })),
-    ...resumed.map(e => ({ kind: 'Resumed' as const, hash: e.transactionHash, t: Number(e.args.at ?? 0n) })),
-  ].sort((a, b) => b.t - a.t)
+  const steps = events.filter(e => e.address === demo && e.eventName === 'Step')
+  const priceSteps = steps.filter(s => big(s.args.answer) !== 0n)
+  const prices: PricePoint[] = priceSteps.map(s => ({ t: Number(big(s.args.time)), price: Number(big(s.args.answer)) / scale }))
+
+  const gateKinds: Record<string, GateEvent['kind']> = {
+    Admitted: 'Admitted',
+    AdmissionReset: 'Admission reset',
+    OutageDetected: 'Outage detected',
+    RecoveryCheckpoint: 'Recovery checkpoint',
+    Stopped: 'Stopped',
+    ResumeRequested: 'Resume requested',
+    Resumed: 'Resumed',
+  }
+  const gate: GateEvent[] = events
+    .filter(e => e.address === gateAddr && gateKinds[e.eventName])
+    .map(e => ({
+      kind: gateKinds[e.eventName],
+      hash: e.transactionHash,
+      t: Number(e.eventName === 'Admitted' ? big(e.args.admissionAt) : big(e.args.at)),
+      detail:
+        e.eventName === 'Admitted'
+          ? `price from ${nyClock(big(e.args.priceUpdatedAt))} ET`
+          : e.eventName === 'ResumeRequested'
+            ? `available ${nyClock(big(e.args.availableAt))} ET`
+            : undefined,
+    }))
+    .reverse()
 
   if (!account) return { prices, items: [], gate, feedDecimals }
-
-  const [colIn, colOut, borrows, repays, trims, writeOffs, funded, withdrawn, authorized, cancelled, buffers, ownerRepays] = await Promise.all([
-    client.getContractEvents({ address: c.market, abi: marketAbi, eventName: 'CollateralDeposited', args: acct, fromBlock }),
-    client.getContractEvents({ address: c.market, abi: marketAbi, eventName: 'CollateralWithdrawn', args: acct, fromBlock }),
-    client.getContractEvents({ address: c.market, abi: marketAbi, eventName: 'Borrowed', args: acct, fromBlock }),
-    client.getContractEvents({ address: c.market, abi: marketAbi, eventName: 'Repaid', args: acct, fromBlock }),
-    client.getContractEvents({ address: c.market, abi: marketAbi, eventName: 'Trimmed', args: acct, fromBlock }),
-    client.getContractEvents({ address: c.market, abi: marketAbi, eventName: 'BadDebtWrittenOff', args: acct, fromBlock }),
-    client.getContractEvents({ address: c.escrow, abi: escrowAbi, eventName: 'Deposited', args: acct, fromBlock }),
-    client.getContractEvents({ address: c.escrow, abi: escrowAbi, eventName: 'Withdrawn', args: acct, fromBlock }),
-    client.getContractEvents({ address: c.escrow, abi: escrowAbi, eventName: 'Authorized', args: acct, fromBlock }),
-    client.getContractEvents({ address: c.escrow, abi: escrowAbi, eventName: 'Cancelled', args: acct, fromBlock }),
-    client.getContractEvents({ address: c.escrow, abi: escrowAbi, eventName: 'BufferExecuted', args: acct, fromBlock }),
-    client.getContractEvents({ address: c.escrow, abi: escrowAbi, eventName: 'OwnerRepaid', args: acct, fromBlock }),
-  ])
+  const who = account.toLowerCase()
+  const market = c.market.toLowerCase()
+  const escrow = c.escrow.toLowerCase()
+  const mine = events.filter(e => (e.address === market || e.address === escrow) && forAccount(e, who))
 
   // Buffer executions and owner repayments also emit Repaid from the market; fold those into one row.
-  const repaidByTx = new Map(repays.map(r => [r.transactionHash, r]))
-  const folded = new Set([...buffers, ...ownerRepays].map(e => e.transactionHash))
+  const repaidByTx = new Map(mine.filter(e => e.address === market && e.eventName === 'Repaid').map(r => [r.transactionHash, r]))
+  const folded = new Set(mine.filter(e => e.address === escrow && (e.eventName === 'BufferExecuted' || e.eventName === 'OwnerRepaid')).map(e => e.transactionHash))
 
   type Raw = Omit<HistoryItem, 't' | 'collateralBefore' | 'collateralAfter' | 'price' | 'ltvBefore' | 'ltvAfter'> & { collateralDelta: bigint; collateralAfterExact?: bigint }
-  const pos = (e: { transactionHash: `0x${string}`; blockNumber: bigint; logIndex: number }) => ({ hash: e.transactionHash, block: e.blockNumber, logIndex: e.logIndex })
-  const raw: Raw[] = [
-    ...colIn.map(e => ({ ...pos(e), kind: 'Collateral added' as const, amount: e.args.amount ?? 0n, unit: 'TSLA' as const, collateralDelta: e.args.amount ?? 0n })),
-    ...colOut.map(e => ({ ...pos(e), kind: 'Collateral withdrawn' as const, amount: e.args.amount ?? 0n, unit: 'TSLA' as const, collateralDelta: -(e.args.amount ?? 0n) })),
-    ...borrows.map(e => ({
-      ...pos(e),
-      kind: 'Borrowed' as const,
-      amount: e.args.amount ?? 0n,
-      unit: 'USDG' as const,
-      debtAfter: e.args.debtAfter,
-      debtBefore: (e.args.debtAfter ?? 0n) - (e.args.amount ?? 0n),
-      collateralDelta: 0n,
-    })),
-    ...repays
-      .filter(e => !folded.has(e.transactionHash))
-      .map(e => ({
-        ...pos(e),
-        kind: 'Repaid' as const,
-        amount: e.args.amount ?? 0n,
-        unit: 'USDG' as const,
-        debtAfter: e.args.debtAfter,
-        debtBefore: (e.args.debtAfter ?? 0n) + (e.args.amount ?? 0n),
-        collateralDelta: 0n,
-      })),
-    ...trims.map(e => ({
-      ...pos(e),
-      kind: 'Trimmed' as const,
-      amount: e.args.repaid ?? 0n,
-      unit: 'USDG' as const,
-      detail: `${(Number(e.args.bonusWad ?? 0n) / 1e16).toFixed(0)}% bonus · ${(Number(e.args.collateralOut ?? 0n) / 1e18).toFixed(4)} TSLA out`,
-      debtAfter: e.args.debtAfter,
-      debtBefore: (e.args.debtAfter ?? 0n) + (e.args.repaid ?? 0n),
-      collateralDelta: -(e.args.collateralOut ?? 0n),
-      collateralAfterExact: e.args.collateralAfter,
-    })),
-    ...writeOffs.map(e => ({ ...pos(e), kind: 'Written off' as const, amount: e.args.amount ?? 0n, unit: 'USDG' as const, debtBefore: e.args.amount, debtAfter: 0n, collateralDelta: 0n })),
-    ...funded.map(e => ({ ...pos(e), kind: 'Buffer funded' as const, amount: e.args.amount ?? 0n, unit: 'USDG' as const, collateralDelta: 0n })),
-    ...withdrawn.map(e => ({ ...pos(e), kind: 'Buffer withdrawn' as const, amount: e.args.amount ?? 0n, unit: 'USDG' as const, collateralDelta: 0n })),
-    ...authorized.map(e => ({
-      ...pos(e),
-      kind: 'Buffer authorized' as const,
-      amount: e.args.perSessionCap ?? 0n,
-      unit: 'USDG' as const,
-      detail: `target ${(Number(e.args.targetWad ?? 0n) / 1e16).toFixed(1)}% · cap per session`,
-      collateralDelta: 0n,
-    })),
-    ...cancelled.map(e => ({ ...pos(e), kind: 'Buffer cancelled' as const, amount: 0n, unit: '' as const, collateralDelta: 0n })),
-    ...buffers.map(e => ({
-      ...pos(e),
-      kind: 'Buffer repaid' as const,
-      amount: e.args.repaid ?? 0n,
-      unit: 'USDG' as const,
-      debtBefore: e.args.debtBefore,
-      debtAfter: e.args.debtAfter,
-      collateralDelta: 0n,
-    })),
-    ...ownerRepays.map(e => {
-      const r = repaidByTx.get(e.transactionHash)
-      return {
-        ...pos(e),
-        kind: 'Repaid from buffer' as const,
-        amount: e.args.repaid ?? 0n,
-        unit: 'USDG' as const,
-        debtAfter: r?.args.debtAfter,
-        debtBefore: r?.args.debtAfter !== undefined ? r.args.debtAfter + (e.args.repaid ?? 0n) : undefined,
-        collateralDelta: 0n,
+  const raw: Raw[] = []
+  for (const e of mine) {
+    const pos = { hash: e.transactionHash, block: e.blockNumber, logIndex: e.logIndex }
+    const a = e.args
+    const key = `${e.address === market ? 'm' : 'e'}:${e.eventName}`
+    switch (key) {
+      case 'm:CollateralDeposited':
+        raw.push({ ...pos, kind: 'Collateral added', amount: big(a.amount), unit: 'TSLA', collateralDelta: big(a.amount) })
+        break
+      case 'm:CollateralWithdrawn':
+        raw.push({ ...pos, kind: 'Collateral withdrawn', amount: big(a.amount), unit: 'TSLA', collateralDelta: -big(a.amount) })
+        break
+      case 'm:Borrowed':
+        raw.push({ ...pos, kind: 'Borrowed', amount: big(a.amount), unit: 'USDG', debtAfter: big(a.debtAfter), debtBefore: big(a.debtAfter) - big(a.amount), collateralDelta: 0n })
+        break
+      case 'm:Repaid':
+        if (!folded.has(e.transactionHash))
+          raw.push({ ...pos, kind: 'Repaid', amount: big(a.amount), unit: 'USDG', debtAfter: big(a.debtAfter), debtBefore: big(a.debtAfter) + big(a.amount), collateralDelta: 0n })
+        break
+      case 'm:Trimmed':
+        raw.push({
+          ...pos,
+          kind: 'Trimmed',
+          amount: big(a.repaid),
+          unit: 'USDG',
+          detail: `${(Number(big(a.bonusWad)) / 1e16).toFixed(0)}% bonus · ${(Number(big(a.collateralOut)) / 1e18).toFixed(4)} TSLA out`,
+          debtAfter: big(a.debtAfter),
+          debtBefore: big(a.debtAfter) + big(a.repaid),
+          collateralDelta: -big(a.collateralOut),
+          collateralAfterExact: big(a.collateralAfter),
+        })
+        break
+      case 'm:BadDebtWrittenOff':
+        raw.push({ ...pos, kind: 'Written off', amount: big(a.amount), unit: 'USDG', debtBefore: big(a.amount), debtAfter: 0n, collateralDelta: 0n })
+        break
+      case 'e:Deposited':
+        raw.push({ ...pos, kind: 'Buffer funded', amount: big(a.amount), unit: 'USDG', collateralDelta: 0n })
+        break
+      case 'e:Withdrawn':
+        raw.push({ ...pos, kind: 'Buffer withdrawn', amount: big(a.amount), unit: 'USDG', collateralDelta: 0n })
+        break
+      case 'e:Authorized':
+        raw.push({
+          ...pos,
+          kind: 'Buffer authorized',
+          amount: big(a.perSessionCap),
+          unit: 'USDG',
+          detail: `target ${(Number(big(a.targetWad)) / 1e16).toFixed(1)}% · cap per session`,
+          collateralDelta: 0n,
+        })
+        break
+      case 'e:Cancelled':
+        raw.push({ ...pos, kind: 'Buffer cancelled', amount: 0n, unit: '', collateralDelta: 0n })
+        break
+      case 'e:BufferExecuted':
+        raw.push({ ...pos, kind: 'Buffer repaid', amount: big(a.repaid), unit: 'USDG', debtBefore: big(a.debtBefore), debtAfter: big(a.debtAfter), collateralDelta: 0n })
+        break
+      case 'e:OwnerRepaid': {
+        const r = repaidByTx.get(e.transactionHash)
+        const after = r ? big(r.args.debtAfter) : undefined
+        raw.push({ ...pos, kind: 'Repaid from buffer', amount: big(a.repaid), unit: 'USDG', debtAfter: after, debtBefore: after !== undefined ? after + big(a.repaid) : undefined, collateralDelta: 0n })
+        break
       }
-    }),
-  ]
-  raw.sort((a, b) => (a.block === b.block ? a.logIndex - b.logIndex : a.block < b.block ? -1 : 1))
+    }
+  }
+  raw.sort((x, y) => (x.block === y.block ? x.logIndex - y.logIndex : x.block < y.block ? -1 : 1))
 
   // Events that do not move the debt carry the last debt an earlier event reported.
   let lastDebt: bigint | undefined
@@ -222,9 +297,7 @@ async function load(client: PublicClient, account: Address | undefined, currentC
     } else lastDebt = r.debtAfter
   }
 
-  await timestamps(client, [...raw.map(r => r.block), ...steps.map(s => s.blockNumber)])
-
-  // Walk backwards from today's collateral, so history outside the lookback window does not matter.
+  // Walk backwards from today's collateral, so the earliest events need no starting balance.
   let collateral = currentCollateral ?? 0n
   const collateralAt = new Map<Raw, { before: bigint; after: bigint }>()
   for (let i = raw.length - 1; i >= 0; i--) {
@@ -237,39 +310,59 @@ async function load(client: PublicClient, account: Address | undefined, currentC
 
   const items: HistoryItem[] = raw.map(r => {
     const at: Pos = { blockNumber: r.block, logIndex: r.logIndex }
-    const lastStep = [...steps].reverse().find(s => before(s, at))
-    const offset = lastStep ? Number(lastStep.args.time ?? 0n) - (blockTimes.get(String(lastStep.blockNumber)) ?? 0) : 0
+    const lastStep = lastAtOrBefore(steps, at)
+    const stepTime = lastStep ? blockTimes.get(String(lastStep.blockNumber)) : undefined
+    const offset = lastStep && stepTime !== undefined ? Number(big(lastStep.args.time)) - stepTime : 0
     const t = (blockTimes.get(String(r.block)) ?? 0) + offset
-    const lastPrice = [...steps].reverse().find(s => before(s, at) && (s.args.answer ?? 0n) !== 0n)
-    const price = lastPrice ? Number(lastPrice.args.answer!) / scale : undefined
+    const lastPrice = lastAtOrBefore(priceSteps, at)
+    const price = lastPrice ? Number(big(lastPrice.args.answer)) / scale : undefined
     const col = collateralAt.get(r)!
     const { collateralDelta: _d, collateralAfterExact: _x, ...rest } = r
-    return {
-      ...rest,
-      t,
-      collateralBefore: col.before,
-      collateralAfter: col.after,
-      price,
-      ltvBefore: ltv(r.debtBefore, col.before, price),
-      ltvAfter: ltv(r.debtAfter, col.after, price),
-    }
+    return { ...rest, t, collateralBefore: col.before, collateralAfter: col.after, price, ltvBefore: ltv(r.debtBefore, col.before, price), ltvAfter: ltv(r.debtAfter, col.after, price) }
   })
   items.reverse()
   return { prices, items, gate, feedDecimals }
 }
 
-/** Prices, the account's events (newest first) and gate events, refreshed every few seconds. */
+// ------------------------------------------------------------------ hook
+
+/**
+ * Prices, the account's events (newest first) and gate events. Polls every few seconds for new blocks only. When a
+ * read fails, the last good history stays on screen and `error` is set.
+ */
 export function useHistory(account: Address | undefined, currentCollateral: bigint | undefined) {
   const client = usePublicClient({ chainId: chain.id })
-  return useQuery({
-    queryKey: ['history', chain.id, account, currentCollateral?.toString()],
+  const query = useQuery({
+    queryKey: ['history', chain.id, account],
     enabled: !!client && !!contracts,
     refetchInterval: 4_000,
+    retry: 1, // polling retries anyway; report a failure quickly so the status bar can say so
+    structuralSharing: false,
     placeholderData: prev => prev,
     queryFn: async () => {
+      const pc = client as PublicClient
       const c = contracts!
-      const feedDecimals = Number(await client!.readContract({ address: c.gate, abi: gateAbi, functionName: 'stockFeedDecimals' }))
-      return load(client as PublicClient, account, currentCollateral, feedDecimals)
+      // One catch-up at a time, so two views polling together never read the same range twice.
+      const run = syncing.then(() => catchUp(pc))
+      syncing = run.catch(() => undefined)
+      const [events, feedDecimals] = await Promise.all([run, pc.readContract({ address: c.gate, abi: gateAbi, functionName: 'stockFeedDecimals' }).then(Number)])
+      // Block times only for this account's events and the price step before each of them.
+      if (account) {
+        const who = account.toLowerCase()
+        const market = c.market.toLowerCase()
+        const escrow = c.escrow.toLowerCase()
+        const demo = c.demoController.toLowerCase()
+        const steps = events.filter(e => e.address === demo && e.eventName === 'Step')
+        const mine = events.filter(e => (e.address === market || e.address === escrow) && forAccount(e, who))
+        const needed = mine.flatMap(e => [e.blockNumber, ...(lastAtOrBefore(steps, e) ? [lastAtOrBefore(steps, e)!.blockNumber] : [])])
+        await fetchBlockTimes(pc, needed)
+      }
+      return { events: events.slice(), feedDecimals }
     },
   })
+  const data = useMemo(
+    () => (query.data ? derive(query.data.events, account, currentCollateral, query.data.feedDecimals) : undefined),
+    [query.data, account, currentCollateral],
+  )
+  return { data, error: query.error, isLoading: query.isLoading }
 }

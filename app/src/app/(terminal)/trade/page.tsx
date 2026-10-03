@@ -42,7 +42,7 @@ function Trade() {
   const { isOperator } = useDemoOperator()
   const { data: k } = useProtocolConstants()
   const now = useProtocolNow(m?.policy.time)
-  const { data: history } = useHistory(viewing, v?.collateral)
+  const { data: history, error: historyError } = useHistory(viewing, v?.collateral)
   const { data: usdgWallet } = useTokenBalance(contracts?.loanToken, own ? address : undefined)
   const { data: tslaWallet } = useTokenBalance(contracts?.collateralToken, own ? address : undefined)
 
@@ -132,7 +132,7 @@ function Trade() {
         </aside>
       </div>
       <BottomTabs positions={positions} s={s} items={items} viewing={viewing} onView={setPicked} />
-      <StatusBar m={m} now={now} gate={history?.gate ?? []} feedDecimals={history?.feedDecimals ?? 8} viewing={viewing} onView={setPicked} />
+      <StatusBar m={m} now={now} gate={history?.gate ?? []} feedDecimals={history?.feedDecimals ?? 8} historyError={!!historyError} viewing={viewing} onView={setPicked} />
     </div>
   )
 }

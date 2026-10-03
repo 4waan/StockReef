@@ -28,6 +28,7 @@ export const deployments: Record<string, Record<string, string | number>> = {
   "loanToken": "0x7E955252E15c84f5768B83c41a71F9eba181802F",
   "market": "0x75459B07b03F3Ea4768073854Ec06AA02DF9264F",
   "policy": "0x7F7B55235CD3E392394b140D36e53EDeb805532e",
-  "stockFeed": "0x7EE7A5ff16C6fdA1b989d99954e6e52A09bEf85c"
+  "stockFeed": "0x7EE7A5ff16C6fdA1b989d99954e6e52A09bEf85c",
+  "deployBlock": 128272269
  }
 }

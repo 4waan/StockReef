@@ -24,6 +24,7 @@ export interface Contracts {
   demoController: Address
   loanToken: Address
   collateralToken: Address
+  deployBlock: bigint // first deployment block; logs are read from here
 }
 
 const raw = deployments[String(chainId)]
@@ -37,6 +38,7 @@ export const contracts: Contracts | undefined = raw
       demoController: raw.demoController as Address,
       loanToken: raw.loanToken as Address,
       collateralToken: raw.collateralToken as Address,
+      deployBlock: BigInt(raw.deployBlock ?? 0),
     }
   : undefined
 

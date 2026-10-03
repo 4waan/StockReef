@@ -20,6 +20,7 @@ export function StatusBar({
   now,
   gate,
   feedDecimals,
+  historyError,
   viewing,
   onView,
 }: {
@@ -27,6 +28,7 @@ export function StatusBar({
   now: number
   gate: GateEvent[]
   feedDecimals: number
+  historyError: boolean
   viewing: Address | undefined
   onView: (a: Address) => void
 }) {
@@ -66,6 +68,7 @@ export function StatusBar({
           {age !== undefined && <span className="num text-dk-muted">· {age < 60 ? `${age}s` : duration(age)}</span>}
           {!usable && <span className="text-dk-down">· {reasonList(Number(s.reasons))[0]}</span>}
           {m.usesPeg && <span className="text-dk-muted">· {m.pegLabel || 'Test peg'}</span>}
+          {historyError && <span className="text-dk-warn" title="The RPC refused a log read. Charts and tabs show the last history read; it retries every few seconds.">· history unavailable</span>}
         </summary>
         <div className="absolute bottom-full left-0 z-20 mb-2 w-96 rounded-md border border-dk-line bg-dk-panel p-4 shadow-xl">
           <div className="font-medium">Price gate</div>
