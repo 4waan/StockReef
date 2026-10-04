@@ -106,14 +106,19 @@ async function prepare() {
   t = await now()
   if (atOpen) {
     await send('operator', { address: a.demoController, abi: demoAbi, functionName: 'push', args: [answer(open.quote)] }, 'Re-publish 400.00')
+    await resetBorrower(an)
   } else {
     if (t < an.fri.open + 300n) {
       await stepTo(an.fri.open + 300n, 403.08, 'Friday 09:35: fresh price')
       await refresh('Friday 09:35: admit the reopening')
     }
+    // Reset the demo account at 09:46, once credit is open and well before the chart's afternoon window.
+    if ((await now()) < an.fri.open + 960n) {
+      await stepTo(an.fri.open + 960n, 403.66, 'Friday 09:46: credit open')
+      await resetBorrower(an)
+    }
     await stepTo(stepTime(an, open), open.quote, 'Friday 13:00: open at 400.00')
   }
-  await resetBorrower(an)
   await status()
 }
 

@@ -1,59 +1,74 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { HistoryItem } from '@/lib/history'
 import { duration, nyClock, pct, tokens, usdg } from '@/lib/format'
 import { ltAtTime } from '@/lib/desk'
 import { bookAtPrice, exceeds, ltvUp, nextCloseLt, S, usd, valueOfRaw, type Book, type Policy, type Position, type StepState } from '@/lib/scenario'
-import { Card, Meter, Note, Permit, Stat, Status, TxRef, type Tone } from './ui'
+import { Info, Meter, Status, TxRef, type Tone, toneText } from './ui'
 
 /**
- * The seven StockReef features, each as a panel that reads the contract-valued position at the current step.
- * The terminal shows them as tabs and compact tiles; the portfolio shows them as a dashboard.
+ * The seven StockReef controls as compact panels: a one-line header (name, explanation pop-up, status), then two to
+ * four figures with one short line each. Every figure is the contracts' answer at the current scenario step. The
+ * terminal opens them from its tiles; the portfolio lays them out as a dashboard.
  */
 
 const f = (w: bigint) => Number(w) / 1e18
-const day = (t: bigint | number, mon: bigint) => `${BigInt(t) >= mon ? 'Mon' : 'Fri'} ${nyClock(t)}`
 
-/** Seconds to go, as "15m 00s" or "2h 30m". */
-const left = (from: bigint, to: bigint) => (to > from ? duration(Number(to - from)) : 'passed')
+export function Feature({ name, status, tone, info, children, className = '' }: { name: string; status: ReactNode; tone: Tone; info: ReactNode; children: ReactNode; className?: string }) {
+  return (
+    <section className={`rounded-lg border border-dk-line bg-dk-panel ${className}`}>
+      <header className="flex items-center gap-2 px-3.5 pt-3">
+        <h3 className="text-[11px] font-semibold tracking-[.12em] text-accent uppercase">{name}</h3>
+        <Info label={`About ${name.toLowerCase()}`}>{info}</Info>
+        <span className="ml-auto">
+          <Status tone={tone}>{status}</Status>
+        </span>
+      </header>
+      <div className="px-3.5 pt-2.5 pb-3.5">{children}</div>
+    </section>
+  )
+}
+
+/** A figure: small label, bold value, optional one short line. */
+export function Fig({ k, v, sub, tone = 'ink' }: { k: ReactNode; v: ReactNode; sub?: ReactNode; tone?: Tone }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[11px] text-dk-muted">{k}</div>
+      <div className={`num mt-0.5 truncate text-[17px] leading-tight font-semibold ${toneText[tone]}`}>{v}</div>
+      {sub && <div className="num mt-0.5 truncate text-[11px] text-dk-faint">{sub}</div>}
+    </div>
+  )
+}
+
+const Grid = ({ children, cols = 3 }: { children: ReactNode; cols?: 2 | 3 | 4 }) => <div className={`grid gap-3 ${cols === 4 ? 'grid-cols-2 sm:grid-cols-4' : cols === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>{children}</div>
 
 // ------------------------------------------------------------------ 1. Debt reduction before closure
 
-export function DebtReduction({ p, cur, steps, compact }: { p: Position; cur: StepState; steps: StepState[]; compact?: boolean }) {
+export function DebtReduction({ p, cur }: { p: Position; cur: StepState }) {
   const s = cur.snapshot
-  const beforeClose = s.phase === S.OPEN || s.phase === S.PRE_CLOSE || s.phase === S.FINAL_WINDOW
+  const beforeClose = s.phase <= S.FINAL_WINDOW
   const deadline = s.phase === S.FINAL_WINDOW ? s.close : s.finalAt
   const need = p.repayToTarget >= 10_000n
-  const mon = steps.find(x => x.step.day === 'mon')!.snapshot.open
-  const tone: Tone = !need ? 'up' : p.trimNow.eligible ? 'down' : 'warn'
   return (
-    <Card
-      kicker="Debt reduction before closure"
-      title={beforeClose ? `Bring the loan to ${pct(p.planTargetWad, 0)} before ${nyClock(deadline)} ET` : `Plan for the closure that ${s.phase === S.CLOSED ? 'is under way' : 'just ended'}`}
-      aside={<Status tone={tone}>{need ? 'Action needed' : 'On plan'}</Status>}
+    <Feature
+      name="Before the close"
+      tone={!need ? 'up' : p.trimNow.eligible ? 'down' : 'warn'}
+      status={!beforeClose ? (p.missed ? 'Missed' : 'Closed on plan') : need ? 'Action needed' : 'On plan'}
+      info={
+        <>
+          Reach the {pct(p.planTargetWad, 0)} weekend target before {nyClock(s.finalAt)} ET by repaying or adding TSLA. Debt from StockReefMarket.debtAt at the scenario time; value from
+          PriceGate.valueOf. Repaying pays no bonus; adding TSLA keeps your stock.
+          {p.trimAtFinal.eligible && beforeClose && <> If nothing executes, a liquidator may repay {usdg(p.trimAtFinal.repaid)} USDG from {nyClock(s.finalAt)}.</>}
+        </>
+      }
     >
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Stat label="Next deadline" value={beforeClose ? `${day(deadline, mon)} ET` : '—'} sub={s.phase === S.FINAL_WINDOW ? 'Market close' : 'Final window starts'} />
-        <Stat label="Time remaining" value={beforeClose ? left(cur.t, deadline) : 'Closed'} tone={beforeClose && deadline - cur.t < 1800n ? 'warn' : 'ink'} sub={`Scenario clock ${nyClock(cur.t)} ET`} />
-        <Stat label="Required repayment" value={need ? `${usdg(p.repayToTarget)} USDG` : 'None'} tone={need ? 'warn' : 'up'} sub={`reaches the ${pct(p.planTargetWad, 0)} target`} />
-        <Stat label="Or add collateral" value={need ? `${tokens(p.addRawToTarget, 4)} TSLA` : 'None'} sub={need ? `${usdg(p.addValueToTarget)} USDG of value` : 'keeps your stock'} />
-      </div>
-      {!compact && (
-        <div className="mt-4 space-y-1.5">
-          <Note>
-            Computed from your debt at the scenario time (StockReefMarket.debtAt) and your collateral valued at {usdg(cur.valuationWad / 10n ** 12n)} USDG per TSLA (PriceGate.valueOf). The
-            repayment uses no liquidation bonus; adding collateral keeps the stock exposure.
-          </Note>
-          {p.trimAtFinal.eligible && beforeClose && (
-            <Note tone="warn">
-              If nothing executes by {nyClock(s.finalAt)} ET, a liquidator may repay {usdg(p.trimAtFinal.repaid)} USDG and take {tokens(p.trimAtFinal.collateralOut)} TSLA at a{' '}
-              {pct(p.trimAtFinal.bonusWad, 0)} bonus. If no transaction is submitted, the debt does not shrink.
-            </Note>
-          )}
-        </div>
-      )}
-    </Card>
+      <Grid>
+        <Fig k="Deadline" v={beforeClose ? `${nyClock(deadline)} ET` : '—'} sub={beforeClose ? (deadline > cur.t ? `in ${duration(Number(deadline - cur.t))}` : 'passed') : 'market closed'} tone={beforeClose && deadline - cur.t < 1800n ? 'warn' : 'ink'} />
+        <Fig k="Repay" v={need ? `${usdg(p.repayToTarget)}` : '0.00'} sub={`USDG to ${pct(p.planTargetWad, 0)}`} tone={need ? 'warn' : 'up'} />
+        <Fig k="Or add" v={need ? tokens(p.addRawToTarget, 4) : '0'} sub="TSLA collateral" />
+      </Grid>
+    </Feature>
   )
 }
 
@@ -63,9 +78,10 @@ export function FallingThreshold({ p, cur, pol, ltPath, steps }: { p: Position; 
   const s = cur.snapshot
   const atClose = nextCloseLt(cur, pol)
   const ltv = f(p.ltvWad)
+  const above = exceeds(p.debt, p.value, s.ltWad)
   const fri = steps[0].snapshot
   const W = 300
-  const H = 92
+  const H = 64
   const t0 = Number(fri.prepAt) - 3600
   const t1 = Number(fri.close)
   const X = (t: number) => ((t - t0) / (t1 - t0)) * W
@@ -73,144 +89,147 @@ export function FallingThreshold({ p, cur, pol, ltPath, steps }: { p: Position; 
   const pts = [{ t: t0, lt: ltAtTime(ltPath, t0) }, ...ltPath.filter(q => q.t > t0 && q.t <= t1)]
   const nowT = Math.min(Number(cur.t), t1)
   return (
-    <Card kicker="Falling threshold" title="The liquidation threshold tightens before the close" aside={<Status tone={exceeds(p.debt, p.value, s.ltWad) ? 'down' : 'up'}>{exceeds(p.debt, p.value, s.ltWad) ? 'Above threshold' : 'Below threshold'}</Status>}>
-      <div className="grid grid-cols-3 gap-4">
-        <Stat label="Threshold now" value={pct(s.ltWad, 2)} tone="warn" />
-        <Stat label="At the next closure" value={pct(atClose, 2)} sub={atClose === pol.ltFinalExtended ? 'weekend limit' : 'overnight limit'} />
-        <Stat label="Your LTV" value={p.debt ? pct(p.ltvWad, 2) : '—'} tone={ltv > f(s.ltWad) ? 'down' : ltv > f(atClose) ? 'warn' : 'up'} sub={`headroom ${p.debt ? ((f(s.ltWad) - ltv) * 100).toFixed(2) : '—'} pp`} />
-      </div>
-      <svg viewBox={`0 0 ${W} ${H + 16}`} className="mt-4 h-28 w-full" role="img" aria-label="Scheduled threshold curve against your LTV">
-        {[0.7, 0.8].map(v => (
-          <g key={v}>
-            <line x1="0" x2={W} y1={Y(v)} y2={Y(v)} stroke="#23272d" />
-            <text x={W} y={Y(v) - 3} fontSize="9" fill="#6b727b" textAnchor="end">
-              {Math.round(v * 100)}%
-            </text>
-          </g>
+    <Feature
+      name="Falling threshold"
+      tone={above ? 'down' : 'up'}
+      status={above ? 'Above threshold' : 'Below threshold'}
+      info={<>From 2 hours before the close the liquidation threshold falls from {pct(pol.ltOpen, 0)} to {pct(atClose, 0)} by 30 minutes before it (SessionRiskPolicy.ltAt). The borrow limit falls with it.</>}
+    >
+      <Grid>
+        <Fig k="Threshold now" v={pct(s.ltWad, 2)} tone="warn" />
+        <Fig k="At the close" v={pct(atClose, 0)} sub={atClose === pol.ltFinalExtended ? 'weekend' : 'overnight'} />
+        <Fig k="Your LTV" v={p.debt ? pct(p.ltvWad, 2) : '—'} tone={above ? 'down' : ltv > f(atClose) ? 'warn' : 'up'} />
+      </Grid>
+      <svg viewBox={`0 0 ${W} ${H + 12}`} className="mt-3 h-[76px] w-full" role="img" aria-label="Threshold schedule against your LTV">
+        <path d={pts.map((q, i) => `${i ? 'L' : 'M'}${X(q.t).toFixed(1)},${Y(q.lt).toFixed(1)}`).join(' ')} fill="none" stroke="var(--color-c-lt)" strokeWidth="2" />
+        <line x1="0" x2={W} y1={Y(ltv)} y2={Y(ltv)} stroke="var(--color-c-ltv)" strokeWidth="2" />
+        <circle cx={X(nowT)} cy={Y(ltAtTime(ltPath, nowT))} r="3.5" fill="var(--color-c-mark)" />
+        {(
+          [
+            [t0, nyClock(t0), 'start'],
+            [Number(fri.finalAt), nyClock(fri.finalAt), 'middle'],
+            [t1, 'close', 'end'],
+          ] as const
+        ).map(([t, l, a]) => (
+          <text key={l} x={X(t)} y={H + 11} fontSize="9" fill="var(--color-c-axis)" textAnchor={a}>
+            {l}
+          </text>
         ))}
-        <path d={pts.map((q, i) => `${i ? 'L' : 'M'}${X(q.t).toFixed(1)},${Y(q.lt).toFixed(1)}`).join(' ')} fill="none" stroke="#b87d22" strokeWidth="2" />
-        <line x1="0" x2={W} y1={Y(ltv)} y2={Y(ltv)} stroke="#3a86cc" strokeWidth="2" />
-        <circle cx={X(nowT)} cy={Y(ltAtTime(ltPath, nowT))} r="3.5" fill="#e8eaed" />
-        <text x="2" y={H + 13} fontSize="9" fill="#6b727b">
-          {nyClock(t0)}
-        </text>
-        <text x={X(Number(fri.prepAt))} y={H + 13} fontSize="9" fill="#6b727b" textAnchor="middle">
-          {nyClock(fri.prepAt)} ramp
-        </text>
-        <text x={X(Number(fri.finalAt))} y={H + 13} fontSize="9" fill="#6b727b" textAnchor="middle">
-          {nyClock(fri.finalAt)}
-        </text>
-        <text x={W} y={H + 13} fontSize="9" fill="#6b727b" textAnchor="end">
-          close
-        </text>
       </svg>
-      <div className="mt-1 flex gap-4 text-[11px] text-dk-muted">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-0.5 w-4 bg-[#b87d22]" />
-          Threshold, SessionRiskPolicy.ltAt
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-0.5 w-4 bg-[#3a86cc]" />
-          Your LTV now
-        </span>
-      </div>
-    </Card>
+    </Feature>
   )
 }
 
 // ------------------------------------------------------------------ 3. Funded repayment buffer
 
-export function FundedBuffer({ p, cur, items, compact }: { p: Position; cur: StepState; items: HistoryItem[]; compact?: boolean }) {
+export function FundedBuffer({ p, cur, items, action }: { p: Position; cur: StepState; items: HistoryItem[]; action?: ReactNode }) {
   const plan = p.plan
   const active = plan.targetWad > 0n && plan.expiry > cur.t
-  const expiredBefore = plan.targetWad > 0n && plan.expiry <= cur.t
+  const expired = plan.targetWad > 0n && plan.expiry <= cur.t
   const repaid = items.filter(i => i.kind === 'Buffer repaid')
-  const status: { tone: Tone; text: string } = p.bufferNow > 0n
-    ? { tone: 'warn', text: 'Executable now' }
-    : active && p.bufferNext > 0n
-      ? { tone: 'up', text: 'Armed' }
-      : active
-        ? { tone: 'muted', text: 'Nothing to repay' }
-        : expiredBefore
-          ? { tone: 'down', text: 'Authorization expired' }
-          : { tone: 'muted', text: 'Not authorized' }
-  const cover = p.repayToTarget > 0n ? Number(p.bufferNext) / Number(p.repayToTarget) : undefined
+  const status: [Tone, string] = p.bufferNow > 0n ? ['warn', 'Ready to run'] : active && p.bufferNext > 0n ? ['up', 'Armed'] : expired ? ['down', 'Expired'] : active ? ['muted', 'Idle'] : ['muted', 'Not authorized']
   return (
-    <Card kicker="Funded repayment buffer" title="Your USDG repays first: no stock sold, no bonus paid" aside={<Status tone={status.tone}>{status.text}</Status>}>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <Stat label="Funded" value={`${usdg(plan.balance)} USDG`} sub="borrower escrow, not lender cash" />
-        <Stat label="Authorization" value={plan.targetWad > 0n ? `${pct(plan.targetWad, 0)} target` : 'None'} sub={plan.expiry > 0n ? `${expiredBefore ? 'expired' : 'until'} ${new Date(Number(plan.expiry) * 1000).toLocaleString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })} ET` : 'not set'} tone={expiredBefore ? 'down' : 'ink'} />
-        <Stat label="Spending cap" value={plan.targetWad > 0n ? `${usdg(plan.perSessionCap)} USDG` : '—'} sub="per session" />
-        <Stat label="Coverage" value={cover === undefined ? '—' : `${Math.min(100, cover * 100).toFixed(0)}%`} sub={p.bufferNextAt ? `of the ${usdg(p.repayToTarget)} USDG plan` : 'no buffer window left'} tone={cover !== undefined && cover >= 0.999 ? 'up' : 'warn'} />
-        <Stat label="Executable" value={`${usdg(p.bufferNow > 0n ? p.bufferNow : p.bufferNext)} USDG`} sub={p.bufferNow > 0n ? 'now (RepaymentEscrow.executableAmount)' : p.bufferNextAt ? `at the ${p.bufferNextAt === 'prep' ? '15:15 preparation' : p.bufferNextAt} window` : '—'} tone={p.bufferNow > 0n ? 'warn' : 'ink'} />
-        <Stat label="Confirmed repayments" value={repaid.length ? `${usdg(repaid.reduce((a, r) => a + r.amount, 0n))} USDG` : 'None yet'} sub={repaid[0] ? <TxRef hash={repaid[0].hash}>latest receipt</TxRef> : 'receipts appear here'} tone={repaid.length ? 'up' : 'ink'} />
-      </div>
-      {!compact && (
-        <div className="mt-3 space-y-1.5">
-          {expiredBefore && <Note tone="down">The authorization ends before this session. Re-authorize it during the open market (Buffer → Authorize) so it can run at the close.</Note>}
-          <Note>During preparation and reopening recovery anyone may execute the plan, within its target and per-session cap. An executable buffer must run before any trim.</Note>
-        </div>
-      )}
-    </Card>
+    <Feature
+      name="Funded buffer"
+      tone={status[0]}
+      status={status[1]}
+      info={
+        <>
+          Your own USDG in a separate escrow repays debt during preparation and recovery, before any trim, with no stock sold and no bonus. Anyone may execute it within its target and
+          per-session cap. Amounts from RepaymentEscrow.executableAmount.
+          {expired && <> The authorization ended before this session: re-authorize it in Buffer → Authorize while the market is open.</>}
+        </>
+      }
+    >
+      <Grid cols={4}>
+        <Fig k="Funded" v={usdg(plan.balance)} sub="USDG escrow" />
+        <Fig k="Plan" v={plan.targetWad > 0n ? pct(plan.targetWad, 0) : '—'} sub={plan.targetWad > 0n ? `cap ${usdg(plan.perSessionCap)}` : 'not set'} tone={expired ? 'down' : 'ink'} />
+        <Fig k={p.bufferNow > 0n ? 'Runs now' : 'Runs next'} v={usdg(p.bufferNow > 0n ? p.bufferNow : p.bufferNext)} sub={p.bufferNow > 0n ? 'executable' : p.bufferNextAt ? `at ${p.bufferNextAt}` : '—'} tone={p.bufferNow > 0n ? 'warn' : 'ink'} />
+        <Fig k="Repaid" v={repaid.length ? usdg(repaid.reduce((a, r) => a + r.amount, 0n)) : '—'} sub={repaid[0] ? <TxRef hash={repaid[0].hash}>receipt</TxRef> : 'no receipt yet'} tone={repaid.length ? 'up' : 'ink'} />
+      </Grid>
+      {action}
+    </Feature>
   )
 }
 
 // ------------------------------------------------------------------ 4. Partial liquidation
 
-export function PartialLiquidation({ p, cur, compact }: { p: Position; cur: StepState; compact?: boolean }) {
+export function PartialLiquidation({ p, cur, action }: { p: Position; cur: StepState; action?: ReactNode }) {
   const q = p.trimNow.eligible ? p.trimNow : p.trimAtFinal
   const now = p.trimNow.eligible
-  const s = cur.snapshot
   const afterDebt = q.debt - q.repaid
   const afterColl = p.collateral - q.collateralOut
-  const afterValue = valueOfRaw(afterColl, cur.valuationWad)
-  const afterLtv = ltvUp(afterDebt, afterValue)
-  const tone: Tone = now ? (q.bufferPending ? 'warn' : 'down') : q.eligible ? 'warn' : 'up'
+  const afterLtv = ltvUp(afterDebt, valueOfRaw(afterColl, cur.valuationWad))
+  const beforeClose = cur.snapshot.phase <= S.FINAL_WINDOW
   return (
-    <Card
-      kicker="Partial liquidation"
-      title={now ? 'Eligible now: a liquidator may trim part of the loan' : q.eligible ? 'Not eligible yet; eligible at the final window if nothing changes' : 'Not eligible'}
-      aside={<Status tone={tone}>{now ? (q.bufferPending ? 'Buffer runs first' : 'Eligible') : q.eligible ? `From ${nyClock(s.finalAt)}` : 'Safe'}</Status>}
+    <Feature
+      name="Partial liquidation"
+      tone={now ? (q.bufferPending ? 'warn' : 'down') : q.eligible && beforeClose ? 'warn' : 'up'}
+      status={now ? (q.bufferPending ? 'Buffer first' : 'Eligible') : q.eligible && beforeClose ? `From ${nyClock(cur.snapshot.finalAt)}` : 'Not eligible'}
+      info={
+        <>
+          Only a loan strictly above the threshold can be trimmed. A liquidator repays part of the debt and takes TSLA at the accepted price plus a bonus: 2% for a scheduling trim, 5% in distress
+          or recovery. A full fill reaches the target; the rest of the position stays open. From StockReefMarket.quoteTrim.
+        </>
+      }
     >
-      {q.eligible ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Stat label="Debt reduction" value={`${usdg(q.repaid)} USDG`} sub="paid by the liquidator" />
-          <Stat label="Collateral taken" value={`${tokens(q.collateralOut, 5)} TSLA`} sub={`${usdg(valueOfRaw(q.collateralOut, cur.valuationWad))} USDG of value`} />
-          <Stat label="Bonus" value={pct(q.bonusWad, 0)} sub={f(q.bonusWad) < 0.03 ? 'scheduling trim' : 'distress or recovery'} />
-          <Stat label="Resulting position" value={pct(afterLtv, 2)} sub={`${usdg(afterDebt)} USDG on ${tokens(afterColl, 4)} TSLA`} tone="up" />
-        </div>
+      {q.eligible && (now || beforeClose) ? (
+        <Grid cols={4}>
+          <Fig k="Debt cut" v={usdg(q.repaid)} sub="USDG" />
+          <Fig k="TSLA taken" v={tokens(q.collateralOut, 4)} sub={`${usdg(valueOfRaw(q.collateralOut, cur.valuationWad))} USDG`} />
+          <Fig k="Bonus" v={pct(q.bonusWad, 0)} />
+          <Fig k="LTV after" v={pct(afterLtv, 1)} tone="up" />
+        </Grid>
       ) : (
-        <p className="text-sm text-dk-muted">
-          The loan is at or below the threshold ({pct(p.ltvWad, 2)} vs {pct(s.ltWad, 2)}), so no one can trim it. A target alone never triggers a trim.
-        </p>
+        <Grid cols={2}>
+          <Fig k="Your LTV" v={p.debt ? pct(p.ltvWad, 2) : '—'} tone={exceeds(p.debt, p.value, cur.snapshot.ltWad) ? 'down' : 'up'} />
+          <Fig k="Threshold" v={pct(cur.snapshot.ltWad, 2)} tone="warn" />
+        </Grid>
       )}
-      {!compact && (
-        <div className="mt-3 space-y-1.5">
-          <Note>From StockReefMarket.quoteTrim at the scenario snapshot: eligible only when LTV is strictly above the threshold; a full fill reaches the {pct(p.planTargetWad, 0)} target and leaves the rest of the position in place.</Note>
-          {q.bufferPending && <Note tone="warn">Your funded buffer is executable, so a trim reverts until the buffer has run.</Note>}
-        </div>
-      )}
-    </Card>
+      {action}
+    </Feature>
   )
 }
 
 // ------------------------------------------------------------------ 5. Closed-session protection
 
-export function ClosedProtection({ cur, p }: { cur: StepState; p: Position | undefined }) {
+export function ClosedProtection({ cur }: { cur: StepState }) {
   const s = cur.snapshot
-  const name = ['open', 'preparation', 'final window', 'closed market', 'reopening wait', 'reopening recovery', 'guarded market'][s.state]
-  const hasDebt = !!p && p.debt > 0n
+  const items: [string, boolean][] = [
+    ['Repay', true],
+    ['Add TSLA', true],
+    ['Borrow', s.canBorrow],
+    ['Withdraw', s.canBorrow],
+    ['Buffer', s.canBuffer],
+    ['Trim', s.canTrim],
+    ['Lend', s.lenderOpen],
+  ]
   return (
-    <Card kicker="Closed-session protection" title={s.canBorrow ? 'New credit is available' : 'New credit is locked'} aside={<Status tone={s.canBorrow ? 'up' : 'muted'}>{s.canBorrow ? `Borrow limit ${pct(s.borrowLimitWad, 1)}` : 'Borrowing locked'}</Status>}>
-      <Permit label="Borrow USDG" on={s.canBorrow} why={s.canBorrow ? `Up to ${pct(s.borrowLimitWad, 1)} LTV` : s.phase === S.FINAL_WINDOW ? 'Stops 30 minutes before the close' : s.phase === S.REOPEN_RECOVERY ? `Returns at ${nyClock(s.creditAt)} ET` : `Locked in the ${name}`} />
-      <Permit label="Withdraw TSLA against debt" on={s.canBorrow} why={s.canBorrow ? 'Must stay within the borrow limit' : 'Needs borrowing to be open'} />
-      <Permit label="Repay USDG" on why="Every state, no price needed" />
-      <Permit label="Add TSLA collateral" on why="Every state, no price needed" />
-      <Permit label="Funded buffer execution" on={s.canBuffer} why={s.canBuffer ? 'Preparation, final window and recovery' : 'Paused while the market is closed'} />
-      <Permit label="Partial liquidation" on={s.canTrim} why={s.canTrim ? 'Loans strictly above the threshold' : 'Paused while the market is closed'} />
-      <Permit label="Lender deposits and withdrawals" on={s.lenderOpen} why={s.lenderOpen ? 'Normal open phase' : 'Window closed from preparation to credit return'} />
-      {hasDebt && !s.canBorrow && <div className="mt-3"><Note>Your loan cannot grow while new credit is locked. It can only be reduced.</Note></div>}
-    </Card>
+    <Feature
+      name="Protection"
+      tone={s.canBorrow ? 'up' : 'muted'}
+      status={s.canBorrow ? `Borrow to ${pct(s.borrowLimitWad, 1)}` : s.phase === S.REOPEN_RECOVERY ? `Credit ${nyClock(s.creditAt)}` : 'Credit locked'}
+      info={<>New borrowing stops 30 minutes before the close and stays off until the reopening recovery ends. Withdrawals against debt need borrowing open. Repaying and adding collateral work in every state. Permissions from the session snapshot.</>}
+    >
+      <div className="flex flex-wrap gap-1.5">
+        {items.map(([k, on]) => (
+          <span key={k} className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs ${on ? 'border-dk-up/40 bg-dk-up/10 text-dk-up' : 'border-dk-line text-dk-faint'}`}>
+            {on ? (
+              <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M3 8.5l3 3 7-7" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 16 16" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+                <rect x="3.5" y="7" width="9" height="6.5" rx="1" />
+                <path d="M5.5 7V5a2.5 2.5 0 015 0v2" />
+              </svg>
+            )}
+            {k}
+            <span className="sr-only">{on ? 'available' : 'locked'}</span>
+          </span>
+        ))}
+      </div>
+    </Feature>
   )
 }
 
@@ -218,93 +237,77 @@ export function ClosedProtection({ cur, p }: { cur: StepState; p: Position | und
 
 export function ControlledReopening({ cur, steps }: { cur: StepState; steps: StepState[] }) {
   const monOpen = steps.find(x => x.step.day === 'mon')!.snapshot.open
-  const admit = steps.find(x => x.step.id === 'admit')!
-  const wait = steps.find(x => x.step.id === 'wait')!
+  const creditAt = steps.find(x => x.step.id === 'admit')!.snapshot.creditAt
   const reached = cur.t >= monOpen
   const s = cur.snapshot
   const admitted = reached && s.admissionAt > 0n
-  const creditAt = admit.snapshot.creditAt
   const progress = admitted ? Math.min(1, Number(cur.t - s.admissionAt) / Number(creditAt - s.admissionAt)) : 0
-  const tone: Tone = !reached ? 'muted' : !admitted ? 'warn' : cur.t >= creditAt ? 'up' : 'brand'
   return (
-    <Card
-      kicker="Controlled reopening"
-      title={!reached ? 'Monday: fresh price first, then recovery, then credit' : !admitted ? 'Waiting for a fresh price to be admitted' : cur.t >= creditAt ? 'Recovery complete: credit has returned' : 'Recovery window: buffers, then trims'}
-      aside={<Status tone={tone}>{!reached ? 'After the weekend' : !admitted ? 'Price not admitted' : cur.t >= creditAt ? 'Credit open' : 'Recovering'}</Status>}
+    <Feature
+      name="Reopening"
+      tone={!reached ? 'muted' : !admitted ? 'warn' : cur.t >= creditAt ? 'up' : 'brand'}
+      status={!reached ? 'Monday' : !admitted ? 'Awaiting price' : cur.t >= creditAt ? 'Credit open' : 'Recovering'}
+      info={
+        <>
+          A fresh quote must be stamped at least 1 minute after the open and is admitted no earlier than 5 minutes after it. Buffers, then recovery trims, run; credit returns at the later of open + 15
+          minutes and admission + 10. Without a price by open + 30 minutes the market is guarded.
+        </>
+      }
     >
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Stat label="Fresh price" value={reached ? `${(Number(cur.quoteWad) / 1e18).toFixed(2)}` : '—'} sub={reached ? `stamped ${nyClock(wait.t)}; must be ≥ ${nyClock(monOpen + 60n)}` : 'quote must follow the open'} />
-        <Stat label="Admission" value={admitted ? `${nyClock(s.admissionAt)} ET` : `from ${nyClock(monOpen + 300n)} ET`} sub="not before open + 5 minutes" tone={admitted ? 'up' : 'ink'} />
-        <Stat label="Credit returns" value={`${nyClock(creditAt)} ET`} sub="later of open + 15 min, admission + 10 min" />
-        <Stat label="Guarded if no price by" value={`${nyClock(monOpen + 1800n)} ET`} sub="elapsed time never admits a bad quote" />
+      <Grid>
+        <Fig k="Fresh quote" v={reached ? (Number(cur.quoteWad) / 1e18).toFixed(2) : '—'} sub={reached ? 'TSLA / USD' : 'after the open'} />
+        <Fig k="Admitted" v={admitted ? nyClock(s.admissionAt) : `≥ ${nyClock(monOpen + 300n)}`} tone={admitted ? 'up' : 'ink'} />
+        <Fig k="Credit returns" v={nyClock(creditAt)} />
+      </Grid>
+      <div className="mt-3 h-1.5 rounded-full bg-dk-raised" role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-label="Recovery progress">
+        <div className="h-1.5 rounded-full bg-brand" style={{ width: `${progress * 100}%` }} />
       </div>
-      <div className="mt-4">
-        <div className="flex justify-between text-xs text-dk-muted">
-          <span>Recovery progress</span>
-          <span className="num">{admitted ? `${Math.round(progress * 100)}%` : '—'}</span>
-        </div>
-        <div className="mt-1.5 h-2 rounded-full bg-dk-raised">
-          <div className="h-2 rounded-full bg-brand" style={{ width: `${progress * 100}%` }} />
-        </div>
-      </div>
-    </Card>
+    </Feature>
   )
 }
 
 // ------------------------------------------------------------------ 7. Lender loss accounting
 
-export function LenderLoss({ book, cur, haircut, pol }: { book: Book; cur: StepState; haircut: bigint; pol?: Policy }) {
+export function LenderLoss({ book, cur, haircut }: { book: Book; cur: StepState; haircut: bigint }) {
   const [stress, setStress] = useState<number>()
   const price = stress ?? Number(cur.valuationWad) / 1e18
   const b = stress === undefined ? book : bookAtPrice(book, usd(stress), haircut)
-  const base = book.shareValue
-  const delta = Number(b.shareValue - base) / 1e6
-  void pol
   return (
-    <Card
-      kicker="Lender loss accounting"
-      title="Share value counts only what loans can recover"
-      aside={<Status tone={b.shortfall > 0n ? 'down' : 'up'}>{b.shortfall > 0n ? 'Shortfall recognized' : 'Fully recoverable'}</Status>}
+    <Feature
+      name="Lender loss accounting"
+      tone={b.shortfall > 0n ? 'down' : 'up'}
+      status={b.shortfall > 0n ? 'Shortfall' : 'Fully covered'}
+      info={<>Lender assets = cash + Σ min(debt, collateral value ÷ 1.05). A shortfall lowers share value as soon as the accepted price shows it, before any collateral runs out. Written-off debt is totalBadDebt.</>}
     >
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Stat label="Recoverable assets" value={`${usdg(b.lenderAssets)} USDG`} sub={`${usdg(b.cash)} cash + ${usdg(b.recoverable)} loans`} />
-        <Stat label="Recognized shortfall" value={`${usdg(b.shortfall)} USDG`} tone={b.shortfall > 0n ? 'down' : 'ink'} sub="debt above value ÷ 1.05" />
-        <Stat label="Debt written off" value={`${usdg(b.totalBadDebt)} USDG`} sub="since deployment (totalBadDebt)" />
-        <Stat label="Share value" value={`${(Number(b.shareValue) / 1e6).toFixed(4)}`} sub={stress === undefined ? 'USDG per 1 USDG deposited' : `${delta >= 0 ? '+' : ''}${delta.toFixed(4)} vs scenario price`} tone={b.shortfall > 0n ? 'down' : 'ink'} />
-      </div>
-      <div className="mt-4 rounded-md border border-dk-line bg-dk-bg/60 p-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-          <label htmlFor="stress" className="text-dk-muted">
-            What-if TSLA price <span className="text-dk-faint">(same formula, not part of the script)</span>
-          </label>
-          <span className="num text-dk-ink">
-            {price.toFixed(2)} USDG
-            {stress !== undefined && (
-              <button type="button" onClick={() => setStress(undefined)} className="ml-3 text-dk-up hover:underline">
-                Back to scenario price
-              </button>
-            )}
-          </span>
-        </div>
-        <input id="stress" type="range" min={150} max={420} step={1} value={Math.round(price)} onChange={e => setStress(Number(e.target.value))} className="mt-2 w-full accent-[#c56430]" />
-        <p className="mt-1 text-xs text-dk-faint">
-          lender assets = cash + Σ min(debt, collateral value ÷ 1.05). A shortfall lowers share value as soon as the accepted price shows it, before any collateral runs out.
-        </p>
-      </div>
-      {cur.indicative && <div className="mt-2"><Note tone="warn">Valued at the last accepted price, indicative until a fresh price is admitted.</Note></div>}
-    </Card>
+      <Grid cols={4}>
+        <Fig k="Recoverable" v={usdg(b.lenderAssets)} sub="USDG" />
+        <Fig k="Shortfall" v={usdg(b.shortfall)} tone={b.shortfall > 0n ? 'down' : 'ink'} sub="recognized" />
+        <Fig k="Written off" v={usdg(b.totalBadDebt)} sub="USDG" />
+        <Fig k="Share value" v={(Number(b.shareValue) / 1e6).toFixed(4)} tone={b.shortfall > 0n ? 'down' : 'ink'} />
+      </Grid>
+      <label className="mt-3 flex items-center gap-3 text-[11px] text-dk-muted">
+        <span className="shrink-0">What-if TSLA</span>
+        <input type="range" min={150} max={420} step={1} value={Math.round(price)} onChange={e => setStress(Number(e.target.value))} className="w-full accent-brand" aria-label="What-if TSLA price" />
+        <span className="num w-12 shrink-0 text-right text-dk-ink">{price.toFixed(0)}</span>
+        {stress !== undefined && (
+          <button type="button" onClick={() => setStress(undefined)} className="shrink-0 text-dk-up hover:underline">
+            reset
+          </button>
+        )}
+      </label>
+    </Feature>
   )
 }
 
 /** The position meter with the limits that apply to it. */
 export function PositionMeter({ p, cur, pol }: { p: Position; cur: StepState; pol: Policy }) {
   const s = cur.snapshot
+  const next = nextCloseLt(cur, pol)
   const marks = [
     { at: f(p.planTargetWad), label: `Target ${pct(p.planTargetWad, 0)}`, tone: 'muted' as Tone, dashed: true },
     ...(s.canBorrow ? [{ at: f(s.borrowLimitWad), label: `Borrow ${pct(s.borrowLimitWad, 1)}`, tone: 'brand' as Tone }] : []),
     { at: f(s.ltWad), label: `Threshold ${pct(s.ltWad, 1)}`, tone: 'down' as Tone },
-    ...(s.ltWad !== nextCloseLt(cur, pol) ? [{ at: f(nextCloseLt(cur, pol)), label: `At close ${pct(nextCloseLt(cur, pol), 0)}`, tone: 'warn' as Tone, dashed: true }] : []),
+    ...(s.ltWad !== next ? [{ at: f(next), label: `At close ${pct(next, 0)}`, tone: 'warn' as Tone, dashed: true }] : []),
   ]
   return <Meter ltv={p.debt ? f(p.ltvWad) : undefined} marks={marks} min={0.55} max={0.85} />
 }
-

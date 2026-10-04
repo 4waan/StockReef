@@ -1,21 +1,23 @@
 import { Suspense, type ReactNode } from 'react'
 import { ModeFooter } from '@/components/terminal/ModeFooter'
 import { SessionDock } from '@/components/reef/SessionDock'
+import { Sidebar } from '@/components/reef/Sidebar'
 import { SessionProvider } from '@/lib/session'
-import { TopBar } from '@/components/terminal/TopBar'
 import { ViewingProvider } from '@/lib/viewing'
 
-/** The app shell: top bar, the page, the session bar and the live status bar, around one shared choice of whose loan is shown and one scenario clock. */
+/** The app shell: the left column, then the page with the session bar, around one account choice and one scenario clock. */
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="terminal flex min-h-screen flex-col overflow-x-clip bg-dk-bg text-dk-ink">
+    <div className="terminal min-h-screen bg-dk-bg text-dk-ink lg:flex">
       <Suspense>
         <ViewingProvider>
           <SessionProvider>
-            <TopBar />
-            <main className="flex flex-1 flex-col">{children}</main>
-            <SessionDock />
-            <ModeFooter />
+            <Sidebar />
+            <div className="flex min-h-screen min-w-0 flex-1 flex-col overflow-x-clip">
+              <main className="flex flex-1 flex-col">{children}</main>
+              <SessionDock />
+              <ModeFooter />
+            </div>
           </SessionProvider>
         </ViewingProvider>
       </Suspense>

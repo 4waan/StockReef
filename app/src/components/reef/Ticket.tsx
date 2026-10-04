@@ -10,7 +10,7 @@ import { nyClock, pct, tokens, usdg } from '@/lib/format'
 import { revertReason, useTx, type TxStatus } from '@/lib/hooks'
 import { ceilDiv, exceeds, ltvUp, S, valueOfRaw, WAD, type Book, type Policy, type Position, type StepState } from '@/lib/scenario'
 import { useSession } from '@/lib/session'
-import { KV, Note, TabBar, TxRef, type Tone } from './ui'
+import { Info, KV, TabBar, TxRef, type Tone } from './ui'
 
 export type Action = 'repay' | 'collateral' | 'borrow' | 'buffer'
 
@@ -106,7 +106,7 @@ function ltvTone(ltv: bigint, s: StepState['snapshot'], target: bigint): Tone {
   return 'up'
 }
 
-/** The review: position after the action at the scenario price, rule checks, and the testnet preflight. */
+/** The review: the position after the action at the scenario price. The rule checks sit behind the "i". */
 function Review({
   p,
   cur,
@@ -128,28 +128,29 @@ function Review({
   const changed = debt !== p.debt || collateral !== p.collateral
   const eligibleBefore = exceeds(p.debt, p.value, s.ltWad)
   const eligibleAfter = exceeds(debt, value, s.ltWad)
+  const blocked = checks.filter(c => !c.ok)
   return (
-    <div className="mt-4 rounded-md border border-dk-line bg-dk-bg/50">
-      <div className="border-b border-dk-line px-3 py-2 text-[11px] font-semibold tracking-[.14em] text-[#e88a5a] uppercase">Review before signing</div>
-      <div className="px-3">
-        <KV label="Debt" before={changed && debt !== p.debt ? usdg(p.debt) : undefined} value={`${usdg(debt)} USDG`} />
-        <KV label="Collateral" before={changed && collateral !== p.collateral ? tokens(p.collateral, 4) : undefined} value={`${tokens(collateral, 4)} TSLA`} />
-        <KV label="LTV" before={changed && p.debt ? pct(p.ltvWad, 2) : undefined} value={debt ? pct(ltv, 2) : '—'} tone={debt ? ltvTone(ltv, s, p.planTargetWad) : 'ink'} />
-        <KV label="Threshold now" value={pct(s.ltWad, 2)} tone="warn" hint={s.phase === S.PRE_CLOSE ? 'falling' : undefined} />
-        <KV label={`Plan target`} value={pct(p.planTargetWad, 0)} tone={debt && ltv <= p.planTargetWad ? 'up' : 'muted'} hint={debt && ltv <= p.planTargetWad ? 'reached' : undefined} />
-        <KV label="Partial liquidation" before={changed ? (eligibleBefore ? 'eligible' : 'not eligible') : undefined} value={eligibleAfter ? 'eligible' : 'not eligible'} tone={eligibleAfter ? 'down' : 'up'} />
-        {extra}
+    <div className="mt-3 rounded-md border border-dk-line px-3 pb-1">
+      <div className="flex items-center gap-2 pt-2 pb-1">
+        <span className="text-[11px] font-semibold tracking-[.12em] text-accent uppercase">Review</span>
+        <Info label="Session rules for this action" align="left">
+          <ul className="space-y-1">
+            {checks.map((c, i) => (
+              <li key={i}>
+                <span className={c.ok ? 'text-dk-up' : 'text-dk-warn'}>{c.ok ? '✓ ' : '! '}</span>
+                {c.text}
+              </li>
+            ))}
+          </ul>
+        </Info>
+        {blocked.length > 0 && <span className="ml-auto text-[11px] text-dk-warn">{blocked.length === 1 ? 'rule blocks this' : 'rules block this'}</span>}
       </div>
-      <ul className="space-y-1 border-t border-dk-line px-3 py-2 text-xs">
-        {checks.map((c, i) => (
-          <li key={i} className={`flex gap-2 ${c.ok ? 'text-dk-muted' : 'text-dk-warn'}`}>
-            <span aria-hidden className={c.ok ? 'text-dk-up' : 'text-dk-warn'}>
-              {c.ok ? '✓' : '!'}
-            </span>
-            <span>{c.text}</span>
-          </li>
-        ))}
-      </ul>
+      {collateral !== p.collateral && <KV label="Collateral" before={tokens(p.collateral, 4)} value={`${tokens(collateral, 4)} TSLA`} />}
+      <KV label="Debt" before={debt !== p.debt ? usdg(p.debt) : undefined} value={`${usdg(debt)} USDG`} />
+      <KV label="LTV" before={changed && p.debt ? pct(p.ltvWad, 2) : undefined} value={debt ? pct(ltv, 2) : '—'} tone={debt ? ltvTone(ltv, s, p.planTargetWad) : 'ink'} hint={`target ${pct(p.planTargetWad, 0)}`} />
+      <KV label="Threshold" value={pct(s.ltWad, 2)} tone="warn" />
+      <KV label="Liquidation" before={changed && eligibleBefore !== eligibleAfter ? (eligibleBefore ? 'eligible' : 'safe') : undefined} value={eligibleAfter ? 'eligible' : 'safe'} tone={eligibleAfter ? 'down' : 'up'} />
+      {extra}
     </div>
   )
 }
@@ -179,7 +180,7 @@ function usePreflight(call: Call | undefined, approve: Approve | undefined, enab
   })
 }
 
-/** The sign button with the approval step, the testnet preflight, and the receipt. */
+/** The sign button, the exact-approval note, the testnet preflight, and the receipt. */
 function Sign({ label, call, approve, blocked, ctx, onDone }: { label: string; call: Call | undefined; approve?: Approve; blocked?: string; ctx: Ctx; onDone?: () => void }) {
   const { record, current } = useSession()
   const tx = useTx(hash => {
@@ -189,29 +190,32 @@ function Sign({ label, call, approve, blocked, ctx, onDone }: { label: string; c
   const pre = usePreflight(call, approve, ctx.canSign && !blocked)
   const busy = tx.status.state === 'checking' || tx.status.state === 'approving' || tx.status.state === 'pending'
   const willApprove = pre.data?.needsApproval && approve
-  const text = !ctx.canSign ? ctx.signHint : blocked ? blocked : busy ? 'Waiting for the wallet…' : willApprove ? `Approve ${fmt(approve.amount, approve.decimals, 4)} ${approve.symbol}, then ${label.charAt(0).toLowerCase()}${label.slice(1)}` : label
+  const rejected = ctx.canSign && !blocked && pre.data && !pre.data.ok ? pre.data.reason : undefined
+  const text = !ctx.canSign ? ctx.signHint : blocked ? blocked : busy ? 'Confirm in wallet…' : willApprove ? `Approve, then ${label.charAt(0).toLowerCase()}${label.slice(1)}` : label
   return (
-    <div className="mt-4">
-      {willApprove && (
-        <ol className="mb-2 space-y-0.5 text-xs text-dk-muted">
-          <li>1. Approve exactly {fmt(approve.amount, approve.decimals, 6)} {approve.symbol} for this action, not an unlimited allowance</li>
-          <li>2. {label}</li>
-        </ol>
+    <div className="mt-3">
+      {rejected && (
+        <div role="alert" className="mb-2 flex items-start gap-2 rounded-md border border-dk-down/50 bg-dk-down/10 px-3 py-2 text-xs">
+          <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-dk-down" />
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold text-dk-down">Rejected by the contract</span>
+            <span className="num block text-dk-ink">{rejected}</span>
+          </span>
+          <Info label="Why nothing was sent" align="right">
+            The transaction was simulated against the testnet before the wallet opened and the contract refused it, so MetaMask was never asked to sign. If the testnet is not on this step, the operator syncs it from the oracle pill.
+          </Info>
+        </div>
       )}
       <button
         type="button"
-        disabled={!ctx.canSign || !!blocked || !call || busy || (pre.data && !pre.data.ok)}
+        disabled={!ctx.canSign || !!blocked || !call || busy || !!rejected}
         onClick={() => call && tx.send(call as never, approve)}
         className="w-full rounded-md bg-brand py-2.5 text-[15px] font-semibold text-white transition hover:bg-[#d36f39] disabled:cursor-not-allowed disabled:bg-dk-raised disabled:text-dk-muted"
       >
         {text}
       </button>
-      {ctx.canSign && !blocked && pre.data && !pre.data.ok && (
-        <p className="mt-2 text-xs text-dk-warn">
-          The testnet would reject this now: <span className="num">{pre.data.reason}</span>. Nothing was sent. If the testnet is not on this step, the operator can move it there from the session bar.
-        </p>
-      )}
-      {ctx.canSign && !blocked && pre.data?.ok && !pre.data.needsApproval && <p className="mt-2 text-xs text-dk-up">Testnet check passed: this exact transaction succeeds now.</p>}
+      {willApprove && <p className="num mt-1.5 text-[11px] text-dk-muted">Exact approval: {fmt(approve.amount, approve.decimals, 6)} {approve.symbol}, never unlimited</p>}
+      {ctx.canSign && !blocked && pre.data?.ok && !pre.data.needsApproval && tx.status.state === 'idle' && <p className="mt-1.5 text-[11px] text-dk-up">✓ Testnet check passed</p>}
       <StatusLine status={tx.status} />
     </div>
   )
@@ -220,15 +224,15 @@ function Sign({ label, call, approve, blocked, ctx, onDone }: { label: string; c
 function StatusLine({ status }: { status: TxStatus }) {
   if (status.state === 'idle') return null
   const text = {
-    checking: 'Checking the transaction against the chain…',
-    approving: 'Approve the exact amount in your wallet…',
-    pending: 'Sign in your wallet, then waiting for the block…',
-    mined: 'Confirmed on chain',
-    rejected: 'Cancelled in the wallet. Nothing was sent.',
+    checking: 'Checking against the chain…',
+    approving: 'Approve the exact amount…',
+    pending: 'Waiting for the block…',
+    mined: 'Confirmed',
+    rejected: 'Cancelled in the wallet',
     failed: `Not sent: ${status.error}`,
   }[status.state]
   return (
-    <p className={`mt-2 text-xs ${status.state === 'mined' ? 'text-dk-up' : status.state === 'failed' ? 'text-dk-down' : 'text-dk-muted'}`}>
+    <p className={`num mt-1.5 truncate text-[11px] ${status.state === 'mined' ? 'text-dk-up' : status.state === 'failed' ? 'text-dk-down' : 'text-dk-muted'}`}>
       {text}
       {status.approvalHash && (
         <>
@@ -464,16 +468,13 @@ function Buffer(ctx: Ctx & { p: Position }) {
           <Field label="Lasts" unit="days" value={days} onChange={setDays} />
         </div>
       )}
-      <div className="mt-4 rounded-md border border-dk-line bg-dk-bg/50 px-3">
-        <div className="-mx-3 border-b border-dk-line px-3 py-2 text-[11px] font-semibold tracking-[.14em] text-[#e88a5a] uppercase">Review before signing</div>
+      <div className="mt-3 rounded-md border border-dk-line px-3 pb-1">
+        <div className="flex items-center gap-2 pt-2 pb-1"><span className="text-[11px] font-semibold tracking-[.12em] text-accent uppercase">Review</span><Info label="About the buffer">Your USDG in a separate escrow, never lender liquidity, earning nothing. From preparation anyone can run it within your target and cap; it repays before any trim. Committed funds still repay through Repay → Buffer.</Info></div>
         <KV label="Escrowed" before={mode !== 'authorize' && amount ? usdg(p.plan.balance) : undefined} value={`${usdg(mode === 'fund' ? p.plan.balance + (amount ?? 0n) : mode === 'withdraw' ? p.plan.balance - (amount && amount <= p.plan.balance ? amount : 0n) : p.plan.balance)} USDG`} />
         <KV label="Target" before={mode === 'authorize' && p.plan.targetWad ? pct(p.plan.targetWad, 0) : undefined} value={mode === 'authorize' && targetWad ? pct(targetWad, 0) : p.plan.targetWad ? pct(p.plan.targetWad, 0) : '—'} />
         <KV label="Cap per session" value={mode === 'authorize' && capRaw ? `${usdg(capRaw)} USDG` : p.plan.targetWad ? `${usdg(p.plan.perSessionCap)} USDG` : '—'} />
         <KV label="Plan needs" value={`${usdg(p.repayToTarget)} USDG`} hint={`to ${pct(p.planTargetWad, 0)}`} />
         <KV label="Would run" value={`${usdg(p.bufferNow || p.bufferNext)} USDG`} hint={p.bufferNow ? 'now' : p.bufferNextAt ? 'at the next window' : undefined} tone={p.bufferNow || p.bufferNext ? 'up' : 'muted'} />
-      </div>
-      <div className="mt-2">
-        <Note>Your money in a separate escrow, never lender liquidity, earning nothing. From preparation, anyone can run it within your target and cap; it repays before any trim. Committed funds still repay through Repay → Buffer.</Note>
       </div>
       <Sign label={mode === 'fund' ? `Fund buffer ${amount ? usdg(amount) : ''} USDG` : mode === 'authorize' ? `Authorize ${target}% plan` : `Withdraw ${amount ? usdg(amount) : ''} USDG`} call={call} approve={approve} blocked={blocked} ctx={ctx} onDone={() => setText('')} />
     </>

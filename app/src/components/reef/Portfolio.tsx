@@ -1,21 +1,18 @@
 'use client'
 
 import Link from 'next/link'
+import { useReadContract } from 'wagmi'
+import { marketAbi } from '@/generated/abi'
 import { chain, contracts, demoAccounts } from '@/lib/chain'
 import { useDesk } from '@/lib/desk'
 import { nyClock, pct, tokens, usdg } from '@/lib/format'
-import { MARKET } from '@/lib/script'
 import { exceeds } from '@/lib/scenario'
 import { useBook } from '@/lib/session'
-import { useReadContract } from 'wagmi'
-import { marketAbi } from '@/generated/abi'
-import { ClosedProtection, ControlledReopening, DebtReduction, FallingThreshold, FundedBuffer, LenderLoss, PartialLiquidation, PositionMeter } from './features'
-import { Card, Loading, PhaseTag, Stat, Status, TxRef } from './ui'
+import { ClosedProtection, ControlledReopening, DebtReduction, FallingThreshold, Fig, FundedBuffer, LenderLoss, PartialLiquidation, PositionMeter } from './features'
+import { StateChange } from './Terminal'
+import { Info, Loading, PhaseTag, Status } from './ui'
 
-/**
- * The portfolio: one account's position and how each StockReef control applies to it at the current step.
- * A dashboard that ties debt to position health, with every figure from the contracts at the scenario step.
- */
+/** The portfolio: one account's position health, then each StockReef control as it applies to it at this step. */
 export function PortfolioPage() {
   const d = useDesk()
   const { data: book } = useBook()
@@ -23,15 +20,12 @@ export function PortfolioPage() {
   if (!contracts) return <Loading>No StockReef deployment is configured for chain {chain.id}.</Loading>
   if (!d.viewing)
     return (
-      <div className="px-5 py-10">
-        <p className="text-dk-muted">Connect a wallet, or open a public profile:</p>
-        <div className="mt-4 flex gap-2">
-          {demoAccounts.map(a => (
-            <button key={a.address} type="button" onClick={() => d.pick(a.address)} className="rounded-md border border-dk-line px-3 py-1.5 text-sm hover:border-dk-muted">
-              {a.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex gap-2 px-5 py-10">
+        {demoAccounts.map(a => (
+          <button key={a.address} type="button" onClick={() => d.pick(a.address)} className="rounded-md border border-dk-line px-3 py-1.5 text-sm hover:border-dk-muted">
+            {a.label}
+          </button>
+        ))}
       </div>
     )
   if (d.error) return <Loading>Could not read the scenario: {d.error}</Loading>
@@ -41,65 +35,52 @@ export function PortfolioPage() {
   const s = cur.snapshot
   const above = exceeds(p.debt, p.value, s.ltWad)
   const health = p.debt ? Number(s.ltWad) / Number(p.ltvWad) : undefined
-  const net = p.value - p.debt
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-4 px-4 py-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <div className="text-xs text-dk-muted">Portfolio · {d.label}</div>
-          <h1 className="mt-1 text-2xl font-semibold">Your TSLA-backed loan at {cur.step.day === 'mon' ? 'Monday' : 'Friday'} {nyClock(cur.t)} ET</h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <PhaseTag state={s.state} />
-          <Link href="/trade" className="rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#d36f39]">
-            Open terminal
-          </Link>
-        </div>
+    <div className="w-full space-y-3 px-4 py-4 xl:px-6">
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-xl font-semibold">Portfolio</h1>
+        <span className="text-sm text-dk-muted">{d.label}</span>
+        <PhaseTag state={s.state} />
+        <span className="num text-sm text-dk-muted">
+          {cur.step.day === 'mon' ? 'Mon' : 'Fri'} {nyClock(cur.t)} ET
+        </span>
+        <Link href="/trade" className="ml-auto rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#d36f39]">
+          Trade
+        </Link>
       </div>
 
-      <section className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <Card kicker="Position health" title={above ? 'Above the liquidation threshold' : p.ltvWad > p.planTargetWad ? 'Healthy now, above the closure plan' : 'Healthy and on plan'} aside={<Status tone={above ? 'down' : p.ltvWad > p.planTargetWad ? 'warn' : 'up'}>{health ? `Health ${health.toFixed(2)}` : 'No debt'}</Status>}>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Stat size="lg" label="Collateral value" value={`${usdg(p.value)}`} sub={`${tokens(p.collateral, 4)} TSLA${cur.indicative ? ' · indicative' : ''}`} />
-            <Stat size="lg" label="Debt" value={`${usdg(p.debt)}`} sub="USDG, interest included" />
-            <Stat size="lg" label="LTV" value={p.debt ? pct(p.ltvWad, 2) : '—'} tone={above ? 'down' : p.ltvWad > p.planTargetWad ? 'warn' : 'up'} sub={`threshold ${pct(s.ltWad, 2)}`} />
-            <Stat size="lg" label="Net value" value={`${usdg(net)}`} sub="collateral − debt, USDG" />
+      <section className="grid gap-3 lg:grid-cols-[1.6fr_1fr]">
+        <div className="rounded-lg border border-dk-line bg-dk-panel px-4 pt-3 pb-1">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold tracking-[.12em] text-accent uppercase">Position health</span>
+            <Info label="About position health">Health = threshold ÷ LTV. Below 1.00 the loan can be trimmed. The dashed marks are the closure target and the threshold the loan must clear at the close.</Info>
+            <span className="ml-auto">
+              <Status tone={above ? 'down' : p.ltvWad > p.planTargetWad ? 'warn' : 'up'}>{health ? `Health ${health.toFixed(2)}` : 'No debt'}</Status>
+            </span>
+          </div>
+          <div className="mt-2 grid grid-cols-4 gap-3">
+            <Fig k="Collateral" v={usdg(p.value)} sub={`${tokens(p.collateral, 4)} TSLA${cur.indicative ? ' · ind.' : ''}`} />
+            <Fig k="Debt" v={usdg(p.debt)} sub="USDG" />
+            <Fig k="LTV" v={p.debt ? pct(p.ltvWad, 2) : '—'} tone={above ? 'down' : p.ltvWad > p.planTargetWad ? 'warn' : 'up'} sub={`threshold ${pct(s.ltWad, 1)}`} />
+            <Fig k="Wallet" v={usdg(p.wallet.usdg)} sub={`USDG · ${tokens(p.wallet.tsla, 2)} TSLA`} />
           </div>
           <PositionMeter p={p} cur={cur} pol={d.policy} />
-          <p className="text-xs text-dk-faint">Health = threshold ÷ LTV; below 1.00 the loan can be trimmed. The dashed marks show the closure target and the threshold the loan must clear at the close.</p>
-        </Card>
-        <Card kicker="Wallet and history" title="Balances and confirmed transactions">
-          <div className="grid grid-cols-3 gap-4">
-            <Stat label="USDG wallet" value={usdg(p.wallet.usdg)} />
-            <Stat label="TSLA wallet" value={tokens(p.wallet.tsla, 4)} />
-            <Stat label="Buffer escrow" value={usdg(p.plan.balance)} />
-          </div>
-          <ul className="mt-4 max-h-44 space-y-1.5 overflow-y-auto text-sm">
-            {d.items.slice(0, 8).map(e => (
-              <li key={e.hash + e.logIndex} className="num flex justify-between gap-3 border-b border-dk-line/60 pb-1.5">
-                <span>
-                  {e.kind} <span className="text-dk-muted">{e.unit === 'USDG' ? `${usdg(e.amount)} USDG` : e.unit === 'TSLA' ? `${tokens(e.amount, 4)} TSLA` : ''}</span>
-                </span>
-                <TxRef hash={e.hash} />
-              </li>
-            ))}
-            {!d.items.length && <li className="text-dk-muted">No transactions yet.</li>}
-          </ul>
-        </Card>
+        </div>
+        <div className="rounded-lg border border-dk-line bg-dk-panel">
+          <StateChange items={d.items} />
+          {!d.items.length && <p className="px-4 py-3 text-sm text-dk-muted">No transactions yet.</p>}
+        </div>
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <DebtReduction p={p} cur={cur} steps={d.steps} />
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <DebtReduction p={p} cur={cur} />
         <FallingThreshold p={p} cur={cur} pol={d.policy} ltPath={d.ltPath} steps={d.steps} />
         <FundedBuffer p={p} cur={cur} items={d.items} />
         <PartialLiquidation p={p} cur={cur} />
-        <ClosedProtection cur={cur} p={p} />
+        <ClosedProtection cur={cur} />
         <ControlledReopening cur={cur} steps={d.steps} />
       </div>
       {book && haircut !== undefined && <LenderLoss book={book} cur={cur} haircut={haircut as bigint} />}
-      <p className="pb-2 text-xs text-dk-faint">
-        {MARKET.pair}: scripted time and price; every balance, limit, amount and receipt from the {chain.name} contracts.
-      </p>
     </div>
   )
 }

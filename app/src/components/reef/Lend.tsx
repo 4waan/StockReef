@@ -10,7 +10,8 @@ import { pct, short, tokens, usdg } from '@/lib/format'
 import { useBook } from '@/lib/session'
 import { LenderLoss } from './features'
 import { SignAction } from './Ticket'
-import { Card, KV, Loading, Stat, Status, TabBar } from './ui'
+import { Fig } from './features'
+import { Card, Info, KV, Loading, Status, TabBar } from './ui'
 
 /** The lender book: what lenders own, valued by what loans can recover at the scenario price. */
 export function LendPage() {
@@ -42,27 +43,27 @@ export function LendPage() {
   const call = address && amount ? (tab === 'deposit' ? { address: contracts.market, abi: marketAbi as Abi, functionName: 'depositChecked', args: [amount, address, minShares ?? 0n] } : { address: contracts.market, abi: marketAbi as Abi, functionName: 'withdraw', args: [amount, address, address] }) : undefined
   const blocked = tab === 'deposit' && amount && minShares === undefined ? 'Quoting shares…' : !s.lenderOpen ? 'Lender window closed in this phase' : !amount ? 'Enter an amount' : tab === 'withdraw' && amount > book.cash ? `Only ${usdg(book.cash)} USDG of idle cash` : undefined
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-4 px-4 py-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <div className="text-xs text-dk-muted">Lend · USDG into the TSLA market</div>
-          <h1 className="mt-1 text-2xl font-semibold">USDG lender book</h1>
-        </div>
-        <Status tone={s.lenderOpen ? 'up' : 'muted'}>{s.lenderOpen ? 'Lender window open' : 'Lender window closed'}</Status>
+    <div className="w-full space-y-3 px-4 py-4 xl:px-6">
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-xl font-semibold">Lend</h1>
+        <span className="text-sm text-dk-muted">USDG lender book</span>
+        <span className="ml-auto">
+          <Status tone={s.lenderOpen ? 'up' : 'muted'}>{s.lenderOpen ? 'Window open' : 'Window closed'}</Status>
+        </span>
       </div>
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
           <Card>
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <Stat size="lg" label="Lender assets" value={usdg(book.lenderAssets)} sub="USDG, recoverable value" />
-              <Stat size="lg" label="Share value" value={(Number(book.shareValue) / 1e6).toFixed(4)} sub="USDG per 1 USDG deposited" />
-              <Stat size="lg" label="Utilization" value={pct(book.utilizationWad, 1)} sub={`cap ${pct(d.policy.utilizationCap, 0)}`} />
-              <Stat size="lg" label="Idle cash" value={usdg(book.cash)} sub="withdrawals draw on this" />
+              <Fig k="Lender assets" v={usdg(book.lenderAssets)} sub="USDG" />
+              <Fig k="Share value" v={(Number(book.shareValue) / 1e6).toFixed(4)} sub="per 1 USDG in" />
+              <Fig k="Utilization" v={pct(book.utilizationWad, 1)} sub={`cap ${pct(d.policy.utilizationCap, 0)}`} />
+              <Fig k="Idle cash" v={usdg(book.cash)} sub="withdrawable" />
             </div>
             <div className="mt-5">
               <div className="flex h-3 overflow-hidden rounded-full bg-dk-raised" role="img" aria-label="Lender book composition">
                 <div className="bg-dk-up" style={{ width: `${(Number(book.cash) / total) * 100}%` }} />
-                <div className="ml-0.5 bg-[#3a86cc]" style={{ width: `${(Number(book.recoverable) / total) * 100}%` }} />
+                <div className="ml-0.5 bg-c-ltv" style={{ width: `${(Number(book.recoverable) / total) * 100}%` }} />
                 {book.shortfall > 0n && <div className="ml-0.5 bg-dk-down" style={{ width: `${(Number(book.shortfall) / total) * 100}%` }} />}
               </div>
               <div className="mt-2 flex flex-wrap gap-4 text-xs text-dk-muted">
@@ -71,7 +72,7 @@ export function LendPage() {
                   Cash {usdg(book.cash)}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-sm bg-[#3a86cc]" />
+                  <span className="h-2 w-2 rounded-sm bg-c-ltv" />
                   Recoverable loans {usdg(book.recoverable)}
                 </span>
                 <span className="inline-flex items-center gap-1.5">
@@ -82,7 +83,7 @@ export function LendPage() {
             </div>
           </Card>
           <LenderLoss book={book} cur={cur} haircut={haircut as bigint} />
-          <Card kicker="Loans in the book" title="Each loan counted at what it can recover">
+          <Card kicker="Loans in the book">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[620px] text-sm">
                 <thead>
@@ -121,7 +122,7 @@ export function LendPage() {
               <div className="mt-4 rounded-md border border-dk-line px-3">
                 <KV label="Your position" value={mine !== undefined ? `${usdg(mine)} USDG` : '—'} hint={who ? demoAccounts.find(a => a.address.toLowerCase() === who.toLowerCase())?.label : undefined} />
                 <KV label="Share value" value={(Number(book.shareValue) / 1e6).toFixed(4)} />
-                <KV label="Window" value={s.lenderOpen ? 'open' : 'closed'} tone={s.lenderOpen ? 'up' : 'muted'} hint="open phase only" />
+                <KV label={<>Window <Info label="About the lender window">Deposits and withdrawals open in the normal open phase, after reopening recovery, and close when preparation begins. New lending stops while the book is impaired.</Info></>} value={s.lenderOpen ? 'open' : 'closed'} tone={s.lenderOpen ? 'up' : 'muted'} />
               </div>
               <SignAction
                 label={tab === 'deposit' ? `Deposit ${amount ? usdg(amount) : ''} USDG` : `Withdraw ${amount ? usdg(amount) : ''} USDG`}
@@ -130,7 +131,6 @@ export function LendPage() {
                 blocked={blocked}
                 ctx={{ account: address, canSign, walletReady: isConnected && chainId === chain.id, signHint: !isConnected ? 'Connect wallet to sign' : chainId !== chain.id ? `Switch to chain ${chain.id}` : 'Viewing another account: read only', p: d.position, cur, pol: d.policy, book }}
               />
-              <p className="mt-3 text-xs text-dk-faint">Deposits and withdrawals open only in the normal open phase, after reopening recovery, and close when preparation begins. New lending stops while the book is impaired.</p>
             </div>
           </Card>
         </aside>

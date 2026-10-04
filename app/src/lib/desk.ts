@@ -66,11 +66,15 @@ export function ltAtTime(path: { t: number; lt: number }[], t: number): number {
   return lt
 }
 
+/** Chart markers show what moved the position: debt or collateral changes, not plan funding or authorizations. */
+const CHARTED = new Set(['Buffer repaid', 'Trimmed', 'Repaid', 'Repaid from buffer', 'Borrowed', 'Written off', 'Collateral added', 'Collateral withdrawn'])
+
 function markersFrom(items: HistoryItem[], receipts: LocalReceipt[], a: Anchor, steps: StepState[]): Marker[] {
   const lo = Number(a.fri.open)
   const hi = Number(a.mon.close)
   const out: Marker[] = []
   for (const item of items) {
+    if (!CHARTED.has(item.kind)) continue
     if (item.t >= lo && item.t <= hi) out.push({ t: item.t, item, placed: false })
     else {
       const r = receipts.find(x => x.hash.toLowerCase() === item.hash.toLowerCase())

@@ -36,6 +36,15 @@
   --color-dk-down: #f0585e;
   --color-dk-warn: #f2b84b;
   --color-dk-sim: #a48bf0;
+  /* Accent text in the brand hue, and the chart series (validated per theme with the dataviz checker). */
+  --color-accent: #e88a5a;
+  --color-c-ltv: #3a86cc;
+  --color-c-lt: #b87d22;
+  --color-c-price: #c56430;
+  --color-c-target: #7d848d;
+  --color-c-grid: #23272d;
+  --color-c-axis: #6b727b;
+  --color-c-mark: #e8eaed;
 
   /* Brand, from the logo sheet: burnt orange for the mark and accents only, cream and charcoal for the landing page. */
   --color-brand: #c56430;
@@ -51,4 +60,31 @@ body {
 
 .num {
   font-variant-numeric: tabular-nums;
+}
+
+/* Light theme: the same tokens, redefined. The app shell sets data-theme on <html>; dark is the default. */
+:root[data-theme='light'] {
+  --color-dk-bg: #f4f3ee;
+  --color-dk-panel: #ffffff;
+  --color-dk-raised: #eeece5;
+  --color-dk-line: #e0ddd3;
+  --color-dk-ink: #17191c;
+  --color-dk-muted: #5a616a;
+  --color-dk-faint: #868c95;
+  --color-dk-up: #0f8a5f;
+  --color-dk-down: #c9323f;
+  --color-dk-warn: #a8681a;
+  --color-dk-sim: #6b3fa0;
+  --color-accent: #b4521f;
+  --color-c-ltv: #2f6fb0;
+  --color-c-lt: #a8681a;
+  --color-c-price: #c4581f;
+  --color-c-target: #868c95;
+  --color-c-grid: #ebe8df;
+  --color-c-axis: #7b818a;
+  --color-c-mark: #17191c;
+  color-scheme: light;
+}
+:root:not([data-theme='light']) .terminal {
+  color-scheme: dark;
 }

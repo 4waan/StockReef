@@ -10,8 +10,8 @@ import { S } from '@/lib/scenario'
 export type ChartMode = 'price' | 'ltv'
 export type ChartRange = 'focus' | 'day'
 
-// Validated series pair on the dark panel (dataviz validator, dark surface #14171b): LTV blue, threshold amber.
-const C = { ltv: '#3a86cc', lt: '#b87d22', price: '#c56430', target: '#7d848d', grid: '#23272d', axis: '#6b727b', now: '#e8eaed' }
+// Series colors are theme tokens (globals.css), each pair validated against its theme's panel with the dataviz checker.
+const C = { ltv: 'var(--color-c-ltv)', lt: 'var(--color-c-lt)', price: 'var(--color-c-price)', target: 'var(--color-c-target)', grid: 'var(--color-c-grid)', axis: 'var(--color-c-axis)', now: 'var(--color-c-mark)', panel: 'var(--color-dk-panel)', down: 'var(--color-dk-down)' }
 
 interface Props {
   anchor: Anchor
@@ -102,9 +102,9 @@ export function SessionChart({ anchor, steps, at, obs, ltPath, markers, collater
 
   // Session bands from the scripted steps' phases.
   const bands: { from: number; to: number; tone: string; label: string }[] = [
-    { from: Number(steps.find(s => s.step.id === 'prep')!.snapshot.prepAt), to: Number(steps[0].snapshot.finalAt), tone: 'rgba(242,184,75,0.07)', label: 'Preparation' },
-    { from: Number(steps[0].snapshot.finalAt), to: friEnd, tone: 'rgba(197,100,48,0.12)', label: 'Final' },
-    { from: monStart, to: Number(steps.find(s => s.step.id === 'admit')!.snapshot.creditAt), tone: 'rgba(144,151,160,0.08)', label: 'Reopening' },
+    { from: Number(steps.find(s => s.step.id === 'prep')!.snapshot.prepAt), to: Number(steps[0].snapshot.finalAt), tone: 'color-mix(in oklab, var(--color-dk-warn) 8%, transparent)', label: 'Preparation' },
+    { from: Number(steps[0].snapshot.finalAt), to: friEnd, tone: 'color-mix(in oklab, var(--color-c-price) 12%, transparent)', label: 'Final' },
+    { from: monStart, to: Number(steps.find(s => s.step.id === 'admit')!.snapshot.creditAt), tone: 'color-mix(in oklab, var(--color-dk-muted) 10%, transparent)', label: 'Reopening' },
   ]
   // The threshold schedule is drawn in full (it is known in advance), starting at the left edge of the window.
   const ltVisible = [{ t: friStart, lt: ltAtTime(ltPath, friStart) }, ...ltPath.filter(p => (p.t > friStart && p.t <= friEnd) || (p.t >= monStart && p.t <= monEnd))]
@@ -139,7 +139,7 @@ export function SessionChart({ anchor, steps, at, obs, ltPath, markers, collater
               <Legend color={C.target} dashed label="Closure target" />
             </>
           )}
-          <Legend color="#e8eaed" dot label="Confirmed transaction" />
+          <Legend color={C.now} dot label="Confirmed transaction" />
         </span>
       </div>
       <div ref={ref} className="w-full">
@@ -165,7 +165,7 @@ export function SessionChart({ anchor, steps, at, obs, ltPath, markers, collater
             <rect x={pad.l + friW} y={pad.t} width={gapW} height={plotH} fill="url(#hatch)" />
             <defs>
               <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <line x1="0" y1="0" x2="0" y2="6" stroke="#262a30" strokeWidth="2" />
+                <line x1="0" y1="0" x2="0" y2="6" stroke={C.grid} strokeWidth="2" />
               </pattern>
             </defs>
             <text x={pad.l + friW + gapW / 2} y={pad.t + plotH / 2} fontSize="10" fill={C.axis} textAnchor="middle" transform={`rotate(-90 ${pad.l + friW + gapW / 2} ${pad.t + plotH / 2})`}>
@@ -193,7 +193,7 @@ export function SessionChart({ anchor, steps, at, obs, ltPath, markers, collater
                   return <path key={day} d={path(pts.map(p => ({ x: x(p.t), y: y(Math.max(lo, Math.min(hi, p.lt))) })))} fill="none" stroke={C.lt} strokeWidth="2" />
                 })}
                 {target !== undefined && <line x1={pad.l} x2={W - pad.r} y1={y(target)} y2={y(target)} stroke={C.target} strokeDasharray="4 4" strokeWidth="1.5" />}
-                <text x={W - pad.r - 4} y={y(ltAtTime(ltPath, friEnd)) - 6} fontSize="11" fill="#c9cdd2" textAnchor="end">
+                <text x={W - pad.r - 4} y={y(ltAtTime(ltPath, friEnd)) - 6} fontSize="11" fill={C.axis} textAnchor="end">
                   Threshold {pctOf(ltAtTime(ltPath, friEnd))} through the weekend
                 </text>
                 <path d={segment('fri', s => s.ltv)} fill="none" stroke={C.ltv} strokeWidth="2" />
@@ -201,7 +201,7 @@ export function SessionChart({ anchor, steps, at, obs, ltPath, markers, collater
                 {series
                   .filter(s => s.ltv !== undefined && s.ltv > s.lt)
                   .map(s => (
-                    <circle key={s.t} cx={x(s.t)} cy={y(Math.min(hi, s.ltv!))} r="2.5" fill="#f0585e" />
+                    <circle key={s.t} cx={x(s.t)} cy={y(Math.min(hi, s.ltv!))} r="2.5" fill={C.down} />
                   ))}
               </>
             )}
@@ -222,16 +222,21 @@ export function SessionChart({ anchor, steps, at, obs, ltPath, markers, collater
             )}
 
             {/* Confirmed transactions on the session clock */}
-            {shown.map(m => {
+            {shown.map((m, i) => {
+                // Transactions within a few minutes share one label: the latest, with a count.
+                const later = shown.slice(i + 1).filter(n => n.t - m.t < 600)
+                if (later.length) return null
+                const group = shown.filter(n => m.t - n.t < 600 && n.t <= m.t).length
                 const o = series.reduce((b, s) => (Math.abs(s.t - m.t) < Math.abs(b.t - m.t) ? s : b), series[0])
                 const v = mode === 'price' ? o?.price : o?.ltv
                 if (v === undefined) return null
                 return (
                   <g key={m.item.hash + m.item.logIndex}>
-                    <line x1={x(m.t)} x2={x(m.t)} y1={pad.t} y2={pad.t + plotH} stroke="#e8eaed" strokeOpacity="0.25" />
-                    <circle cx={x(m.t)} cy={y(Math.max(lo, Math.min(hi, v)))} r="5" fill="#e8eaed" stroke="#14171b" strokeWidth="2" />
-                    <text x={x(m.t) + 8} y={y(Math.max(lo, Math.min(hi, v))) - 8} fontSize="11" fill="#e8eaed">
+                    <line x1={x(m.t)} x2={x(m.t)} y1={pad.t} y2={pad.t + plotH} stroke={C.now} strokeOpacity="0.25" />
+                    <circle cx={x(m.t)} cy={y(Math.max(lo, Math.min(hi, v)))} r="5" fill={C.now} stroke={C.panel} strokeWidth="2" />
+                    <text x={x(m.t) + 8} y={y(Math.max(lo, Math.min(hi, v))) - 8} fontSize="11" fill={C.now}>
                       {m.item.kind} {m.item.unit === 'USDG' ? usdg(m.item.amount) : ''}
+                      {group > 1 ? ` +${group - 1}` : ''}
                     </text>
                   </g>
                 )
@@ -239,11 +244,11 @@ export function SessionChart({ anchor, steps, at, obs, ltPath, markers, collater
 
             {/* Now */}
             <line x1={nowX} x2={nowX} y1={pad.t} y2={pad.t + plotH} stroke={C.now} strokeDasharray="2 3" strokeOpacity="0.6" />
-            <rect x={nowX - 22} y={pad.t + plotH + 2} width="44" height="14" rx="3" fill="#e8eaed" />
-            <text x={nowX} y={pad.t + plotH + 12.5} fontSize="10" fontWeight="600" fill="#0f1114" textAnchor="middle" className="num">
+            <rect x={nowX - 22} y={pad.t + plotH + 2} width="44" height="14" rx="3" fill={C.now} />
+            <text x={nowX} y={pad.t + plotH + 12.5} fontSize="10" fontWeight="600" fill={C.panel} textAnchor="middle" className="num">
               {nyClock(now)}
             </text>
-            {hover !== undefined && hovered && <line x1={x(hovered.t)} x2={x(hovered.t)} y1={pad.t} y2={pad.t + plotH} stroke="#9097a0" strokeOpacity="0.5" />}
+            {hover !== undefined && hovered && <line x1={x(hovered.t)} x2={x(hovered.t)} y1={pad.t} y2={pad.t + plotH} stroke={C.axis} strokeOpacity="0.5" />}
           </svg>
         )}
       </div>

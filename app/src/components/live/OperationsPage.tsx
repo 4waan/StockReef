@@ -5,6 +5,7 @@ import { parseUnits, type Address } from 'viem'
 import { useAccount, useConnect, useReadContract } from 'wagmi'
 import { demoAbi, escrowAbi, gateAbi, marketAbi } from '@/generated/abi'
 import { Btn, Dot, Metric, Panel, TxStatusLine } from '@/components/terminal/kit'
+import { Info } from '@/components/reef/ui'
 import { chain, contracts, demoAccounts } from '@/lib/chain'
 import { duration, nyClock, nyTime, pct, price, short, tokens, usdg } from '@/lib/format'
 import { useHistory } from '@/lib/history'
@@ -44,11 +45,11 @@ export default function OperationsPage() {
       <div className="grid border-b border-dk-line md:grid-cols-3">
         <Panel className="border-b-0 md:border-r">
           <Metric big label="Actions ready" value={queue.length} sub="funded repayments or trims eligible now" />
-          <p className="mt-2 text-sm text-dk-muted">The team keeper runs these. Anyone can run a funded buffer; trims need the caller’s own USDG.</p>
+          <div className="mt-1"><Info label="About actions ready">The team keeper runs these. Anyone can run a funded buffer; trims need the caller’s own USDG.</Info></div>
         </Panel>
         <Panel className="border-b-0 md:border-r">
           <Metric big label="Loans needing recovery" value={missed.length} tone={missed.length ? 'text-dk-down' : ''} sub={`${usdg(exposure)} USDG to reach target`} />
-          <p className="mt-2 text-sm text-dk-muted">These loans crossed the closing threshold and carried excess debt into the closure. The USDG amount is the repayment needed to reach the target at the last accepted price.</p>
+          <div className="mt-1"><Info label="About loans needing recovery">These loans crossed the closing threshold and carried excess debt into the closure. The USDG amount is the repayment needed to reach the target at the last accepted price.</Info></div>
         </Panel>
         <Panel className="border-b-0">
           <div className="flex items-center gap-2">
@@ -190,11 +191,16 @@ function Guardian({ now }: { now: number }) {
   const waiting = !!resumeAt && resumeAt > 0n
   const ready = waiting && now >= Number(resumeAt)
   return (
-    <Panel title="Guardian" className="md:border-r" aside={<span className={`text-sm ${stopped ? 'text-dk-down' : 'text-dk-up'}`}>{stopped ? 'Stopped' : 'Running'}</span>}>
-      <p className="text-sm text-dk-muted">
-        A guardian stop halts everything price-dependent at once. Resuming needs a request, a 24-hour wait and the gate’s recovery conditions. Repaying and adding collateral keep working
-        throughout.
-      </p>
+    <Panel
+      title={
+        <span className="inline-flex items-center gap-2">
+          Guardian
+          <Info label="About the guardian">A guardian stop halts everything price-dependent at once. Resuming needs a request, a 24-hour wait and the gate’s recovery conditions. Repaying and adding collateral keep working throughout.</Info>
+        </span>
+      }
+      className="md:border-r"
+      aside={<span className={`text-sm ${stopped ? 'text-dk-down' : 'text-dk-up'}`}>{stopped ? 'Stopped' : 'Running'}</span>}
+    >
       {stopped && waiting && (
         <p className="mt-2 text-sm">
           Resume available {nyTime(resumeAt!)} ET{!ready && <span className="num text-dk-muted"> · in {duration(Number(resumeAt) - now)}</span>}
@@ -247,7 +253,7 @@ function DemoControls({ s, now, feedDecimals }: { s: Snapshot; now: number; feed
     .sort((a, b) => Number(a.at - b.at))
   return (
     <Panel title="Market clock and stock price" aside={<span className="text-sm text-dk-sim">Operator controls</span>}>
-      <p className="text-sm text-dk-muted">The operator sets the market clock and publishes the TSLA price used by this deployment.</p>
+      
       <div className="mt-3 flex flex-wrap items-end gap-2">
         <label className="text-sm text-dk-muted">
           TSLA price (USD)
@@ -276,7 +282,6 @@ function DemoControls({ s, now, feedDecimals }: { s: Snapshot; now: number; feed
       </div>
       {!isOperator && <p className="mt-2 text-xs text-dk-faint">Connect the clock operator ({operator ? short(operator) : '…'}) to use these.</p>}
       <TxStatusLine status={tx.status} />
-      <p className="mt-2 text-xs text-dk-faint">Moving the clock does not execute buffers or trims; the keeper or a caller submits those.</p>
     </Panel>
   )
 }

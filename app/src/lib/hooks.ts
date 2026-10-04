@@ -7,6 +7,7 @@ import { usePublicClient, useReadContract, useWriteContract, useAccount } from '
 import { lensAbi, erc20Abi, marketAbi, escrowAbi, policyAbi, gateAbi, demoAbi } from '@/generated/abi'
 import { chain, contracts, ZERO } from './chain'
 import type { Snapshot } from './types'
+import { reasonList, stateName, STATE_COPY } from './policy'
 
 const POLL = 2_000
 
@@ -78,8 +79,15 @@ export function revertReason(error: unknown): string {
   const e = error as BaseError
   const reverted = typeof e?.walk === 'function' ? (e.walk(x => x instanceof ContractFunctionRevertedError) as ContractFunctionRevertedError | null) : null
   if (reverted?.data?.errorName) {
-    const args = (reverted.data.args ?? []).map(a => String(a)).join(', ')
-    return `${reverted.data.errorName}${args ? `(${args})` : ''}`
+    const name = reverted.data.errorName
+    const raw = reverted.data.args ?? []
+    // The gate's refusals carry a state and reason bits: spell them out.
+    if (name === 'NotAllowedNow' && raw.length === 2) {
+      const reasons = reasonList(Number(raw[1]))
+      return `${name} · ${STATE_COPY[stateName(Number(raw[0]))].label}${reasons.length ? ` · ${reasons.join(', ')}` : ''}`
+    }
+    const args = raw.map(a => String(a)).join(', ')
+    return `${name}${args ? `(${args})` : ''}`
   }
   if (reverted?.reason) return reverted.reason
   const m = error as { shortMessage?: string; message?: string }

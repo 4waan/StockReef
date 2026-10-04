@@ -198,11 +198,11 @@ RPC_URL=http://127.0.0.1:8545 npm run keeper -- once
 
 The command above simulates only. For execution, configure `KEEPER_KEY` and a USDG-funded `LIQUIDATOR_KEY` from the [environment template](ops/keeper/.env.example), then run `npm run keeper -- watch --execute`. Load those environment variables in the shell that runs the keeper; its entry point does not automatically load `.env` files. Use test accounts locally; never commit keys.
 
-The app opens on a landing page and has six views, all built around the borrower's current position:
+The app opens on a landing page. Inside, a left sidebar holds six views, the account picker, the wallet and a **Dark / Light** theme switch. Every view is built around the borrower's current position, with detail in pop-ups:
 
 | View | What it does |
 |---|---|
-| **Trade** (`/trade`) | Trading terminal. The market bar sits above the risk tiles (closure plan, falling threshold, funded buffer, partial liquidation). The main area charts LTV against the contract's threshold schedule, with confirmed transactions marked. The action ticket on the right covers repay, collateral, borrow and buffer, each with a review before signing. Detail panels below include permissionless buffer execution and liquidator trims. |
+| **Trade** (`/trade`) | Trading terminal: a one-row market bar, then four risk tiles. Before the close they show the closure plan, falling threshold, funded buffer and partial liquidation; after it, protection and reopening replace the first two. Each tile opens its control and action (run the buffer, trim as liquidator) in a pop-up. The chart plots LTV against the contract's threshold schedule with confirmed transactions marked. The ticket on the right (repay, collateral, borrow, buffer) shows a review before signing, and the last state change sits below it. |
 | **Portfolio** (`/portfolio`) | Position health dashboard: collateral, debt, LTV against the threshold, and one card per control. The controls are debt reduction, falling threshold, funded buffer, partial liquidation, closed-session protection, controlled reopening and lender loss accounting. |
 | **TSLA** (`/markets/tsla`) | Asset page: company, ticker, token contract and price index, the session chart, market parameters, and the limit schedule by phase. |
 | **Lend** (`/earn`) | Lender book: cash, recoverable loans and recognized shortfall, share value, a what-if price, per-loan recoverable value, and slippage-checked deposits and withdrawals. |
@@ -211,7 +211,7 @@ The app opens on a landing page and has six views, all built around the borrower
 
 ### The scripted session
 
-The session bar at the bottom of Trade, Portfolio, TSLA and Lend moves through seven steps: Fri 13:00 open, 15:15 preparation, 15:30 final window, 16:00 close, Mon 09:31 reopening wait, 09:35 price admitted, and 09:45 credit returns. Use **Next step** or the arrow keys; **H** hides the bar for recording, and `?step=prep` links to a step.
+The one-row session bar at the bottom of Trade, Portfolio, TSLA and Lend carries the testnet oracle pill. Its pop-up holds the price age, the gate events and the operator's sync controls. The bar moves through seven steps: Fri 13:00 open, 15:15 preparation, 15:30 final window, 16:00 close, Mon 09:31 reopening wait, 09:35 price admitted, and 09:45 credit returns. Use **Next step** or the arrow keys; **H** hides the bar for recording, and `?step=prep` links to a step.
 
 | Scripted ([`app/src/lib/script.ts`](app/src/lib/script.ts)) | Live (deployed contracts, read in [`app/src/lib/scenario.ts`](app/src/lib/scenario.ts)) |
 |---|---|

@@ -9,7 +9,8 @@ import { nyClock, pct, usdg } from '@/lib/format'
 import { MARKET } from '@/lib/script'
 import { useBook } from '@/lib/session'
 import { SessionChart, type ChartRange } from './SessionChart'
-import { AddrRef, Card, KV, Loading, PhaseTag, Stat } from './ui'
+import { Fig } from './features'
+import { AddrRef, Card, Info, KV, Loading, PhaseTag } from './ui'
 
 /**
  * The TSLA asset page: the stock's identity (company, ticker, token, price index) and its chart, then the lending
@@ -42,22 +43,22 @@ export function AssetPage() {
   const [tName, tSym, lName, lSym] = (tokenMeta ?? []).map(r => (r.status === 'success' ? String(r.result) : undefined))
   const totalSupplied = book ? book.lenderAssets : undefined
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-4 px-4 py-5">
+    <div className="w-full space-y-3 px-4 py-4 xl:px-6">
       <header className="flex flex-wrap items-center gap-4">
-        <img src={MARKET.logo} alt="Tesla" className="h-14 w-14 rounded-full bg-white p-3" />
+        <img src={MARKET.logo} alt="Tesla" className="h-12 w-12 rounded-full bg-white p-2.5" />
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-3xl font-semibold">{MARKET.company}</h1>
+            <h1 className="text-2xl font-semibold">{MARKET.company}</h1>
             <span className="rounded bg-dk-raised px-2 py-0.5 text-xs font-semibold text-dk-ink">{MARKET.ticker}</span>
             <span className="rounded border border-dk-line px-2 py-0.5 text-xs text-dk-muted">Stock token · {chain.name}</span>
           </div>
           <div className="mt-1 text-sm text-dk-muted">{MARKET.listing}</div>
         </div>
         <div className="ml-auto text-right">
-          <div className="num text-3xl font-semibold">${quote.toFixed(2)}</div>
+          <div className="num text-2xl font-semibold">${quote.toFixed(2)}</div>
           <div className={`num text-sm ${change < 0 ? 'text-dk-down' : 'text-dk-up'}`}>
             {change >= 0 ? '+' : ''}
-            {change.toFixed(2)} ({((change / first) * 100).toFixed(2)}%) since Friday open · {cur.step.day === 'mon' ? 'Mon' : 'Fri'} {nyClock(cur.t)} ET
+            {change.toFixed(2)} ({((change / first) * 100).toFixed(2)}%) · {cur.step.day === 'mon' ? 'Mon' : 'Fri'} {nyClock(cur.t)} ET
           </div>
         </div>
       </header>
@@ -79,12 +80,12 @@ export function AssetPage() {
           </div>
           <SessionChart anchor={d.anchor} steps={d.steps} at={d.at} obs={d.obs} ltPath={d.ltPath} markers={[]} collateral={undefined} debt={undefined} target={undefined} mode="price" range={range} height={360} />
         </section>
-        <Card kicker="Token identity" title={`${tName ?? MARKET.collateral.name} (${tSym ?? MARKET.ticker})`}>
-          <KV label="Token contract" value={<AddrRef address={contracts.collateralToken} />} />
+        <Card kicker="Token">
+          <KV label="Name" value={`${tName ?? MARKET.collateral.name} (${tSym ?? MARKET.ticker})`} />
+          <KV label="Contract" value={<AddrRef address={contracts.collateralToken} />} />
           <KV label="Decimals" value={MARKET.collateral.decimals} />
-          <KV label="Issuer" value={MARKET.collateral.note} />
-          <KV label="Price index" value="TSLA/USD" hint="regular session" />
-          <div className="mt-2 text-xs text-dk-faint">{MARKET.priceIndex}. The price gate accepts a quote for 120 seconds and only inside the session calendar.</div>
+          <KV label="Issuer" value="Robinhood testnet" />
+          <KV label={<>Price index <Info label="About the price index">{MARKET.priceIndex}. The price gate accepts a quote for 120 seconds, only inside the session calendar.</Info></>} value="TSLA/USD" hint="regular session" />
           <div className="mt-4 border-t border-dk-line pt-3">
             <KV label="Loan asset" value={`${lName ?? MARKET.loan.name} (${lSym ?? 'USDG'})`} />
             <KV label="Loan token" value={<AddrRef address={contracts.loanToken} />} />
@@ -94,19 +95,19 @@ export function AssetPage() {
       </div>
 
       <section className="grid gap-4 lg:grid-cols-3">
-        <Card kicker="Market" title="TSLA collateral → USDG loans" className="lg:col-span-2">
+        <Card kicker="Market" className="lg:col-span-2">
           <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
-            <Stat label="Collateral" value="TSLA" sub="stock token, 18 decimals" />
-            <Stat label="Loan asset" value="USDG" sub="Paxos Global Dollar" />
-            <Stat label="Liquidation threshold" value={pct(s.ltWad, 2)} tone="warn" sub={`${pct(pol.ltOpen, 0)} open → ${pct(pol.ltFinalExtended, 0)} weekend · ${pct(pol.ltFinalOvernight, 0)} overnight`} />
-            <Stat label="Borrow limit" value={s.canBorrow ? pct(s.borrowLimitWad, 2) : 'Locked'} sub={`${pct(pol.bOpen, 0)} open; threshold − ${pct(pol.borrowGap, 0)} while it falls`} />
-            <Stat label="Total supplied" value={totalSupplied !== undefined ? usdg(totalSupplied) : '—'} sub="lender assets, USDG" />
-            <Stat label="Total borrowed" value={book ? usdg(book.totalDebt) : '—'} sub={`${book?.loans.length ?? 0} active loans`} />
-            <Stat label="Available liquidity" value={book ? usdg(book.cash) : '—'} sub={book ? `utilization ${pct(book.utilizationWad, 1)} of ${pct(pol.utilizationCap, 0)} cap` : undefined} />
-            <Stat label="Borrow rate" value={`${apr.toFixed(2)}%`} sub="fixed, continuously compounded" />
+            <Fig k="Collateral" v="TSLA" sub="18 decimals" />
+            <Fig k="Loan asset" v="USDG" sub="Paxos" />
+            <Fig k="Threshold now" v={pct(s.ltWad, 2)} tone="warn" sub={`${pct(pol.ltOpen, 0)} → ${pct(pol.ltFinalExtended, 0)} weekend`} />
+            <Fig k="Borrow limit" v={s.canBorrow ? pct(s.borrowLimitWad, 2) : 'Locked'} sub={`${pct(pol.bOpen, 0)} when open`} />
+            <Fig k="Supplied" v={totalSupplied !== undefined ? usdg(totalSupplied) : '—'} sub="USDG" />
+            <Fig k="Borrowed" v={book ? usdg(book.totalDebt) : '—'} sub={`${book?.loans.length ?? 0} loans`} />
+            <Fig k="Liquidity" v={book ? usdg(book.cash) : '—'} sub={book ? `${pct(book.utilizationWad, 1)} used` : undefined} />
+            <Fig k="Borrow rate" v={`${apr.toFixed(2)}%`} sub="fixed" />
           </div>
         </Card>
-        <Card kicker="Liquidation" title="Partial, never all at once">
+        <Card kicker="Liquidation">
           <KV label="Trim target" value={`${pct(pol.targetExtended, 0)} weekend · ${pct(pol.targetOvernight, 0)} overnight`} />
           <KV label="Scheduling bonus" value={pct(pol.bonusScheduling, 0)} hint="preparation, LTV ≤ 80%" />
           <KV label="Distress / recovery bonus" value={pct(pol.bonusDistress, 0)} />
@@ -115,7 +116,7 @@ export function AssetPage() {
         </Card>
       </section>
 
-      <Card kicker="Session schedule" title="Limits by session phase, from the deployed policy">
+      <Card kicker={<span className="inline-flex items-center gap-2">Session schedule <Info label="About the schedule">Friday {new Date(Number(d.anchor.fri.open) * 1000).toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' })} is session {d.anchor.fri.index} of the deployed SessionCalendar and closes into a weekend. Limits come from SessionRiskPolicy constants, ltAt and borrowLimit.</Info></span>}>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-sm">
             <thead>
@@ -147,10 +148,6 @@ export function AssetPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-xs text-dk-faint">
-          Calendar: Friday {d.anchor ? new Date(Number(d.anchor.fri.open) * 1000).toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric' }) : ''} session {d.anchor.fri.index} of the deployed SessionCalendar,
-          closing into a weekend. Limits: SessionRiskPolicy constants, ltAt and borrowLimit.
-        </p>
       </Card>
     </div>
   )

@@ -1,4 +1,6 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { explorerAddress, explorerTx } from '@/lib/chain'
 import { STATES, STATE_COPY, type StateName } from '@/lib/policy'
 
@@ -14,7 +16,7 @@ export const toneText: Record<Tone, string> = {
   up: 'text-dk-up',
   down: 'text-dk-down',
   warn: 'text-dk-warn',
-  brand: 'text-[#e88a5a]',
+  brand: 'text-accent',
   muted: 'text-dk-muted',
   ink: 'text-dk-ink',
 }
@@ -33,15 +35,15 @@ export function Card({ kicker, title, aside, children, className = '', pad = tru
   return (
     <section className={`rounded-lg border border-dk-line bg-dk-panel ${className}`}>
       {(kicker || title || aside) && (
-        <header className="flex flex-wrap items-start justify-between gap-3 border-b border-dk-line px-4 py-3">
+        <header className="flex flex-wrap items-center justify-between gap-3 px-3.5 pt-3">
           <div className="min-w-0">
-            {kicker && <div className="text-[11px] font-semibold tracking-[.14em] text-[#e88a5a] uppercase">{kicker}</div>}
+            {kicker && <div className="text-[11px] font-semibold tracking-[.12em] text-accent uppercase">{kicker}</div>}
             {title && <h2 className="mt-0.5 text-[15px] font-semibold text-dk-ink">{title}</h2>}
           </div>
           {aside}
         </header>
       )}
-      <div className={pad ? 'p-4' : ''}>{children}</div>
+      <div className={pad ? 'px-3.5 pt-2.5 pb-3.5' : ''}>{children}</div>
     </section>
   )
 }
@@ -208,4 +210,71 @@ export function TabBar<K extends string>({ tabs, value, onChange, className = ''
 
 export function Loading({ children = 'Reading the contracts…' }: { children?: ReactNode }) {
   return <p className="px-5 py-10 text-sm text-dk-muted">{children}</p>
+}
+
+/**
+ * A pop-up panel anchored to its trigger. Opens on click, closes on outside click or Escape. Detail and secondary
+ * actions live here so the page itself stays compact.
+ */
+export function Pop({
+  trigger,
+  children,
+  align = 'left',
+  side = 'bottom',
+  label,
+  className = '',
+  panelClass = 'w-72',
+}: {
+  trigger: ReactNode
+  children: ReactNode | ((close: () => void) => ReactNode)
+  align?: 'left' | 'right'
+  side?: 'bottom' | 'top' | 'right'
+  label: string
+  className?: string
+  panelClass?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const down = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false)
+    const key = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    document.addEventListener('mousedown', down)
+    document.addEventListener('keydown', key)
+    return () => {
+      document.removeEventListener('mousedown', down)
+      document.removeEventListener('keydown', key)
+    }
+  }, [open])
+  const pos =
+    side === 'right' ? 'left-full bottom-0 ml-2' : `${side === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} ${align === 'right' ? 'right-0' : 'left-0'}`
+  return (
+    <div ref={ref} className={`relative ${className}`}>
+      <button type="button" aria-label={label} aria-expanded={open} onClick={() => setOpen(o => !o)} className="block w-full text-left">
+        {trigger}
+      </button>
+      {open && (
+        <div role="dialog" aria-label={label} className={`absolute z-50 ${pos} ${panelClass} rounded-lg border border-dk-line bg-dk-panel p-3 text-sm text-dk-ink shadow-2xl`}>
+          {typeof children === 'function' ? children(() => setOpen(false)) : children}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** A small "i" that opens an explanation: keeps the why off the screen until asked. */
+export function Info({ children, label = 'Details', align = 'left', side = 'bottom' }: { children: ReactNode; label?: string; align?: 'left' | 'right'; side?: 'bottom' | 'top' }) {
+  return (
+    <Pop
+      label={label}
+      align={align}
+      side={side}
+      className="inline-block align-middle"
+      trigger={
+        <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-dk-line text-[10px] font-semibold text-dk-muted hover:border-dk-muted hover:text-dk-ink">i</span>
+      }
+    >
+      <div className="text-xs leading-relaxed font-normal tracking-normal text-dk-muted normal-case">{children}</div>
+    </Pop>
+  )
 }
