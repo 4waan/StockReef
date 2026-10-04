@@ -19,3 +19,5 @@ __pycache__/
 .DS_Store
 app/next-env.d.ts
 app/tsconfig.tsbuildinfo
+# Video stills (npm run capture)
+media/stills/

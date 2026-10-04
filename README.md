@@ -240,7 +240,7 @@ npm run demo -- step prep        # move the testnet to a scripted step (prep, fi
 npm run demo -- price --watch    # keep the 120-second price window fresh while recording
 ```
 
-Add `--fork` to rehearse on `anvil --fork-url https://rpc.testnet.chain.robinhood.com --auto-impersonate` without keys. The [demo video script](docs/DEMO_VIDEO_SCRIPT.md) gives the pitch and demo beat by beat.
+Add `--fork` to rehearse on `anvil --fork-url https://rpc.testnet.chain.robinhood.com --auto-impersonate` without keys. `npm run capture` (with `THEME=light` for the light theme) writes 1600×900 stills of every step, plus close-ups of each tile, to `media/stills/` for video editing. The [demo video script](docs/DEMO_VIDEO_SCRIPT.md) gives the pitch and demo question by question.
 
 The app shows a [public borrower, lender, and liquidator](evidence/public-market-46630.json) in its profile menu. A visitor can inspect their on-chain balances and positions without connecting a wallet. Set `NEXT_PUBLIC_DEMO_ACCOUNTS` to override the role labels and addresses. Moving the operator-set clock does not itself execute buffers or trims; the keeper or a caller must submit those transactions.
 
