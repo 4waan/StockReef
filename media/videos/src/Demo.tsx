@@ -174,15 +174,15 @@ const AppWindow: React.FC<{ch: Chapter}> = ({ch}) => {
 
 /** Notes on what the testnet clock and price are doing, by chapter: [seconds, text, tone]. */
 const NOTES: Record<string, [number, string, 'amber' | 'red' | 'up' | 'accent'][]> = {
-	countdown: [[2.2, 'Fri 15:15 ET · threshold 71.66% and falling', 'accent']],
+	countdown: [[2.2, 'Fri 15:15 · safe limit 71.66% and falling', 'accent']],
 	weekend: [
-		[0.3, 'Fri 16:00 · market closed · new credit locked', 'amber'],
-		[22.6, 'Mon 09:31 · fresh price 376.00 · not yet admitted', 'amber'],
-		[30.8, 'Mon 09:35 · price admitted · recovery opens', 'up'],
+		[0.3, 'Fri 16:00 · market closed · no new borrowing', 'amber'],
+		[22.6, 'Mon 09:31 · new price $376 · waiting 5 minutes', 'amber'],
+		[30.8, 'Mon 09:35 · price accepted · every loan checked', 'up'],
 	],
 	failure: [
-		[0.4, 'Price feed quiet for 2 minutes · oracle stale', 'amber'],
-		[9.6, '✗ Rejected by the contract · the wallet was never asked', 'red'],
+		[0.4, 'Price feed stopped 2 minutes ago', 'amber'],
+		[9.6, '✗ The contract said no · nothing was signed', 'red'],
 	],
 };
 

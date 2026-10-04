@@ -34,16 +34,15 @@
       "phrases": [
         [
           0.6,
-          "This is StockReef, live on Robinhood Chain testnet."
+          "This is StockReef, running live on Robinhood Chain."
         ],
-        "It lets you borrow dollars against tokenized Tesla stock,",
-        "and it manages the moment other lenders ignore,",
-        "when the stock market closes for the weekend."
+        "It lets you borrow dollars against your Tesla stock tokens,",
+        "and it keeps that loan safe when the stock market closes for the weekend."
       ]
     },
     {
       "id": "problem",
-      "title": "What breaks when Wall Street closes",
+      "title": "What goes wrong on weekends",
       "speaker": "Aryan",
       "segments": [
         [
@@ -62,29 +61,28 @@
       "phrases": [
         [
           0.4,
-          "Tesla's token trades all weekend, but its real price stops at four on Friday."
+          "Tesla's token can be traded all weekend, but the real stock market closes on Friday afternoon."
         ],
-        "One Monday in sixteen opens five percent or more away,",
-        "and a loan can't react in between."
+        "If Tesla opens much lower on Monday, a loan can go bad before anyone can react."
       ]
     },
     {
       "id": "data",
-      "title": "Lending today ignores the clock",
+      "title": "Today, lenders ignore the weekend",
       "speaker": "Aryan",
       "graphic": 16,
       "phrases": [
         [
           0.4,
-          "Three billion dollars of stock RWAs are on chain, but lending against them is tiny,"
+          "Three billion dollars of stocks are on chain, yet almost none are borrowed against."
         ],
-        "because markets keep one fixed limit around the clock.",
-        "In a deep weekend gap, that costs lenders four times more."
+        "Today's apps use one safety limit all week, even before a weekend.",
+        "In a big weekend drop, that costs lenders four times more."
       ]
     },
     {
       "id": "book",
-      "title": "A real loan book on testnet",
+      "title": "The live app, with real loans",
       "speaker": "Awaan",
       "segments": [
         [
@@ -111,22 +109,22 @@
       "phrases": [
         [
           0.3,
-          "I connect the borrower's wallet to the live app on testnet,"
+          "I connect the borrower's wallet to the live app."
         ],
-        "and the portfolio shows the whole loan and every protection.",
+        "The portfolio shows the whole loan on one page, with every safety check.",
         [
           10.8,
-          "Lenders see a real book of four loans and what each is worth,"
+          "On the lending page you can see four real loans and what each one is worth."
         ],
         [
           21,
-          "and operations lists who needs to act before the close."
+          "And the operations page shows who needs to act before Friday's close."
         ]
       ]
     },
     {
       "id": "countdown",
-      "title": "Two hours before the bell",
+      "title": "Two hours before the close",
       "speaker": "Awaan",
       "segments": [
         [
@@ -146,19 +144,19 @@
       "phrases": [
         [
           0.3,
-          "Two hours before the bell, StockReef starts lowering the safe limit,"
+          "Two hours before the market closes, StockReef starts lowering the safe limit,"
         ],
         "from eighty percent down to seventy.",
         [
-          7.5,
-          "At quarter past three this loan is just over the line,"
+          7.9,
+          "At quarter past three, this loan is just over the new limit."
         ],
-        "so the app shows exactly what to do, repay seven dollars thirty four by half past three."
+        "So the app says exactly what to do: pay back about seven dollars by three thirty."
       ]
     },
     {
       "id": "paydown",
-      "title": "Pay it down before the bell",
+      "title": "Paying back before the close",
       "speaker": "Awaan",
       "segments": [
         [
@@ -199,26 +197,26 @@
       "phrases": [
         [
           0.3,
-          "This borrower funded a repayment buffer in advance."
+          "This borrower set aside some money in advance, for exactly this moment."
         ],
         [
-          4.6,
-          "I run it, and a real transaction goes to Robinhood Chain."
+          5.4,
+          "I click run, and a real transaction goes to Robinhood Chain."
         ],
         [
           10.6,
-          "Confirmed in seconds, the debt drops from seventy two to sixty five dollars."
+          "It confirms in seconds. The debt drops from seventy two to sixty five dollars."
         ],
-        "The loan is back under the line, with nothing sold and no penalty paid.",
+        "The loan is safe again, and no stock was sold.",
         [
           22.6,
-          "And here's the receipt on the Robinhood Chain explorer."
+          "And here is the receipt, on the public Robinhood Chain explorer."
         ]
       ]
     },
     {
       "id": "trim",
-      "title": "A partial trim, not a wipe-out",
+      "title": "No money set aside? A partial trim",
       "speaker": "Awaan",
       "segments": [
         [
@@ -263,25 +261,25 @@
       "phrases": [
         [
           0.3,
-          "Ben has no buffer, and at seventy four percent he's over the line."
+          "Ben didn't set any money aside, and his loan is now over the limit."
         ],
         [
-          5.7,
-          "A liquidator trims part of his loan now, for a small two percent bonus."
+          6.2,
+          "So someone else pays off part of his loan, and gets a small two percent reward."
         ],
         [
           14,
-          "His debt falls to eighteen dollars, and the loan stays open at sixty five percent."
+          "Ben's loan shrinks from thirty dollars to eighteen, and stays open."
         ],
         [
           21.1,
-          "Both transactions are on chain."
+          "A partial trim, not a full liquidation, and it's on chain too."
         ]
       ]
     },
     {
       "id": "weekend",
-      "title": "Closed for the weekend, reopened with care",
+      "title": "The weekend, then Monday",
       "speaker": "Aryan",
       "segments": [
         [
@@ -354,27 +352,27 @@
       "phrases": [
         [
           0.3,
-          "At four the market closes and new borrowing locks."
+          "At four o'clock the market closes, and new borrowing is switched off."
         ],
         [
-          4.6,
-          "Paying down still works, so the borrower repays a dollar on chain."
+          5.4,
+          "But paying back still works, so the borrower pays back one dollar on chain."
         ],
         [
           22.8,
-          "On Monday a fresh price of three seventy six arrives,"
+          "On Monday morning a new price arrives, but StockReef waits five minutes before trusting it."
         ],
-        "but nothing trusts it until it's admitted five minutes after the open.",
+        "Then it checks every loan again.",
         [
           39.6,
-          "Cleo's loan crossed seventy percent at the new price,"
+          "Cleo's loan is now over the limit, so part of it is paid off first."
         ],
-        "so a recovery trim brings it back before new credit returns."
+        "Only then can people borrow again."
       ]
     },
     {
       "id": "lenders",
-      "title": "Lenders see losses before they happen",
+      "title": "Lenders are protected",
       "speaker": "Aryan",
       "segments": [
         [
@@ -393,19 +391,19 @@
       "phrases": [
         [
           0.3,
-          "Lenders are protected by design."
+          "Lenders are protected too."
         ],
-        "Their shares always reflect what the loans can really recover,",
+        "Their share always shows what the loans are really worth.",
         [
           7,
-          "so if Tesla fell to two twenty, the shortfall shows today and is shared fairly."
+          "If Tesla fell to two hundred twenty dollars, lenders would see the loss right away, shared fairly."
         ],
-        "Nobody finds it after a default."
+        "Nobody gets a surprise later."
       ]
     },
     {
       "id": "failure",
-      "title": "When the price feed goes quiet",
+      "title": "Breaking it on purpose",
       "speaker": "Awaan",
       "segments": [
         [
@@ -424,42 +422,42 @@
       "phrases": [
         [
           0.3,
-          "Now a deliberate failure."
+          "Now let's break something on purpose."
         ],
-        "The price feed has been quiet for two minutes.",
+        "The price feed has stopped for two minutes.",
         [
-          5.8,
-          "I try to borrow one dollar,"
+          6.2,
+          "I try to borrow one dollar."
         ],
-        "and the contract refuses the stale price before my wallet is even asked to sign."
+        "The contract says no, because the price is out of date, and my wallet is never even asked to sign."
       ]
     },
     {
       "id": "tests",
-      "title": "Built to hold up",
+      "title": "Code that holds up",
       "speaker": "Awaan",
       "graphic": 15,
       "phrases": [
         [
           0.4,
-          "Under the app, five hundred thirty one tests run in about a minute,"
+          "Behind the app, five hundred thirty one automated tests run in about a minute."
         ],
-        "covering the risky paths with fuzz, property and invariant suites.",
-        "Four more run against Robinhood Chain mainnet."
+        "They try to break the risky parts, and they all pass.",
+        "Four more run against the real Tesla token."
       ]
     },
     {
       "id": "next",
       "title": "Next for StockReef",
       "speaker": "Aryan",
-      "graphic": 17,
+      "graphic": 17.8,
       "phrases": [
         [
           0.4,
-          "Next for StockReef, we calibrate the limits against real gaps,"
+          "Next, we tune the limits using years of real weekend price data,"
         ],
-        "add stock RWAs one market at a time,",
-        "get audited, and launch on Robinhood Chain mainnet.",
+        "add more stocks one by one,",
+        "get a security audit, and launch on Robinhood Chain mainnet.",
         "StockReef: borrow against your stocks, safely, even when the market is closed."
       ]
     }
