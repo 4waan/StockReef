@@ -1,8 +1,8 @@
 {
 	"fps": 30,
-	"total": 5280,
+	"total": 6245,
 	"introEnd": 150,
-	"outroStart": 5100,
+	"outroStart": 6065,
 	"segments": [
 		{
 			"id": "q1",
@@ -10,34 +10,34 @@
 			"question": "What's changing?",
 			"speaker": "Aryan",
 			"questionStart": 150,
-			"answerStart": 216,
-			"end": 687,
-			"words": 35,
+			"answerStart": 210,
+			"end": 701,
+			"words": 37,
 			"phrases": [
 				{
-					"text": "Stocks now live on chain as tokens",
-					"start": 225,
-					"end": 311
+					"text": "Stocks now live on chain as real-world asset tokens,",
+					"start": 219,
+					"end": 329
 				},
 				{
-					"text": "that you can hold and borrow against at any hour.",
-					"start": 311,
-					"end": 434
+					"text": "RWAs you can hold and borrow against at any hour.",
+					"start": 329,
+					"end": 451
 				},
 				{
 					"text": "But the stock market behind them still closes",
-					"start": 434,
-					"end": 532
+					"start": 451,
+					"end": 549
 				},
 				{
 					"text": "every evening and every weekend.",
-					"start": 532,
-					"end": 593
+					"start": 549,
+					"end": 610
 				},
 				{
 					"text": "I'm Aryan, co-founder of StockReef.",
-					"start": 593,
-					"end": 654
+					"start": 610,
+					"end": 671
 				}
 			]
 		},
@@ -46,30 +46,30 @@
 			"index": 1,
 			"question": "What's the problem?",
 			"speaker": "Aryan",
-			"questionStart": 687,
-			"answerStart": 753,
-			"end": 1176,
+			"questionStart": 701,
+			"answerStart": 761,
+			"end": 1181,
 			"words": 31,
 			"phrases": [
 				{
 					"text": "About a third of Tesla's price movement",
-					"start": 762,
-					"end": 848
+					"start": 770,
+					"end": 856
 				},
 				{
 					"text": "happens while its market is closed.",
-					"start": 848,
-					"end": 922
+					"start": 856,
+					"end": 930
 				},
 				{
 					"text": "Over five years it opened at least five percent away",
-					"start": 922,
-					"end": 1045
+					"start": 930,
+					"end": 1053
 				},
 				{
 					"text": "from Friday's close on one Monday in sixteen.",
-					"start": 1045,
-					"end": 1143
+					"start": 1053,
+					"end": 1151
 				}
 			]
 		},
@@ -78,30 +78,30 @@
 			"index": 2,
 			"question": "Who feels it first?",
 			"speaker": "Aryan",
-			"questionStart": 1176,
-			"answerStart": 1242,
-			"end": 1677,
-			"words": 32,
+			"questionStart": 1181,
+			"answerStart": 1241,
+			"end": 1646,
+			"words": 30,
 			"phrases": [
 				{
-					"text": "Holders of tokenized stocks who want dollars without selling,",
-					"start": 1251,
-					"end": 1361
+					"text": "Holders of stock RWAs who want dollars without selling,",
+					"start": 1250,
+					"end": 1360
 				},
 				{
 					"text": "and the lenders who fund them.",
-					"start": 1361,
-					"end": 1435
+					"start": 1360,
+					"end": 1433
 				},
 				{
-					"text": "To stay safe through closures, lenders today",
-					"start": 1435,
-					"end": 1521
+					"text": "To stay safe through closures,",
+					"start": 1433,
+					"end": 1494
 				},
 				{
-					"text": "keep stock loans at about half the collateral or less.",
-					"start": 1521,
-					"end": 1644
+					"text": "lenders keep loans at about half the collateral or less.",
+					"start": 1494,
+					"end": 1616
 				}
 			]
 		},
@@ -110,35 +110,35 @@
 			"index": 3,
 			"question": "What is StockReef?",
 			"speaker": "Awaan",
-			"questionStart": 1677,
-			"answerStart": 1743,
-			"end": 2201,
-			"words": 34,
+			"questionStart": 1646,
+			"answerStart": 1706,
+			"end": 2187,
+			"words": 36,
 			"phrases": [
 				{
 					"text": "I'm Awaan.",
-					"start": 1752,
-					"end": 1776
+					"start": 1715,
+					"end": 1740
 				},
 				{
-					"text": "StockReef lends up to seventy five percent",
-					"start": 1776,
-					"end": 1862
+					"text": "StockReef lends up to seventy five percent against stock RWAs,",
+					"start": 1740,
+					"end": 1863
 				},
 				{
-					"text": "and reduces the debt before the close, while a real price still exists.",
-					"start": 1862,
-					"end": 2021
+					"text": "and cuts the debt before the close while a real price exists.",
+					"start": 1863,
+					"end": 2010
 				},
 				{
 					"text": "Then it locks new credit through the closure",
-					"start": 2021,
-					"end": 2119
+					"start": 2010,
+					"end": 2108
 				},
 				{
 					"text": "and reopens it carefully.",
-					"start": 2119,
-					"end": 2168
+					"start": 2108,
+					"end": 2157
 				}
 			]
 		},
@@ -147,190 +147,249 @@
 			"index": 4,
 			"question": "Why now, and why Robinhood Chain?",
 			"speaker": "Awaan",
-			"questionStart": 2201,
-			"answerStart": 2267,
-			"end": 2677,
+			"questionStart": 2187,
+			"answerStart": 2247,
+			"end": 2654,
 			"words": 30,
 			"phrases": [
 				{
-					"text": "Robinhood Chain went live on mainnet in July",
-					"start": 2276,
-					"end": 2374
+					"text": "Robinhood Chain is now live on mainnet",
+					"start": 2256,
+					"end": 2342
 				},
 				{
-					"text": "with stock tokens and USDG side by side.",
-					"start": 2374,
-					"end": 2472
+					"text": "with stock RWAs and USDG side by side.",
+					"start": 2342,
+					"end": 2440
 				},
 				{
 					"text": "Tokenized stocks have passed three billion dollars,",
-					"start": 2472,
-					"end": 2558
+					"start": 2440,
+					"end": 2526
 				},
 				{
-					"text": "but lending against them is still tiny.",
-					"start": 2558,
-					"end": 2644
+					"text": "but lending against these RWAs is still tiny.",
+					"start": 2526,
+					"end": 2624
 				}
 			]
 		},
 		{
 			"id": "q6",
 			"index": 5,
-			"question": "How does it make money?",
-			"speaker": "Aryan",
-			"questionStart": 2677,
-			"answerStart": 2743,
-			"end": 3286,
-			"words": 41,
+			"question": "Why is RWA lending so small, and how do we fix it?",
+			"speaker": "Awaan",
+			"questionStart": 2654,
+			"answerStart": 2714,
+			"end": 3303,
+			"words": 45,
 			"phrases": [
 				{
-					"text": "Lenders earn the borrower's fixed rate,",
-					"start": 2752,
-					"end": 2825
+					"text": "RWA lending stays small because no lender can price the weekend gap.",
+					"start": 2723,
+					"end": 2870
 				},
 				{
-					"text": "and StockReef will keep ten percent of that interest.",
-					"start": 2825,
-					"end": 2935
+					"text": "StockReef turns that gap into rules the contract enforces",
+					"start": 2870,
+					"end": 2980
 				},
 				{
-					"text": "It also keeps ten percent of each liquidation bonus,",
-					"start": 2935,
-					"end": 3045
+					"text": "before every close, on chain.",
+					"start": 2980,
+					"end": 3041
 				},
 				{
-					"text": "the same shares Aave takes.",
-					"start": 3045,
-					"end": 3106
+					"text": "So lenders can safely offer up to seventy five percent,",
+					"start": 3041,
+					"end": 3163
 				},
 				{
-					"text": "And the vault's USDG can earn Global Dollar partner rewards on top.",
-					"start": 3106,
-					"end": 3253
+					"text": "and a stock RWA becomes collateral worth borrowing against.",
+					"start": 3163,
+					"end": 3273
 				}
 			]
 		},
 		{
 			"id": "q7",
 			"index": 6,
-			"question": "How does it grow?",
+			"question": "How does it make money?",
 			"speaker": "Aryan",
-			"questionStart": 3286,
-			"answerStart": 3352,
-			"end": 3760,
-			"words": 30,
+			"questionStart": 3303,
+			"answerStart": 3363,
+			"end": 3843,
+			"words": 36,
 			"phrases": [
 				{
-					"text": "We start with Tesla against USDG",
-					"start": 3361,
-					"end": 3434
+					"text": "Lenders earn the borrower's fixed rate,",
+					"start": 3372,
+					"end": 3446
 				},
 				{
-					"text": "and add stocks one market at a time.",
-					"start": 3434,
-					"end": 3532
+					"text": "and StockReef keeps ten percent of that interest.",
+					"start": 3446,
+					"end": 3544
 				},
 				{
-					"text": "Every closure on the exchange calendar,",
-					"start": 3532,
-					"end": 3605
+					"text": "It also keeps ten percent of each liquidation bonus,",
+					"start": 3544,
+					"end": 3654
 				},
 				{
-					"text": "holidays and early closes included, is already in the contracts.",
-					"start": 3605,
-					"end": 3727
+					"text": "the same shares Aave takes.",
+					"start": 3654,
+					"end": 3715
+				},
+				{
+					"text": "Vault USDG can also earn Global Dollar rewards.",
+					"start": 3715,
+					"end": 3813
 				}
 			]
 		},
 		{
 			"id": "q8",
 			"index": 7,
-			"question": "What's real today?",
-			"speaker": "Awaan",
-			"questionStart": 3760,
-			"answerStart": 3826,
-			"end": 4235,
-			"words": 30,
+			"question": "How does it grow?",
+			"speaker": "Aryan",
+			"questionStart": 3843,
+			"answerStart": 3903,
+			"end": 4323,
+			"words": 31,
 			"phrases": [
 				{
-					"text": "StockReef runs on Robinhood Chain testnet",
-					"start": 3835,
-					"end": 3908
+					"text": "We start with Tesla against USDG",
+					"start": 3912,
+					"end": 3986
 				},
 				{
-					"text": "with a funded public market and real receipts.",
-					"start": 3908,
-					"end": 4006
+					"text": "and add stock RWAs one market at a time.",
+					"start": 3986,
+					"end": 4096
 				},
 				{
-					"text": "It's backed by five hundred thirty five tests,",
-					"start": 4006,
-					"end": 4104
+					"text": "Every closure on the exchange calendar,",
+					"start": 4096,
+					"end": 4170
 				},
 				{
-					"text": "including fork tests against the live TSLA token.",
-					"start": 4104,
-					"end": 4202
+					"text": "holidays and early closes included, is already in the contracts.",
+					"start": 4170,
+					"end": 4293
 				}
 			]
 		},
 		{
 			"id": "q9",
 			"index": 8,
-			"question": "Who's building it?",
+			"question": "What's real today?",
 			"speaker": "Awaan",
-			"questionStart": 4235,
-			"answerStart": 4301,
-			"end": 4514,
-			"words": 14,
+			"questionStart": 4323,
+			"answerStart": 4383,
+			"end": 4789,
+			"words": 30,
 			"phrases": [
 				{
-					"text": "Aryan and I built StockReef during this buildathon,",
-					"start": 4310,
-					"end": 4408
+					"text": "StockReef runs on Robinhood Chain testnet",
+					"start": 4392,
+					"end": 4465
 				},
 				{
-					"text": "from the contracts to the app.",
-					"start": 4408,
-					"end": 4481
+					"text": "with a funded public market and real receipts.",
+					"start": 4465,
+					"end": 4563
+				},
+				{
+					"text": "It's backed by five hundred thirty five tests,",
+					"start": 4563,
+					"end": 4661
+				},
+				{
+					"text": "including fork tests against the live TSLA token.",
+					"start": 4661,
+					"end": 4759
 				}
 			]
 		},
 		{
 			"id": "q10",
 			"index": 9,
-			"question": "What do we need?",
-			"speaker": "Aryan",
-			"questionStart": 4514,
-			"answerStart": 4580,
-			"end": 5100,
-			"words": 39,
+			"question": "Who's building it?",
+			"speaker": "Awaan",
+			"questionStart": 4789,
+			"answerStart": 4849,
+			"end": 5059,
+			"words": 14,
 			"phrases": [
 				{
-					"text": "At Founder House we want an audit",
-					"start": 4589,
-					"end": 4675
+					"text": "Aryan and I built StockReef during this buildathon,",
+					"start": 4858,
+					"end": 4956
 				},
 				{
-					"text": "and our first lenders on Robinhood Chain mainnet.",
-					"start": 4675,
-					"end": 4773
+					"text": "from the contracts to the app.",
+					"start": 4956,
+					"end": 5029
+				}
+			]
+		},
+		{
+			"id": "q11",
+			"index": 10,
+			"question": "What will we do at Open House Singapore?",
+			"speaker": "Aryan",
+			"questionStart": 5059,
+			"answerStart": 5119,
+			"end": 5648,
+			"words": 40,
+			"phrases": [
+				{
+					"text": "At Open House Singapore we'll launch on Robinhood Chain mainnet",
+					"start": 5128,
+					"end": 5251
 				},
 				{
-					"text": "We also want a market maker for TSLA",
-					"start": 4773,
-					"end": 4871
+					"text": "with a capped Tesla market and our first lenders.",
+					"start": 5251,
+					"end": 5361
+				},
+				{
+					"text": "We'll run a live Friday close with RWA holders in the room,",
+					"start": 5361,
+					"end": 5508
+				},
+				{
+					"text": "and tune the thresholds with the Robinhood Chain team.",
+					"start": 5508,
+					"end": 5618
+				}
+			]
+		},
+		{
+			"id": "q12",
+			"index": 11,
+			"question": "What do we need?",
+			"speaker": "Aryan",
+			"questionStart": 5648,
+			"answerStart": 5708,
+			"end": 6065,
+			"words": 26,
+			"phrases": [
+				{
+					"text": "We need an audit and a market maker for Tesla,",
+					"start": 5717,
+					"end": 5839
 				},
 				{
 					"text": "and a Global Dollar partnership for the vault.",
-					"start": 4871,
-					"end": 4969
+					"start": 5839,
+					"end": 5937
 				},
 				{
 					"text": "StockReef reduces stock-backed debt before the market closes.",
-					"start": 4969,
-					"end": 5067
+					"start": 5937,
+					"end": 6035
 				}
 			]
 		}

@@ -2,8 +2,8 @@
   "fps": 30,
   "wordsPerSecond": 2.45,
   "introSeconds": 5,
-  "questionSeconds": 2.2,
-  "answerPadSeconds": 1.1,
+  "questionSeconds": 2.0,
+  "answerPadSeconds": 1.0,
   "outroSeconds": 6,
   "segments": [
     {
@@ -11,8 +11,8 @@
       "question": "What's changing?",
       "speaker": "Aryan",
       "phrases": [
-        "Stocks now live on chain as tokens",
-        "that you can hold and borrow against at any hour.",
+        "Stocks now live on chain as real-world asset tokens,",
+        "RWAs you can hold and borrow against at any hour.",
         "But the stock market behind them still closes",
         "every evening and every weekend.",
         "I'm Aryan, co-founder of StockReef."
@@ -34,10 +34,10 @@
       "question": "Who feels it first?",
       "speaker": "Aryan",
       "phrases": [
-        "Holders of tokenized stocks who want dollars without selling,",
+        "Holders of stock RWAs who want dollars without selling,",
         "and the lenders who fund them.",
-        "To stay safe through closures, lenders today",
-        "keep stock loans at about half the collateral or less."
+        "To stay safe through closures,",
+        "lenders keep loans at about half the collateral or less."
       ]
     },
     {
@@ -46,8 +46,8 @@
       "speaker": "Awaan",
       "phrases": [
         "I'm Awaan.",
-        "StockReef lends up to seventy five percent",
-        "and reduces the debt before the close, while a real price still exists.",
+        "StockReef lends up to seventy five percent against stock RWAs,",
+        "and cuts the debt before the close while a real price exists.",
         "Then it locks new credit through the closure",
         "and reopens it carefully."
       ]
@@ -57,37 +57,49 @@
       "question": "Why now, and why Robinhood Chain?",
       "speaker": "Awaan",
       "phrases": [
-        "Robinhood Chain went live on mainnet in July",
-        "with stock tokens and USDG side by side.",
+        "Robinhood Chain is now live on mainnet",
+        "with stock RWAs and USDG side by side.",
         "Tokenized stocks have passed three billion dollars,",
-        "but lending against them is still tiny."
+        "but lending against these RWAs is still tiny."
       ]
     },
     {
       "id": "q6",
-      "question": "How does it make money?",
-      "speaker": "Aryan",
+      "question": "Why is RWA lending so small, and how do we fix it?",
+      "speaker": "Awaan",
       "phrases": [
-        "Lenders earn the borrower's fixed rate,",
-        "and StockReef will keep ten percent of that interest.",
-        "It also keeps ten percent of each liquidation bonus,",
-        "the same shares Aave takes.",
-        "And the vault's USDG can earn Global Dollar partner rewards on top."
+        "RWA lending stays small because no lender can price the weekend gap.",
+        "StockReef turns that gap into rules the contract enforces",
+        "before every close, on chain.",
+        "So lenders can safely offer up to seventy five percent,",
+        "and a stock RWA becomes collateral worth borrowing against."
       ]
     },
     {
       "id": "q7",
+      "question": "How does it make money?",
+      "speaker": "Aryan",
+      "phrases": [
+        "Lenders earn the borrower's fixed rate,",
+        "and StockReef keeps ten percent of that interest.",
+        "It also keeps ten percent of each liquidation bonus,",
+        "the same shares Aave takes.",
+        "Vault USDG can also earn Global Dollar rewards."
+      ]
+    },
+    {
+      "id": "q8",
       "question": "How does it grow?",
       "speaker": "Aryan",
       "phrases": [
         "We start with Tesla against USDG",
-        "and add stocks one market at a time.",
+        "and add stock RWAs one market at a time.",
         "Every closure on the exchange calendar,",
         "holidays and early closes included, is already in the contracts."
       ]
     },
     {
-      "id": "q8",
+      "id": "q9",
       "question": "What's real today?",
       "speaker": "Awaan",
       "phrases": [
@@ -98,7 +110,7 @@
       ]
     },
     {
-      "id": "q9",
+      "id": "q10",
       "question": "Who's building it?",
       "speaker": "Awaan",
       "phrases": [
@@ -107,13 +119,22 @@
       ]
     },
     {
-      "id": "q10",
+      "id": "q11",
+      "question": "What will we do at Open House Singapore?",
+      "speaker": "Aryan",
+      "phrases": [
+        "At Open House Singapore we'll launch on Robinhood Chain mainnet",
+        "with a capped Tesla market and our first lenders.",
+        "We'll run a live Friday close with RWA holders in the room,",
+        "and tune the thresholds with the Robinhood Chain team."
+      ]
+    },
+    {
+      "id": "q12",
       "question": "What do we need?",
       "speaker": "Aryan",
       "phrases": [
-        "At Founder House we want an audit",
-        "and our first lenders on Robinhood Chain mainnet.",
-        "We also want a market maker for TSLA",
+        "We need an audit and a market maker for Tesla,",
         "and a Global Dollar partnership for the vault.",
         "StockReef reduces stock-backed debt before the market closes."
       ]

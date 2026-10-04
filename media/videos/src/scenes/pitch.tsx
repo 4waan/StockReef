@@ -21,8 +21,8 @@ export const Q1: React.FC<SceneProps> = ({t, ph}) => {
 	const market = at(t, ph, 2, 0, 40);
 	return (
 		<Stage>
-			<div style={{...big(76), ...rise(t, 0)}}>
-				Stocks live on chain. <span style={{color: C.accent}}>The market still closes.</span>
+			<div style={{...big(64), whiteSpace: 'nowrap', ...rise(t, 0)}}>
+				Stock RWAs live on chain. <span style={{color: C.accent}}>The market still closes.</span>
 			</div>
 			<div style={{position: 'absolute', left: 90, top: 150, width: W}}>
 				<div style={{display: 'flex', marginLeft: 0}}>
@@ -32,7 +32,7 @@ export const Q1: React.FC<SceneProps> = ({t, ph}) => {
 						</div>
 					))}
 				</div>
-				<Row title="TSLA token" sub="on chain, every hour" top={50}>
+				<Row title="TSLA RWA token" sub="on chain, every hour" top={50}>
 					<div style={{position: 'absolute', left: 0, top: 0, height: '100%', width: W * token, background: C.brand, borderRadius: 10}} />
 				</Row>
 				<Row title="TSLA on Nasdaq" sub="09:30 to 16:00 ET, weekdays" top={250}>
@@ -81,7 +81,7 @@ const Row: React.FC<{title: string; sub: string; top: number; children: React.Re
 	</div>
 );
 
-// Q2. What's the problem? Real TSLA sessions around the 5 August 2024 weekend gap, then the five-year statistics.
+// Q2. What's the problem? Real TSLA sessions around one weekend gap, then the five-year statistics.
 export const Q2: React.FC<SceneProps> = ({t, ph}) => {
 	const s = tsla.sessions;
 	const W = 1000;
@@ -98,7 +98,7 @@ export const Q2: React.FC<SceneProps> = ({t, ph}) => {
 	return (
 		<Stage>
 			<div style={{position: 'absolute', left: 0, top: 0, ...rise(t, 0)}}>
-				<div style={label}>TSLA · daily · Jul 22 – Aug 9, 2024</div>
+				<div style={label}>TSLA · daily · one real weekend gap</div>
 			</div>
 			<svg width={W + 80} height={H + 140} style={{position: 'absolute', left: 0, top: 50}}>
 				{s.map((d, i) => {
@@ -152,7 +152,7 @@ export const Q2: React.FC<SceneProps> = ({t, ph}) => {
 					<div style={{...big(96), color: C.red}}>1 in 16</div>
 					<div style={{fontSize: 30, marginTop: 10, lineHeight: 1.3}}>Monday opens 5% or more away from Friday&apos;s close</div>
 				</Card>
-				<div style={{fontSize: 20, color: C.faint, opacity: stat1}}>Yahoo Finance daily data, Oct 2021 – Oct 2026</div>
+				<div style={{fontSize: 20, color: C.faint, opacity: stat1}}>Yahoo Finance daily data, last five years</div>
 			</div>
 		</Stage>
 	);
@@ -165,7 +165,7 @@ export const Q3: React.FC<SceneProps> = ({t, ph}) => {
 		<Stage>
 			<div style={{display: 'flex', gap: 40}}>
 				{[
-					{k: 'Holders', v: 'Own TSLA tokens', d: 'Want dollars without selling', c: C.accent, i: 0},
+					{k: 'Holders', v: 'Own stock RWAs', d: 'Want dollars without selling', c: C.accent, i: 0},
 					{k: 'Lenders', v: 'Supply USDG', d: 'Take the loss when a gap lands', c: C.ltv, i: 1},
 				].map((p) => (
 					<Card key={p.k} style={{flex: 1, ...rise(t, ph[p.i] ?? 0)}}>
@@ -176,7 +176,7 @@ export const Q3: React.FC<SceneProps> = ({t, ph}) => {
 				))}
 			</div>
 			<div style={{position: 'absolute', left: 0, right: 0, top: 360, opacity: bar}}>
-				<div style={{fontFamily: F.head, fontSize: 36, marginBottom: 20}}>How much you can borrow against a stock token today</div>
+				<div style={{fontFamily: F.head, fontSize: 36, marginBottom: 20}}>How much you can borrow against a stock RWA today</div>
 				<div style={{position: 'relative', height: 90, background: C.surface, border: `2px solid ${C.line}`, borderRadius: 14, overflow: 'hidden'}}>
 					<div style={{position: 'absolute', left: 0, top: 0, bottom: 0, width: `${50 * bar}%`, background: C.muted, opacity: 0.55}} />
 					<div style={{position: 'absolute', left: `${35}%`, width: '15%', top: 0, bottom: 0, background: C.muted, opacity: 0.35 * bar}} />
@@ -266,22 +266,22 @@ export const Q5: React.FC<SceneProps> = ({t, ph}) => {
 				<Card style={{flex: 1, ...rise(t, ph[0] ?? 0)}}>
 					<div style={label}>Robinhood Chain</div>
 					<div style={{...big(64), marginTop: 12}}>Mainnet live</div>
-					<div style={{fontSize: 30, color: C.muted, marginTop: 8}}>1 July 2026 · an Arbitrum chain</div>
+					<div style={{fontSize: 30, color: C.muted, marginTop: 8}}>an Arbitrum chain</div>
 				</Card>
 				<Card style={{flex: 1, ...rise(t, ph[1] ?? 0)}}>
 					<div style={label}>Side by side</div>
 					<div style={{display: 'flex', gap: 16, marginTop: 20}}>
-						<Pill>Stock tokens</Pill>
+						<Pill>Stock RWAs</Pill>
 						<Pill color={C.ltv}>USDG by Paxos</Pill>
 					</div>
 					<div style={{fontSize: 26, color: C.muted, marginTop: 18}}>lending on chain through Morpho</div>
 				</Card>
 			</div>
 			<div style={{position: 'absolute', left: 0, right: 0, top: 300, ...rise(t, ph[2] ?? 0)}}>
-				<BarRow name="Tokenized stocks on chain" value="$3.21B" frac={bars} color={C.accent} />
+				<BarRow name="Tokenized stock RWAs on chain" value="$3.21B" frac={bars} color={C.accent} />
 				<div style={{height: 34}} />
-				<BarRow name="Stock lending on Solana, the busiest market" value="≈ $53M" frac={bars * (53 / 3210)} color={C.red} min={10} />
-				<div style={{fontSize: 20, color: C.faint, marginTop: 22}}>rwa.xyz, 4 Oct 2026 · Solana Compass, Aug 2026</div>
+				<BarRow name="Lending against stock RWAs, busiest market (Solana)" value="≈ $53M" frac={bars * (53 / 3210)} color={C.red} min={10} />
+				<div style={{fontSize: 20, color: C.faint, marginTop: 22}}>Sources: rwa.xyz · Solana Compass</div>
 			</div>
 		</Stage>
 	);
@@ -299,8 +299,58 @@ const BarRow: React.FC<{name: string; value: string; frac: number; color: string
 	</div>
 );
 
-// Q6. How does it make money? Two fee lines with their benchmarks, and USDG rewards as upside.
+// Q6. Why is RWA lending so small, and how do we fix it? Today's limit, the rules that replace it, the credit it frees.
+const RULES = ['Falling threshold', 'Funded repayment buffer', 'Credit locked while closed', 'Reopen on a fresh price'];
+
 export const Q6: React.FC<SceneProps> = ({t, ph}) => {
+	const today = at(t, ph, 0, 0, 30);
+	const reef = at(t, ph, 3, 0, 30);
+	return (
+		<Stage>
+			<div style={{display: 'flex', gap: 36}}>
+				<Card style={{flex: 1, ...rise(t, ph[0] ?? 0)}}>
+					<div style={{...label, color: C.red}}>Today</div>
+					<div style={{...big(46), marginTop: 12}}>No lender can price the weekend gap</div>
+					<div style={{fontSize: 28, color: C.muted, marginTop: 14}}>so stock RWAs get half the credit, or none</div>
+				</Card>
+				<Card glow={at(t, ph, 1)} style={{flex: 1.25, ...rise(t, ph[1] ?? 0)}}>
+					<div style={label}>With StockReef</div>
+					<div style={{...big(46), marginTop: 12}}>Rules the contract enforces before every close</div>
+					<div style={{display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 20}}>
+						{RULES.map((r, i) => (
+							<div key={r} style={rise(t, (ph[2] ?? 0) + i * 8)}>
+								<Pill>{r}</Pill>
+							</div>
+						))}
+					</div>
+				</Card>
+			</div>
+			<div style={{position: 'absolute', left: 0, right: 0, top: 380}}>
+				<div style={{fontFamily: F.head, fontSize: 34, marginBottom: 18, ...rise(t, ph[0] ?? 0)}}>Credit from $100 of TSLA RWA</div>
+				<CreditBar name="Lenders today" value={50 * today} color={C.muted} />
+				<div style={{height: 18}} />
+				<CreditBar name="With StockReef" value={50 + 25 * reef} color={C.brand} on={reef} />
+				<div style={{marginTop: 22, ...rise(t, ph[4] ?? 0)}}>
+					<Pill color={C.up}>+50% more credit from the same RWA</Pill>
+				</div>
+			</div>
+		</Stage>
+	);
+};
+
+const CreditBar: React.FC<{name: string; value: number; color: string; on?: number}> = ({name, value, color, on = 1}) => (
+	<div style={{display: 'flex', alignItems: 'center', gap: 24, opacity: 0.3 + 0.7 * on}}>
+		<div style={{width: 260, fontSize: 28, color: C.muted}}>{name}</div>
+		<div style={{flex: 1, height: 58, background: C.surface, border: `2px solid ${C.line}`, borderRadius: 12, overflow: 'hidden'}}>
+			<div style={{height: '100%', width: `${value}%`, background: color, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 18}}>
+				<span style={{fontFamily: F.head, fontWeight: 700, fontSize: 30, color: '#fff'}}>${Math.round(value)}</span>
+			</div>
+		</div>
+	</div>
+);
+
+// Q7. How does it make money? Two fee lines with their benchmarks, and USDG rewards as upside.
+export const Q7: React.FC<SceneProps> = ({t, ph}) => {
 	const rows = [
 		{from: 'Borrower interest', note: '10% fixed APR', keep: 'StockReef keeps 10%', rest: 'Lenders earn 90%', bench: 'Aave USDC reserve factor: 10%', i: 1},
 		{from: 'Liquidation bonus', note: '2% scheduling · 5% recovery', keep: 'StockReef keeps 10%', rest: 'Liquidator keeps 90%', bench: 'Aave WETH / WBTC liquidation fee: 10%', i: 2},
@@ -336,8 +386,8 @@ export const Q6: React.FC<SceneProps> = ({t, ph}) => {
 	);
 };
 
-// Q7. How does it grow? One market at a time, on a calendar the contracts already hold.
-export const Q7: React.FC<SceneProps> = ({t, ph}) => {
+// Q8. How does it grow? One market at a time, on a calendar the contracts already hold.
+export const Q8: React.FC<SceneProps> = ({t, ph}) => {
 	const later = at(t, ph, 1);
 	const cal = at(t, ph, 2);
 	return (
@@ -363,7 +413,7 @@ export const Q7: React.FC<SceneProps> = ({t, ph}) => {
 							opacity: ease(t, (ph[1] ?? 0) + i * 5, (ph[1] ?? 0) + i * 5 + 14) * later,
 						}}
 					>
-						next stock
+						next stock RWA
 					</div>
 				))}
 			</div>
@@ -380,14 +430,14 @@ export const Q7: React.FC<SceneProps> = ({t, ph}) => {
 				))}
 			</div>
 			<div style={{position: 'absolute', left: 0, top: 540, ...rise(t, ph[3] ?? 0)}}>
-				<Pill>587 sessions in the deployed SessionCalendar, through Dec 2028</Pill>
+				<Pill>587 market sessions already loaded in the deployed SessionCalendar</Pill>
 			</div>
 		</Stage>
 	);
 };
 
-// Q8. What's real today? The evidence page, zoomed to the tests, the fork block and the deployment.
-export const Q8: React.FC<SceneProps> = ({t, ph}) => (
+// Q9. What's real today? The evidence page, zoomed to the tests, the fork block and the deployment.
+export const Q9: React.FC<SceneProps> = ({t, ph}) => (
 	<Stage>
 		<Browser
 			page={evidence as PageShot}
@@ -413,8 +463,8 @@ export const Q8: React.FC<SceneProps> = ({t, ph}) => (
 	</Stage>
 );
 
-// Q9. Who's building it? Two founders, built during the buildathon.
-export const Q9: React.FC<SceneProps> = ({t, ph}) => (
+// Q10. Who's building it? Two founders, built during the buildathon.
+export const Q10: React.FC<SceneProps> = ({t, ph}) => (
 	<Stage>
 		<div style={{display: 'flex', gap: 40, justifyContent: 'center', marginTop: 40}}>
 			{[
@@ -436,24 +486,57 @@ export const Q9: React.FC<SceneProps> = ({t, ph}) => (
 			<Pill>Contracts</Pill>
 			<Pill>Keeper</Pill>
 			<Pill>App</Pill>
-			<Pill color={C.muted}>First commit 1 Oct 2026</Pill>
+			<Pill color={C.muted}>Built during the buildathon</Pill>
 		</div>
 	</Stage>
 );
 
-// Q10. What do we need? The asks tick in, then the closing line.
-const ASKS = ['An audit', 'First lenders on Robinhood Chain mainnet', 'A market maker for TSLA', 'A Global Dollar partnership for the vault'];
+// Q11. What will we do at Open House Singapore? The launch plan, step by step.
+const PLAN = [
+	{k: 'Launch', v: 'Robinhood Chain mainnet', d: 'a capped TSLA / USDG market'},
+	{k: 'Seed', v: 'Our first lenders', d: 'USDG into the vault'},
+	{k: 'Show', v: 'A live Friday close', d: 'with RWA holders in the room'},
+	{k: 'Tune', v: 'The thresholds', d: 'with the Robinhood Chain team'},
+];
 
-export const Q10: React.FC<SceneProps> = ({t, ph}) => {
-	const close = at(t, ph, 4, 0, 18);
+export const Q11: React.FC<SceneProps> = ({t, ph}) => (
+	<Stage>
+		<div style={{display: 'flex', alignItems: 'center', gap: 20, ...rise(t, 0)}}>
+			<Img src={staticFile('brand/stockreef-coral.svg')} style={{width: 64}} />
+			<div style={{...big(60)}}>
+				Open House <span style={{color: C.accent}}>Singapore</span>
+			</div>
+			<div style={{marginLeft: 12}}>
+				<Pill color={C.muted}>Founder House week</Pill>
+			</div>
+		</div>
+		<div style={{display: 'flex', gap: 24, marginTop: 70}}>
+			{PLAN.map((s, i) => (
+				<Card key={s.k} glow={at(t, ph, i) * (1 - at(t, ph, i + 1))} style={{flex: 1, minHeight: 300, ...rise(t, (ph[i] ?? 0) + (i === 1 ? 30 : 0))}}>
+					<div style={{fontFamily: F.mono, fontSize: 26, color: C.accent}}>0{i + 1}</div>
+					<div style={{...label, marginTop: 14}}>{s.k}</div>
+					<div style={{...big(42), marginTop: 10}}>{s.v}</div>
+					<div style={{fontSize: 28, color: C.muted, marginTop: 12}}>{s.d}</div>
+				</Card>
+			))}
+		</div>
+	</Stage>
+);
+
+// Q12. What do we need? The asks tick in, then the closing line.
+const ASKS = ['An audit', 'A market maker for TSLA', 'A Global Dollar partnership for the vault'];
+
+export const Q12: React.FC<SceneProps> = ({t, ph}) => {
+	const close = at(t, ph, 2, 0, 18);
 	return (
 		<Stage>
 			<div style={{opacity: 1 - close, display: 'flex', flexDirection: 'column', gap: 24, marginTop: 20}}>
-				<div style={{...label, ...rise(t, 0)}}>At Founder House Singapore</div>
+				<div style={{...label, ...rise(t, 0)}}>To launch on mainnet</div>
 				{ASKS.map((a, i) => {
-					const p = at(t, ph, i < 2 ? i : i, 4 + (i % 2) * 18);
+					const at0 = i === 0 ? 4 : i === 1 ? 50 : (ph[1] ?? 0) - (ph[0] ?? 0) + 4;
+					const p = ease(t, (ph[0] ?? 0) + at0, (ph[0] ?? 0) + at0 + 14);
 					return (
-						<div key={a} style={{display: 'flex', alignItems: 'center', gap: 24, ...rise(t, (ph[i] ?? 0) + 4 + (i % 2) * 18)}}>
+						<div key={a} style={{display: 'flex', alignItems: 'center', gap: 24, ...rise(t, (ph[0] ?? 0) + at0)}}>
 							<span
 								style={{
 									width: 54,

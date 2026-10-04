@@ -16,7 +16,7 @@ const Intro: React.FC = () => {
 				<div style={{fontFamily: F.head, fontWeight: 800, fontSize: 180, letterSpacing: -6, ...rise(f, 14, 30)}}>StockReef</div>
 			</div>
 			<div style={{fontFamily: F.head, fontSize: 52, color: C.muted, marginTop: 30, ...rise(f, 34)}}>
-				in <span style={{color: C.accent}}>ten questions</span>
+				in <span style={{color: C.accent}}>twelve questions</span>
 			</div>
 			<div style={{marginTop: 54, padding: '10px 26px', borderRadius: 999, border: `1px solid ${C.line}`, fontSize: 28, color: C.muted, ...rise(f, 52)}}>
 				Built on <span style={{color: C.text}}>Robinhood Chain</span> · Paxos USDG · TSLA

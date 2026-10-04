@@ -1,6 +1,6 @@
 # StockReef submission videos
 
-The pitch (2:56, ten questions) and the demo (4:37, sixteen questions) as one Remotion project, in the app's light theme. The narration lives in `docs/DEMO_VIDEO_SCRIPT.md`, and this project turns it into picture and music. The voice-over is recorded separately and laid on top.
+The pitch (3:28, twelve questions) and the demo (4:37, sixteen questions) as one Remotion project, in the app's light theme. The narration lives in `docs/DEMO_VIDEO_SCRIPT.md`, and this project turns it into picture and music. The voice-over is recorded separately and laid on top.
 
 | | Pitch | Demo |
 |---|---|---|
@@ -13,8 +13,8 @@ The pitch (2:56, ten questions) and the demo (4:37, sixteen questions) as one Re
 
 | Voice | Pitch | Demo |
 |---|---|---|
-| Aryan Singh Rathore | q1 q2 q3 q6 q7 q10 | d1 d2 d3 d4 d10 d12 d14 d16 |
-| Awaan Mustafa Siddiqui | q4 q5 q8 q9 | d5 d6 d7 d8 d9 d11 d13 d15 |
+| Aryan Singh Rathore | q1 q2 q3 q7 q8 q11 q12 | d1 d2 d3 d4 d10 d12 d14 d16 |
+| Awaan Mustafa Siddiqui | q4 q5 q6 q9 q10 | d5 d6 d7 d8 d9 d11 d13 d15 |
 
 ## The seven core features in the demo
 
