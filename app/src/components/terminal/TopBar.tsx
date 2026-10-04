@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi'
 import { chain, demoAccounts } from '@/lib/chain'
 import { short } from '@/lib/format'
-import { useMarketView } from '@/lib/hooks'
 import { useViewing } from '@/lib/viewing'
 import { Logo } from '@/components/brand/Logo'
 import { Chevron } from './kit'
@@ -20,7 +19,6 @@ const NAV = [
 
 export function TopBar() {
   const path = usePathname()
-  const { data: m } = useMarketView()
   return (
     <header className="relative z-30 flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2 border-b border-dk-line px-4 py-2 lg:px-5">
       <Link href="/" className="flex shrink-0 items-center" aria-label="StockReef home">
@@ -37,11 +35,6 @@ export function TopBar() {
         })}
       </nav>
       <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2 text-sm lg:gap-4">
-        {m?.simulationClock && (
-          <span className="hidden rounded border border-dk-warn px-2.5 py-0.5 text-xs font-medium text-dk-warn sm:inline-flex" title="Market clock and stock price are set by the operator">
-            Operator-set clock
-          </span>
-        )}
         <ProfileMenu />
         <Network />
         <span className="hidden h-6 w-px bg-dk-line sm:block" />
@@ -75,21 +68,19 @@ function Network() {
   const { chainId, isConnected } = useAccount()
   const { switchChain } = useSwitchChain()
   const wrong = isConnected && chainId !== chain.id
+  if (!wrong) return null
   return (
     <details className="relative">
       <summary className={`flex cursor-pointer list-none items-center gap-1.5 text-[15px] ${wrong ? 'text-dk-down' : ''}`}>
-        {wrong ? 'Wrong network' : `Chain ${chain.id}`}
+        Wrong network
         <Chevron />
       </summary>
       <div className="absolute right-0 z-20 mt-2 w-64 rounded-md border border-dk-line bg-dk-panel p-3 text-sm shadow-xl">
         <div className="text-dk-muted">This market runs on</div>
         <div className="mt-0.5 font-medium">Robinhood Chain {chain.id}</div>
-        <div className="num text-dk-faint">chain id {chain.id}</div>
-        {wrong && (
-          <button type="button" onClick={() => switchChain({ chainId: chain.id })} className="mt-3 w-full rounded-md border border-dk-up py-1.5 text-dk-up">
-            Switch to chain {chain.id}
-          </button>
-        )}
+        <button type="button" onClick={() => switchChain({ chainId: chain.id })} className="mt-3 w-full rounded-md border border-dk-up py-1.5 text-dk-up">
+          Switch to Robinhood testnet
+        </button>
       </div>
     </details>
   )

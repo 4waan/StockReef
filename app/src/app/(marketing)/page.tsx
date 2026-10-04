@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { evidence } from '@/generated/evidence'
 import { Logo } from '@/components/brand/Logo'
-import { pct, price, usdg } from '@/lib/format'
-import { useMarketView, useProtocolConstants } from '@/lib/hooks'
+import { RiskScenes } from '@/components/marketing/RiskScenes'
+import { price, usdg } from '@/lib/format'
+import { useMarketView } from '@/lib/hooks'
 import { stateName, STATE_COPY } from '@/lib/policy'
 
 const w = evidence.golden.worked_example
@@ -22,8 +23,9 @@ export default function Landing() {
             StockReef helps reduce TSLA-backed debt before market closures and controls when new USDG credit can resume.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
-            <Link href="/earn" className="rounded-md bg-charcoal px-6 py-3 text-lg font-semibold text-cream hover:bg-black">Lend USDG ↗</Link>
-            <Link href="/trade" className="rounded-md border border-charcoal/30 px-6 py-3 text-lg font-semibold hover:border-charcoal">Borrow against TSLA ↗</Link>
+            <Link href="/earn" className="rounded-md bg-brand px-6 py-3 text-lg font-semibold text-white hover:bg-[#a74f23] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">Lend USDG ↗</Link>
+            <Link href="/trade" className="rounded-md border-2 border-brand px-6 py-3 text-lg font-semibold text-brand hover:bg-brand hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">Borrow against TSLA ↗</Link>
+            <Link href="/demo" className="self-center px-3 py-3 text-sm font-semibold text-brand underline underline-offset-4 hover:text-charcoal">Guided demo ↗</Link>
           </div>
           <p className="mt-6 max-w-3xl text-sm leading-relaxed text-charcoal/65">
             On Robinhood Chain 46630, the market uses Paxos USDG, faucet TSLA, and an operator-set stock price and market clock. Balances and transactions in the app come from the deployed contracts.
@@ -35,19 +37,7 @@ export default function Landing() {
         <section id="controls" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-20">
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-brand">The control sequence</p>
           <h2 className="mt-3 text-[clamp(36px,6vw,72px)] font-extrabold leading-[1.02] tracking-tight">How StockReef controls risk</h2>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
-            <Stage number="01" title="Before the close">
-              Borrowers can fund a USDG repayment before the close. If a loan rises above the falling threshold, a liquidator can repay part of it for TSLA.
-            </Stage>
-            <Stage number="02" title="While trading is closed">
-              New borrowing and debt-backed TSLA withdrawals stop when trading closes. Borrowers can still repay USDG or add TSLA.
-            </Stage>
-            <Stage number="03" title="At reopening">
-              A fresh TSLA price admits recovery trims. New borrowing resumes after the recovery interval if the market remains open.
-            </Stage>
-          </div>
-          <p className="mt-6 max-w-3xl text-sm leading-relaxed text-charcoal/65">The borrower supplies USDG for a funded repayment. A liquidator supplies USDG for a partial trim. The contract checks eligibility and changes debt when a transaction succeeds.</p>
-          <PolicyTable />
+          <RiskScenes />
         </section>
 
         <section id="numbers" className="scroll-mt-20 bg-charcoal text-cream">
@@ -101,13 +91,13 @@ function Nav() {
   return (
     <header className="sticky top-0 z-20 border-b border-charcoal/10 bg-cream/95 backdrop-blur">
       <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-5 py-2">
-        <Link href="/" aria-label="StockReef home"><Logo markClassName="h-7 w-auto text-charcoal" wordClassName="text-2xl" /></Link>
+        <Link href="/" aria-label="StockReef home"><Logo markClassName="h-7 w-auto text-brand" wordClassName="text-2xl" /></Link>
         <nav aria-label="Page sections" className="order-3 flex w-full flex-wrap gap-x-5 gap-y-1 text-sm font-medium md:order-2 md:ml-auto md:w-auto">
           <a href="#controls" className="hover:text-brand">Risk controls</a>
           <a href="#numbers" className="hover:text-brand">Friday example</a>
           <Link href="/evidence" className="hover:text-brand">Evidence</Link>
         </nav>
-        <Link href="/trade" className="order-2 ml-auto rounded-md bg-charcoal px-4 py-2 text-sm font-semibold text-cream hover:bg-black md:order-3 md:ml-0">Open app</Link>
+        <Link href="/trade" className="order-2 ml-auto rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-[#a74f23] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand md:order-3 md:ml-0">Open app</Link>
       </div>
     </header>
   )
@@ -145,22 +135,6 @@ function MarketNow() {
 
 function MarketValue({ label, value, detail }: { label: string; value: string; detail?: string }) {
   return <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-4"><dt className="text-charcoal/65">{label}</dt><dd className="num text-xl font-bold">{value}</dd>{detail && <span className="w-full text-right text-xs text-charcoal/55">{detail}</span>}</div>
-}
-
-function Stage({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
-  return <article className="rounded-lg border border-charcoal/15 bg-white p-6"><span className="num text-sm font-bold text-brand">{number}</span><h3 className="mt-4 text-2xl font-bold">{title}</h3><p className="mt-3 leading-relaxed text-charcoal/70">{children}</p></article>
-}
-
-function PolicyTable() {
-  const { data: k } = useProtocolConstants()
-  const f = (v: bigint | undefined) => v === undefined ? 'Unavailable' : pct(v, 0)
-  const rows: [string, bigint | undefined, bigint | undefined][] = [
-    ['Open-session liquidation threshold', k?.ltOpen, k?.ltOpen],
-    ['Threshold 30 minutes before close', k?.ltFinalOvernight, k?.ltFinalExtended],
-    ['Target after a full solvent trim', k?.targetOvernight, k?.targetExtended],
-    ['Open-session borrow limit', k?.borrowOpen, k?.borrowOpen],
-  ]
-  return <div className="mt-12 overflow-x-auto"><table className="w-full min-w-[560px] text-left"><thead><tr className="text-sm text-charcoal/60"><th className="py-3 font-medium">Policy from the contract</th><th className="py-3 text-right font-medium">Overnight</th><th className="py-3 text-right font-medium">Weekend or holiday</th></tr></thead><tbody>{rows.map(([label, a, b]) => <tr key={label} className="border-t border-charcoal/15"><td className="py-3">{label}</td><td className="num py-3 text-right font-semibold">{f(a)}</td><td className="num py-3 text-right font-semibold">{f(b)}</td></tr>)}</tbody></table><p className="mt-3 text-sm text-charcoal/60">The longer closure applies when the next scheduled open is at least 24 hours away.</p></div>
 }
 
 function Outcome({ title, amount, detail, result }: { title: string; amount: string; detail: string; result: string }) {

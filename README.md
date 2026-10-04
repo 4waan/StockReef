@@ -1,16 +1,22 @@
 <div align="center">
 
+<img src="docs/assets/stockreef-coral.svg" width="88" alt="StockReef burnt orange coral logo">
+
 # StockReef
 
 ### Controlled risk for stock-backed lending.
 
 StockReef helps reduce TSLA-backed debt before market closures and controls when new USDG credit can resume.
 
-**[Open StockReef](https://stock-reef.vercel.app/)** · **[How risk is controlled](#how-stockreef-controls-risk)** · **[Friday example](#a-friday-close-in-numbers)** · **[Run locally](#run-locally)**
+**[Open StockReef](https://stock-reef.vercel.app/)** · **[Guided demo](https://stock-reef.vercel.app/demo)** · **[How risk is controlled](#how-stockreef-controls-risk)** · **[Friday example](#a-friday-close-in-numbers)** · **[Run locally](#run-locally)**
 
 `Robinhood Chain 46630` · `Paxos USDG` · `Faucet TSLA` · `Operator-set price and clock`
 
+<img src="docs/assets/stockreef-readme-banner.svg" width="900" alt="StockReef risk control sequence: funded repayment before close, new credit locked during closure, fresh price and recovery at reopening">
+
 </div>
+
+[Vertical 9:16 presentation template](docs/assets/stockreef-vertical-template.svg)
 
 The current implementation includes a TSLA/USDG lending market, a keeper, and a web app. The keeper submits permissionless transactions; the contracts enforce the rules on every call.
 

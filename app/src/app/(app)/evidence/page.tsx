@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { evidence } from '@/generated/evidence'
 import { Metric, Panel, Select } from '@/components/terminal/kit'
 import { chain } from '@/lib/chain'
+import { pct } from '@/lib/format'
+import { useProtocolConstants } from '@/lib/hooks'
 
 const g = evidence.golden
 const runs = evidence.runs as Record<string, Record<string, unknown>>
@@ -23,6 +25,7 @@ const FAILURES: [string, string][] = [
 ]
 
 export default function EvidencePage() {
+  const { data: policy } = useProtocolConstants()
   const w = g.worked_example
   const demo = runs['demo-46630'] ?? runs['demo-31337']
   const scenarios = runs['scenarios'] as undefined | { rows?: Record<string, string>[] }
@@ -57,6 +60,21 @@ export default function EvidencePage() {
           <Metric big label="Chain 46630 deployment" value={deploy?.transactions ? `${deploy.transactions.length} contracts` : 'not yet'} sub={deploy?.sourceCommit ? `from source ${deploy.sourceCommit}` : undefined} />
         </Panel>
       </div>
+
+      <Panel title="Contract risk policy">
+        <div role="region" aria-label="Overnight and extended closure policy" tabIndex={0} className="overflow-x-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-dk-up">
+          <table className="w-full min-w-[560px] text-left text-sm">
+            <thead><tr className="text-dk-muted"><th scope="col" className="pb-3 font-medium">Policy from the contract</th><th scope="col" className="pb-3 text-right font-medium">Overnight</th><th scope="col" className="pb-3 text-right font-medium">Weekend or holiday</th></tr></thead>
+            <tbody>{([
+              ['Open-session liquidation threshold', policy?.ltOpen, policy?.ltOpen],
+              ['Threshold 30 minutes before close', policy?.ltFinalOvernight, policy?.ltFinalExtended],
+              ['Target after a full solvent trim', policy?.targetOvernight, policy?.targetExtended],
+              ['Open-session borrow limit', policy?.borrowOpen, policy?.borrowOpen],
+            ] as [string, bigint | undefined, bigint | undefined][]).map(([label, overnight, extended]) => <tr key={label} className="border-t border-dk-line"><th scope="row" className="py-3 pr-4 font-normal">{label}</th><td className="num py-3 text-right font-semibold">{overnight === undefined ? 'Unavailable' : pct(overnight, 0)}</td><td className="num py-3 text-right font-semibold">{extended === undefined ? 'Unavailable' : pct(extended, 0)}</td></tr>)}</tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-xs text-dk-muted">The longer closure applies when the next scheduled open is at least 24 hours away.</p>
+      </Panel>
 
       {publicMarket && <Panel title="Public market on Robinhood Chain 46630">
         <p className="text-sm text-dk-muted">The borrower posted {publicMarket.setup.borrowerCollateralTsla} TSLA, borrowed {publicMarket.setup.borrowedUsdg} USDG, and funded a {publicMarket.setup.borrowerBufferUsdg} USDG repayment buffer. The lender deposited {publicMarket.setup.lenderDepositUsdg} USDG. These setup amounts are recorded at the time of the transactions; current balances and debt are read in the app.</p>

@@ -5,7 +5,7 @@ import type { PricePoint } from '@/lib/history'
 import { nextMilestone, PHASE_TICKER, stateName } from '@/lib/policy'
 import type { MarketData } from '@/lib/types'
 
-/** Pair, accepted price, change since the previous session's last price, state, New York clock and countdown. */
+/** Accepted price, change since the previous session's last price, state, New York clock and countdown. */
 export function Ticker({ m, now, prices }: { m: MarketData; now: number; prices: PricePoint[] }) {
   const s = m.policy
   const state = stateName(s.state)
@@ -16,8 +16,6 @@ export function Ticker({ m, now, prices }: { m: MarketData; now: number; prices:
   const tone = state === 'GUARDED' ? 'text-dk-down' : state === 'OPEN' ? 'text-dk-up' : state === 'CLOSED' || state === 'REOPEN_WAIT' ? 'text-dk-muted' : 'text-dk-warn'
   return (
     <div className="flex h-10 items-center gap-4 overflow-x-auto border-b border-dk-line px-5 text-[15px] whitespace-nowrap">
-      <span className="font-semibold">TSLA / USDG</span>
-      <Sep />
       <span className="num font-medium">{price(m.valuationPriceWad)}</span>
       {m.valuationIndicative && <span className="text-sm text-dk-warn">indicative</span>}
       {change !== undefined && (
