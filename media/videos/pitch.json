@@ -11,22 +11,22 @@
       "question": "What's changing?",
       "speaker": "Aryan",
       "phrases": [
-        "Stocks now live on chain as real-world asset tokens,",
-        "RWAs you can hold and borrow against at any hour.",
-        "But the stock market behind them still closes",
-        "every evening and every weekend.",
+        "Stocks are moving on chain.",
+        "You can now hold Tesla as a token and borrow dollars against it at any time of day.",
+        "But the real stock market still closes every night and every weekend.",
         "I'm Aryan, co-founder of StockReef."
       ]
     },
     {
       "id": "q2",
-      "question": "What breaks when Wall Street closes?",
+      "question": "What goes wrong on weekends?",
       "speaker": "Aryan",
       "phrases": [
-        "When Nasdaq closes on Friday, Tesla's real price stops until Monday,",
-        "but every loan backed by Tesla tokens stays open.",
-        "One Monday in sixteen opens five percent or more away from Friday,",
-        "so a loan can be underwater before anyone is able to act."
+        "Your loan stays open, but the stock market is shut.",
+        "Nobody knows Tesla's real price until Monday morning.",
+        "If it opens much lower, your loan is suddenly unsafe, and it's too late to do anything.",
+        "This isn't rare.",
+        "About once every four months, Tesla opens on Monday at least five percent away from its Friday price."
       ]
     },
     {
@@ -34,10 +34,10 @@
       "question": "Who feels it first?",
       "speaker": "Aryan",
       "phrases": [
-        "Holders of stock RWAs who want dollars without selling,",
-        "and the lenders who fund them.",
-        "To stay safe through closures,",
-        "lenders keep loans at about half the collateral or less."
+        "People who own stock tokens and want cash without selling,",
+        "and the lenders who give them that cash.",
+        "To protect themselves, lenders today only lend about half of what the stock is worth,",
+        "or they don't lend at all."
       ]
     },
     {
@@ -46,10 +46,11 @@
       "speaker": "Awaan",
       "phrases": [
         "I'm Awaan.",
-        "StockReef lends up to seventy five percent against stock RWAs,",
-        "and cuts the debt before the close while a real price exists.",
-        "Then it locks new credit through the closure",
-        "and reopens it carefully."
+        "StockReef is a lending app that gets loans ready for the weekend.",
+        "Before the market closes, it asks risky borrowers to pay a little back while there's still a real price.",
+        "Over the weekend, no new borrowing.",
+        "On Monday, it reopens step by step.",
+        "So people can safely borrow up to seventy five percent."
       ]
     },
     {
@@ -57,22 +58,19 @@
       "question": "Why now, and why Robinhood Chain?",
       "speaker": "Awaan",
       "phrases": [
-        "Robinhood Chain is now live on mainnet",
-        "with stock RWAs and USDG side by side.",
-        "Tokenized stocks have passed three billion dollars,",
-        "but lending against these RWAs is still tiny."
+        "Robinhood Chain just went live with real stock tokens and USDG, a digital dollar, in one place.",
+        "Over three billion dollars of stocks are already on chain,",
+        "but almost none of it is used to borrow against."
       ]
     },
     {
       "id": "q6",
-      "question": "Why is RWA lending so small, and how do we fix it?",
+      "question": "How does StockReef change that?",
       "speaker": "Awaan",
       "phrases": [
-        "RWA lending stays small because no lender can price the weekend gap.",
-        "StockReef turns that gap into rules the contract enforces",
-        "before every close, on chain.",
-        "So lenders can safely offer up to seventy five percent,",
-        "and a stock RWA becomes collateral worth borrowing against."
+        "Lenders stay away because weekends are a blind spot.",
+        "StockReef removes that blind spot with clear rules, written into the smart contract, that run before every close.",
+        "With weekends handled, a hundred dollars of stock can borrow seventy five dollars instead of fifty."
       ]
     },
     {
@@ -80,11 +78,10 @@
       "question": "How does it make money?",
       "speaker": "Aryan",
       "phrases": [
-        "Lenders earn the borrower's fixed rate,",
-        "and StockReef keeps ten percent of that interest.",
-        "It also keeps ten percent of each liquidation bonus,",
-        "the same shares Aave takes.",
-        "Vault USDG can also earn Global Dollar rewards."
+        "Borrowers pay interest, and lenders earn it.",
+        "StockReef keeps ten percent of that interest,",
+        "plus ten percent of the small bonus paid when a risky loan is trimmed.",
+        "That's the same cut Aave takes."
       ]
     },
     {
@@ -92,10 +89,9 @@
       "question": "How does it grow?",
       "speaker": "Aryan",
       "phrases": [
-        "We start with Tesla against USDG",
-        "and add stock RWAs one market at a time.",
-        "Every closure on the exchange calendar,",
-        "holidays and early closes included, is already in the contracts."
+        "We start with Tesla, then add more stocks one at a time.",
+        "Every holiday and early close is already built in,",
+        "so each new stock works from day one."
       ]
     },
     {
@@ -103,10 +99,9 @@
       "question": "What's real today?",
       "speaker": "Awaan",
       "phrases": [
-        "StockReef runs on Robinhood Chain testnet",
-        "with a funded public market and real receipts.",
-        "It's backed by five hundred thirty five tests,",
-        "including fork tests against the live TSLA token."
+        "StockReef is live on Robinhood Chain testnet,",
+        "with real loans and real transactions you can check on the explorer.",
+        "And five hundred thirty five automated tests check the risky parts."
       ]
     },
     {
@@ -114,8 +109,8 @@
       "question": "Who's building it?",
       "speaker": "Awaan",
       "phrases": [
-        "Aryan and I built StockReef during this buildathon,",
-        "from the contracts to the app."
+        "Aryan and I.",
+        "We built all of StockReef, from the smart contracts to the app, during this buildathon."
       ]
     },
     {
@@ -123,10 +118,9 @@
       "question": "What will we do at Open House Singapore?",
       "speaker": "Aryan",
       "phrases": [
-        "At Open House Singapore we'll launch on Robinhood Chain mainnet",
-        "with a capped Tesla market and our first lenders.",
-        "We'll run a live Friday close with RWA holders in the room,",
-        "and tune the thresholds with the Robinhood Chain team."
+        "At Open House Singapore, we'll launch StockReef on Robinhood Chain mainnet",
+        "with a small Tesla market and our first lenders.",
+        "And we'll run a live Friday close in front of real stock token holders."
       ]
     },
     {
@@ -134,9 +128,8 @@
       "question": "What do we need?",
       "speaker": "Aryan",
       "phrases": [
-        "We need an audit and a market maker for Tesla,",
-        "and a Global Dollar partnership for the vault.",
-        "StockReef reduces stock-backed debt before the market closes."
+        "We need a security audit, a trading partner for Tesla, and a partnership for USDG.",
+        "StockReef: borrow against your stocks, safely, even when the market is closed."
       ]
     }
   ]

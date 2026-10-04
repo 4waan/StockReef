@@ -192,9 +192,9 @@ export const NextScene: React.FC<{ch: Chapter}> = ({ch}) => {
 				<div style={{position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: close}}>
 					<Img src={staticFile('brand/stockreef-coral.svg')} style={{width: 110}} />
 					<div style={{...big(76), textAlign: 'center', marginTop: 30}}>
-						StockReef reduces stock-backed debt
+						Borrow against your stocks, safely,
 						<br />
-						<span style={{color: C.accent}}>before the market closes.</span>
+						<span style={{color: C.accent}}>even when the market is closed.</span>
 					</div>
 				</div>
 			) : null}

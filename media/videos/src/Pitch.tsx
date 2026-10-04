@@ -33,7 +33,7 @@ export const Outro: React.FC = () => {
 				<Img src={staticFile('brand/stockreef-coral.svg')} style={{width: 120}} />
 				<div style={{fontFamily: F.head, fontWeight: 800, fontSize: 120, letterSpacing: -4}}>StockReef</div>
 			</div>
-			<div style={{fontFamily: F.head, fontSize: 46, marginTop: 40, ...rise(f, 12)}}>Reduces stock-backed debt before the market closes.</div>
+			<div style={{fontFamily: F.head, fontSize: 46, marginTop: 40, ...rise(f, 12)}}>Borrow against your stocks, safely, even when the market is closed.</div>
 			<div style={{display: 'flex', gap: 28, marginTop: 50, fontFamily: F.mono, fontSize: 30, color: C.accent, ...rise(f, 24)}}>
 				<span>stock-reef.vercel.app</span>
 				<span style={{color: C.faint}}>·</span>

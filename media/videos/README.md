@@ -1,6 +1,6 @@
 # StockReef submission videos
 
-The pitch (3:33, twelve questions) and the demo (4:42, twelve chapters) as one Remotion project. Both are in the app's light theme on a burnt orange grid, with original synthesized music (`scripts/music.mjs`). The narration lives in `docs/DEMO_VIDEO_SCRIPT.md`; the voice-over is recorded separately and laid on top.
+The pitch (3:51, twelve questions) and the demo (4:42, twelve chapters) as one Remotion project. Both are in the app's light theme on a burnt orange grid, with original synthesized music (`scripts/music.mjs`). The narration lives in `docs/DEMO_VIDEO_SCRIPT.md`; the voice-over is recorded separately and laid on top.
 
 | | Pitch | Demo |
 |---|---|---|

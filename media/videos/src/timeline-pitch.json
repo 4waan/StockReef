@@ -1,8 +1,8 @@
 {
 	"fps": 30,
-	"total": 6403,
+	"total": 6947,
 	"introEnd": 150,
-	"outroStart": 6223,
+	"outroStart": 6767,
 	"segments": [
 		{
 			"id": "q1",
@@ -11,65 +11,65 @@
 			"speaker": "Aryan",
 			"questionStart": 150,
 			"answerStart": 210,
-			"end": 701,
-			"words": 37,
+			"end": 739,
+			"words": 40,
 			"phrases": [
 				{
-					"text": "Stocks now live on chain as real-world asset tokens,",
+					"text": "Stocks are moving on chain.",
 					"start": 219,
-					"end": 329
+					"end": 280
 				},
 				{
-					"text": "RWAs you can hold and borrow against at any hour.",
-					"start": 329,
-					"end": 451
+					"text": "You can now hold Tesla as a token and borrow dollars against it at any time of day.",
+					"start": 280,
+					"end": 501
 				},
 				{
-					"text": "But the stock market behind them still closes",
-					"start": 451,
-					"end": 549
-				},
-				{
-					"text": "every evening and every weekend.",
-					"start": 549,
-					"end": 610
+					"text": "But the real stock market still closes every night and every weekend.",
+					"start": 501,
+					"end": 648
 				},
 				{
 					"text": "I'm Aryan, co-founder of StockReef.",
-					"start": 610,
-					"end": 671
+					"start": 648,
+					"end": 709
 				}
 			]
 		},
 		{
 			"id": "q2",
 			"index": 1,
-			"question": "What breaks when Wall Street closes?",
+			"question": "What goes wrong on weekends?",
 			"speaker": "Aryan",
-			"questionStart": 701,
-			"answerStart": 761,
-			"end": 1339,
-			"words": 44,
+			"questionStart": 739,
+			"answerStart": 799,
+			"end": 1525,
+			"words": 56,
 			"phrases": [
 				{
-					"text": "When Nasdaq closes on Friday, Tesla's real price stops until Monday,",
-					"start": 770,
-					"end": 905
+					"text": "Your loan stays open, but the stock market is shut.",
+					"start": 808,
+					"end": 931
 				},
 				{
-					"text": "but every loan backed by Tesla tokens stays open.",
-					"start": 905,
-					"end": 1015
+					"text": "Nobody knows Tesla's real price until Monday morning.",
+					"start": 931,
+					"end": 1029
 				},
 				{
-					"text": "One Monday in sixteen opens five percent or more away from Friday,",
-					"start": 1015,
-					"end": 1162
+					"text": "If it opens much lower, your loan is suddenly unsafe, and it's too late to do anything.",
+					"start": 1029,
+					"end": 1237
 				},
 				{
-					"text": "so a loan can be underwater before anyone is able to act.",
-					"start": 1162,
-					"end": 1309
+					"text": "This isn't rare.",
+					"start": 1237,
+					"end": 1274
+				},
+				{
+					"text": "About once every four months, Tesla opens on Monday at least five percent away from its Friday price.",
+					"start": 1274,
+					"end": 1495
 				}
 			]
 		},
@@ -78,30 +78,30 @@
 			"index": 2,
 			"question": "Who feels it first?",
 			"speaker": "Aryan",
-			"questionStart": 1339,
-			"answerStart": 1399,
-			"end": 1804,
-			"words": 30,
+			"questionStart": 1525,
+			"answerStart": 1585,
+			"end": 2103,
+			"words": 39,
 			"phrases": [
 				{
-					"text": "Holders of stock RWAs who want dollars without selling,",
-					"start": 1408,
-					"end": 1518
+					"text": "People who own stock tokens and want cash without selling,",
+					"start": 1594,
+					"end": 1717
 				},
 				{
-					"text": "and the lenders who fund them.",
-					"start": 1518,
-					"end": 1591
+					"text": "and the lenders who give them that cash.",
+					"start": 1717,
+					"end": 1815
 				},
 				{
-					"text": "To stay safe through closures,",
-					"start": 1591,
-					"end": 1652
+					"text": "To protect themselves, lenders today only lend about half of what the stock is worth,",
+					"start": 1815,
+					"end": 1999
 				},
 				{
-					"text": "lenders keep loans at about half the collateral or less.",
-					"start": 1652,
-					"end": 1774
+					"text": "or they don't lend at all.",
+					"start": 1999,
+					"end": 2073
 				}
 			]
 		},
@@ -110,35 +110,40 @@
 			"index": 3,
 			"question": "What is StockReef?",
 			"speaker": "Awaan",
-			"questionStart": 1804,
-			"answerStart": 1864,
-			"end": 2345,
-			"words": 36,
+			"questionStart": 2103,
+			"answerStart": 2163,
+			"end": 2890,
+			"words": 56,
 			"phrases": [
 				{
 					"text": "I'm Awaan.",
-					"start": 1873,
-					"end": 1898
+					"start": 2172,
+					"end": 2197
 				},
 				{
-					"text": "StockReef lends up to seventy five percent against stock RWAs,",
-					"start": 1898,
-					"end": 2021
+					"text": "StockReef is a lending app that gets loans ready for the weekend.",
+					"start": 2197,
+					"end": 2344
 				},
 				{
-					"text": "and cuts the debt before the close while a real price exists.",
-					"start": 2021,
-					"end": 2168
+					"text": "Before the market closes, it asks risky borrowers to pay a little back while there's still a real price.",
+					"start": 2344,
+					"end": 2577
 				},
 				{
-					"text": "Then it locks new credit through the closure",
-					"start": 2168,
-					"end": 2266
+					"text": "Over the weekend, no new borrowing.",
+					"start": 2577,
+					"end": 2651
 				},
 				{
-					"text": "and reopens it carefully.",
-					"start": 2266,
-					"end": 2315
+					"text": "On Monday, it reopens step by step.",
+					"start": 2651,
+					"end": 2737
+				},
+				{
+					"text": "So people can safely borrow up to seventy five percent.",
+					"start": 2737,
+					"end": 2860
 				}
 			]
 		},
@@ -147,67 +152,52 @@
 			"index": 4,
 			"question": "Why now, and why Robinhood Chain?",
 			"speaker": "Awaan",
-			"questionStart": 2345,
-			"answerStart": 2405,
-			"end": 2812,
-			"words": 30,
+			"questionStart": 2890,
+			"answerStart": 2950,
+			"end": 3441,
+			"words": 37,
 			"phrases": [
 				{
-					"text": "Robinhood Chain is now live on mainnet",
-					"start": 2414,
-					"end": 2500
+					"text": "Robinhood Chain just went live with real stock tokens and USDG, a digital dollar, in one place.",
+					"start": 2959,
+					"end": 3167
 				},
 				{
-					"text": "with stock RWAs and USDG side by side.",
-					"start": 2500,
-					"end": 2598
+					"text": "Over three billion dollars of stocks are already on chain,",
+					"start": 3167,
+					"end": 3289
 				},
 				{
-					"text": "Tokenized stocks have passed three billion dollars,",
-					"start": 2598,
-					"end": 2684
-				},
-				{
-					"text": "but lending against these RWAs is still tiny.",
-					"start": 2684,
-					"end": 2782
+					"text": "but almost none of it is used to borrow against.",
+					"start": 3289,
+					"end": 3411
 				}
 			]
 		},
 		{
 			"id": "q6",
 			"index": 5,
-			"question": "Why is RWA lending so small, and how do we fix it?",
+			"question": "How does StockReef change that?",
 			"speaker": "Awaan",
-			"questionStart": 2812,
-			"answerStart": 2872,
-			"end": 3461,
-			"words": 45,
+			"questionStart": 3441,
+			"answerStart": 3501,
+			"end": 4067,
+			"words": 43,
 			"phrases": [
 				{
-					"text": "RWA lending stays small because no lender can price the weekend gap.",
-					"start": 2881,
-					"end": 3028
+					"text": "Lenders stay away because weekends are a blind spot.",
+					"start": 3510,
+					"end": 3620
 				},
 				{
-					"text": "StockReef turns that gap into rules the contract enforces",
-					"start": 3028,
-					"end": 3138
+					"text": "StockReef removes that blind spot with clear rules, written into the smart contract, that run before every close.",
+					"start": 3620,
+					"end": 3841
 				},
 				{
-					"text": "before every close, on chain.",
-					"start": 3138,
-					"end": 3199
-				},
-				{
-					"text": "So lenders can safely offer up to seventy five percent,",
-					"start": 3199,
-					"end": 3321
-				},
-				{
-					"text": "and a stock RWA becomes collateral worth borrowing against.",
-					"start": 3321,
-					"end": 3431
+					"text": "With weekends handled, a hundred dollars of stock can borrow seventy five dollars instead of fifty.",
+					"start": 3841,
+					"end": 4037
 				}
 			]
 		},
@@ -216,35 +206,30 @@
 			"index": 6,
 			"question": "How does it make money?",
 			"speaker": "Aryan",
-			"questionStart": 3461,
-			"answerStart": 3521,
-			"end": 4001,
-			"words": 36,
+			"questionStart": 4067,
+			"answerStart": 4127,
+			"end": 4582,
+			"words": 34,
 			"phrases": [
 				{
-					"text": "Lenders earn the borrower's fixed rate,",
-					"start": 3530,
-					"end": 3604
+					"text": "Borrowers pay interest, and lenders earn it.",
+					"start": 4136,
+					"end": 4222
 				},
 				{
-					"text": "and StockReef keeps ten percent of that interest.",
-					"start": 3604,
-					"end": 3702
+					"text": "StockReef keeps ten percent of that interest,",
+					"start": 4222,
+					"end": 4308
 				},
 				{
-					"text": "It also keeps ten percent of each liquidation bonus,",
-					"start": 3702,
-					"end": 3812
+					"text": "plus ten percent of the small bonus paid when a risky loan is trimmed.",
+					"start": 4308,
+					"end": 4479
 				},
 				{
-					"text": "the same shares Aave takes.",
-					"start": 3812,
-					"end": 3873
-				},
-				{
-					"text": "Vault USDG can also earn Global Dollar rewards.",
-					"start": 3873,
-					"end": 3971
+					"text": "That's the same cut Aave takes.",
+					"start": 4479,
+					"end": 4552
 				}
 			]
 		},
@@ -253,30 +238,25 @@
 			"index": 7,
 			"question": "How does it grow?",
 			"speaker": "Aryan",
-			"questionStart": 4001,
-			"answerStart": 4061,
-			"end": 4481,
-			"words": 31,
+			"questionStart": 4582,
+			"answerStart": 4642,
+			"end": 5036,
+			"words": 29,
 			"phrases": [
 				{
-					"text": "We start with Tesla against USDG",
-					"start": 4070,
-					"end": 4144
+					"text": "We start with Tesla, then add more stocks one at a time.",
+					"start": 4651,
+					"end": 4798
 				},
 				{
-					"text": "and add stock RWAs one market at a time.",
-					"start": 4144,
-					"end": 4254
+					"text": "Every holiday and early close is already built in,",
+					"start": 4798,
+					"end": 4908
 				},
 				{
-					"text": "Every closure on the exchange calendar,",
-					"start": 4254,
-					"end": 4328
-				},
-				{
-					"text": "holidays and early closes included, is already in the contracts.",
-					"start": 4328,
-					"end": 4451
+					"text": "so each new stock works from day one.",
+					"start": 4908,
+					"end": 5006
 				}
 			]
 		},
@@ -285,30 +265,25 @@
 			"index": 8,
 			"question": "What's real today?",
 			"speaker": "Awaan",
-			"questionStart": 4481,
-			"answerStart": 4541,
-			"end": 4947,
+			"questionStart": 5036,
+			"answerStart": 5096,
+			"end": 5503,
 			"words": 30,
 			"phrases": [
 				{
-					"text": "StockReef runs on Robinhood Chain testnet",
-					"start": 4550,
-					"end": 4623
+					"text": "StockReef is live on Robinhood Chain testnet,",
+					"start": 5105,
+					"end": 5191
 				},
 				{
-					"text": "with a funded public market and real receipts.",
-					"start": 4623,
-					"end": 4721
+					"text": "with real loans and real transactions you can check on the explorer.",
+					"start": 5191,
+					"end": 5338
 				},
 				{
-					"text": "It's backed by five hundred thirty five tests,",
-					"start": 4721,
-					"end": 4819
-				},
-				{
-					"text": "including fork tests against the live TSLA token.",
-					"start": 4819,
-					"end": 4917
+					"text": "And five hundred thirty five automated tests check the risky parts.",
+					"start": 5338,
+					"end": 5473
 				}
 			]
 		},
@@ -317,20 +292,20 @@
 			"index": 9,
 			"question": "Who's building it?",
 			"speaker": "Awaan",
-			"questionStart": 4947,
-			"answerStart": 5007,
-			"end": 5217,
-			"words": 14,
+			"questionStart": 5503,
+			"answerStart": 5563,
+			"end": 5822,
+			"words": 18,
 			"phrases": [
 				{
-					"text": "Aryan and I built StockReef during this buildathon,",
-					"start": 5016,
-					"end": 5114
+					"text": "Aryan and I.",
+					"start": 5572,
+					"end": 5609
 				},
 				{
-					"text": "from the contracts to the app.",
-					"start": 5114,
-					"end": 5187
+					"text": "We built all of StockReef, from the smart contracts to the app, during this buildathon.",
+					"start": 5609,
+					"end": 5792
 				}
 			]
 		},
@@ -339,30 +314,25 @@
 			"index": 10,
 			"question": "What will we do at Open House Singapore?",
 			"speaker": "Aryan",
-			"questionStart": 5217,
-			"answerStart": 5277,
-			"end": 5806,
-			"words": 40,
+			"questionStart": 5822,
+			"answerStart": 5882,
+			"end": 6337,
+			"words": 34,
 			"phrases": [
 				{
-					"text": "At Open House Singapore we'll launch on Robinhood Chain mainnet",
-					"start": 5286,
-					"end": 5409
+					"text": "At Open House Singapore, we'll launch StockReef on Robinhood Chain mainnet",
+					"start": 5891,
+					"end": 6026
 				},
 				{
-					"text": "with a capped Tesla market and our first lenders.",
-					"start": 5409,
-					"end": 5519
+					"text": "with a small Tesla market and our first lenders.",
+					"start": 6026,
+					"end": 6136
 				},
 				{
-					"text": "We'll run a live Friday close with RWA holders in the room,",
-					"start": 5519,
-					"end": 5666
-				},
-				{
-					"text": "and tune the thresholds with the Robinhood Chain team.",
-					"start": 5666,
-					"end": 5776
+					"text": "And we'll run a live Friday close in front of real stock token holders.",
+					"start": 6136,
+					"end": 6307
 				}
 			]
 		},
@@ -371,25 +341,20 @@
 			"index": 11,
 			"question": "What do we need?",
 			"speaker": "Aryan",
-			"questionStart": 5806,
-			"answerStart": 5866,
-			"end": 6223,
-			"words": 26,
+			"questionStart": 6337,
+			"answerStart": 6397,
+			"end": 6767,
+			"words": 27,
 			"phrases": [
 				{
-					"text": "We need an audit and a market maker for Tesla,",
-					"start": 5875,
-					"end": 5997
+					"text": "We need a security audit, a trading partner for Tesla, and a partnership for USDG.",
+					"start": 6406,
+					"end": 6590
 				},
 				{
-					"text": "and a Global Dollar partnership for the vault.",
-					"start": 5997,
-					"end": 6095
-				},
-				{
-					"text": "StockReef reduces stock-backed debt before the market closes.",
-					"start": 6095,
-					"end": 6193
+					"text": "StockReef: borrow against your stocks, safely, even when the market is closed.",
+					"start": 6590,
+					"end": 6737
 				}
 			]
 		}
