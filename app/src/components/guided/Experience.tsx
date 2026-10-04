@@ -1,125 +1,87 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { Logo } from '@/components/brand/Logo'
-import { short } from '@/lib/format'
 import { chain, demoAccounts } from '@/lib/chain'
-import { stages, useGuided } from '@/lib/guided'
+import { short } from '@/lib/format'
+import { useGuided, type ScenarioAction } from '@/lib/guided'
 
 export type View = 'trade' | 'earn' | 'portfolio' | 'operations'
+const n = (x: number, d = 2) => x.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })
+const time = { open: 'Fri 13:00 ET', prep: 'Fri 15:15 ET', final: 'Fri 15:30 ET', closed: 'Fri 16:00 ET', wait: 'Mon 09:31 ET', recovery: 'Mon 09:35 ET', credit: 'Mon 09:45 ET' }
+const title = { open: 'Open market', prep: 'Before close', final: 'Final window', closed: 'Trading closed', wait: 'Reopening check', recovery: 'Recovery window', credit: 'Recovery complete' }
 
-const fmt = (n: number, digits = 2) => n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits })
-const scenarioClock = (label: string, tick: number) => {
-  const match = label.match(/^(\w+) (\d{2}):(\d{2}) ET$/)
-  if (!match) return label
-  const seconds = (Number(match[2]) * 3600 + Number(match[3]) * 60 + tick * 3) % 86400
-  return `${match[1]} ${String(Math.floor(seconds / 3600)).padStart(2, '0')}:${String(Math.floor(seconds / 60) % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')} ET`
+function Btn({ a, children, secondary = false, disabled = false }: { a: ScenarioAction; children: React.ReactNode; secondary?: boolean; disabled?: boolean }) {
+  const { send } = useGuided()
+  return <button type="button" onClick={() => send(a)} disabled={disabled} className={`rounded-md px-4 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-30 ${secondary ? 'border border-dk-line text-dk-ink hover:border-dk-muted' : 'bg-brand text-white hover:bg-[#a74f23]'}`}>{children}</button>
 }
+function Box({ label, value, note, warn = false }: { label: string; value: string; note?: string; warn?: boolean }) {
+  return <div className="rounded-lg border border-dk-line bg-dk-panel p-5"><div className="text-sm text-dk-muted">{label}</div><div className={`num mt-3 text-2xl font-semibold sm:text-3xl ${warn ? 'text-dk-warn' : ''}`}>{value}</div>{note && <p className="mt-2 text-xs text-dk-muted">{note}</p>}</div>
+}
+function Flag({ label, on }: { label: string; on: boolean }) { return <div className={`flex justify-between rounded border px-3 py-2 text-sm ${on ? 'border-dk-up/40 text-dk-up' : 'border-dk-line text-dk-muted'}`}>{label}<span aria-label={on ? 'Available' : 'Locked'}>{on ? '●' : '○'}</span></div> }
 
 export function GuidedExperience({ view: fixedView, embedded = false }: { view?: View; embedded?: boolean }) {
-  const [view, setView] = useState<View>(fixedView ?? 'trade')
-  const activeView = fixedView ?? view
-  const { stage, tick, price, debt, collateral, value, ltv, noBufferLtv, vaultCash, setStage, next } = useGuided()
+  const [view, setView] = useState<View>('trade')
+  const chosen = fixedView ?? view
+  const { state: s } = useGuided()
   const { address, isConnected } = useAccount()
-  const { connect, connectors, isPending } = useConnect()
+  const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
+  const Root = embedded ? 'div' : 'main'
+  return <div className={embedded ? 'w-full flex-1' : 'min-h-screen bg-dk-bg text-dk-ink'}>
+    {!embedded && <header className="border-b border-dk-line px-5 py-4"><div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4"><Link href="/"><Logo markClassName="h-7 w-auto text-brand" wordClassName="text-2xl" /></Link><span className="rounded border border-brand/50 px-2 py-1 text-xs text-[#e4a07a]">Guided scenario</span><nav aria-label="Views" className="flex flex-wrap gap-2">{(['trade','earn','portfolio','operations'] as const).map(v => <button key={v} type="button" onClick={() => setView(v)} className={`rounded px-3 py-2 text-sm ${chosen === v ? 'bg-dk-raised text-dk-up' : 'text-dk-muted'}`}>{v === 'earn' ? 'Lend' : v[0].toUpperCase() + v.slice(1)}</button>)}</nav><div className="ml-auto">{isConnected && address ? <button type="button" onClick={() => disconnect()} className="num text-dk-up">{short(address)} ✓</button> : <button type="button" disabled={!connectors.length} onClick={() => connect({ connector: connectors[0], chainId: chain.id })} className="rounded border border-dk-up px-3 py-2 text-sm text-dk-up disabled:opacity-40">Connect MetaMask</button>}</div></div></header>}
+    <Root className="mx-auto max-w-7xl px-5 py-8"><div className="mb-6 flex flex-wrap items-start justify-between gap-3"><div><p className="num text-xs font-semibold uppercase tracking-[.16em] text-[#e4a07a]">{s.clockOverride || time[s.phase]} · {title[s.phase]} · {s.route} route</p><h1 className="mt-2 text-3xl font-bold">{chosen === 'trade' ? 'TSLA-backed credit' : chosen === 'earn' ? 'USDG lender vault' : chosen === 'portfolio' ? 'Risk carried through the close' : 'Market controls'}</h1></div><span className="rounded border border-dk-sim/50 px-3 py-2 text-xs text-dk-sim">Modeled prices and balances</span></div>
+      <Controls />
+      {chosen === 'trade' && <Trade />}{chosen === 'earn' && <Earn />}{chosen === 'portfolio' && <Portfolio />}{chosen === 'operations' && <Operations />}
+    </Root>{!embedded && <footer className="border-t border-dk-line px-5 py-4 text-xs text-dk-muted">Guided actions are staged. MetaMask and explorer receipts appear only in live testnet mode.</footer>}
+  </div>
+}
+
+function Controls() {
+  const { state: s, ltv } = useGuided()
+  return <section className="mb-6 rounded-lg border border-dk-line bg-dk-panel p-5" aria-label="Guided walkthrough"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-semibold">Walkthrough</h2><p className="mt-1 text-xs text-dk-muted">Actions update one shared loan, lender vault, and history.</p></div><div className="flex gap-2"><Btn a="reset" secondary>Replay from zero</Btn><Btn a="funded" secondary>Load funded setup</Btn></div></div><div className="mt-5 flex flex-wrap gap-2">
+    {s.phase === 'open' && <>{s.lenderDeposited === 0 && <Btn a="deposit">Lend 85 USDG</Btn>}{s.lenderDeposited > 0 && s.collateral === 0 && <Btn a="collateral">Post 0.25 TSLA</Btn>}{s.collateral > 0 && s.debt === 0 && <Btn a="borrow">Borrow 72 USDG</Btn>}{s.debt > 0 && !s.buffer && <Btn a="fundBuffer">Fund 7 USDG buffer</Btn>}{s.buffer > 0 && !s.authorized && <Btn a="authorize">Authorize buffer</Btn>}{s.debt > 0 && <Btn a="prepare" secondary>Move to 15:15 ET</Btn>}</>}
+    {s.phase === 'prep' && <>{s.authorized && s.buffer > 0 && s.gate === 'usable' && <Btn a="buffer">Execute funded repayment</Btn>}{s.route === 'trim' && s.liquidatorCash > 0 && ltv > 71.667 && <Btn a="trim">Liquidator repays 15 USDG</Btn>}<Btn a="finalWindow" secondary>Move to 15:30 ET</Btn><Btn a="trimRoute" secondary>Try partial trim</Btn><Btn a="missedRoute" secondary>Try no execution</Btn></>}
+    {s.phase === 'final' && <><Btn a="close">Close trading</Btn>{s.authorized && s.buffer > 0 && s.gate === 'usable' && <Btn a="buffer" secondary>Execute buffer now</Btn>}{s.route === 'trim' && s.liquidatorCash > 0 && ltv > 70 && <Btn a="trim" secondary>Trim before close</Btn>}</>}{s.phase === 'closed' && <Btn a="reopen">Move to Monday opening</Btn>}
+    {s.phase === 'wait' && <>{s.gate === 'usable' && <Btn a="admit">{s.clockOverride ? "Accept fresh price after wait" : "Accept fresh price · 09:35"}</Btn>}{s.gate === 'invalid' && <Btn a="restorePrice">Publish valid price</Btn>}{s.gate === 'usable' && <Btn a="severeGap" secondary>Test severe gap · 250 USDG</Btn>}</>}
+    {s.phase === 'recovery' && <>{ltv > 70 && s.liquidatorCash > 0 && !s.recoveryTrimmed && <Btn a="recoveryTrim">Submit recovery trim</Btn>}<Btn a="credit" disabled={s.gate !== "usable" || !s.admitted}>{s.clockOverride ? "Complete recovery" : "Complete recovery · 09:45"}</Btn></>}
+    {s.phase === 'credit' && <Btn a="reset">Replay all controls</Btn>}
+  </div></section>
+}
+
+function Chart() {
+  const { state: s, tick } = useGuided()
+  const paused = s.phase === 'closed' || s.phase === 'wait' || s.gate !== 'usable'
+  const t = paused ? 0 : tick
+  const points = Array.from({ length: 61 }, (_, i) => s.price + Math.sin((i+t)*.34)*.95 + Math.sin((i+t)*1.12)*.36 - Math.sin((60+t)*.34)*.95 - Math.sin((60+t)*1.12)*.36)
+  const low = Math.min(...points)-.5, high = Math.max(...points)+.5
+  const path = points.map((p,i) => `${i ? 'L' : 'M'}${(i/60*920).toFixed(1)},${(170-(p-low)/(high-low)*135).toFixed(1)}`).join(' ')
+  return <section className="rounded-lg border border-dk-line bg-dk-panel p-5" aria-label="Modeled one-hour TSLA chart"><div className="flex items-start justify-between"><div><div className="flex items-center gap-2 text-sm text-dk-muted"><img src="/tesla-t.svg" alt="Tesla" className="h-5 w-5" />TSLA reference · 1 hour</div><div className="num mt-2 text-4xl font-semibold">{n(s.price)} <span className="text-lg text-dk-muted">USDG</span></div></div><span className="text-xs text-dk-sim">MODELED</span></div><svg viewBox="0 0 920 240" preserveAspectRatio="none" role="img" aria-label={`Modeled one-hour chart ending at ${n(s.price)} USDG. ${paused ? 'Paused.' : 'Moving every three seconds.'}`} className="mt-6 h-56 w-full">{[35,80,125,170].map(y => <line key={y} x1="0" x2="920" y1={y} y2={y} stroke="#30343a" />)}<path d={`${path} L920,171 L0,171 Z`} fill="#3ecf8e" fillOpacity=".08" /><path d={path} fill="none" stroke="#3ecf8e" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />{points.map((_,i) => { const h=8+Math.abs(Math.sin((i+t)*1.71)*23); return <rect key={i} x={i*15.1} y={236-h} width="6" height={h} fill="#c56430" fillOpacity=".38" /> })}</svg><div className="flex justify-between text-xs text-dk-muted"><span>60 minutes earlier</span><span>Modeled price and volume · scenario time</span><span>Now</span></div></section>
+}
+
+function Trade() {
+  const { state:s, value, ltv, borrowAllowed } = useGuided()
+  return <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]"><div className="space-y-5"><Chart /><div className="grid gap-3 sm:grid-cols-3"><Box label="TSLA collateral" value={`${n(s.collateral,5)} TSLA`} note={`${n(value)} USDG at scenario price`} /><Box label="Debt" value={`${n(s.debt)} USDG`} note="Principal, excluding interest" /><Box label="Loan to value" value={`${n(ltv,1)}%`} note={s.phase === 'wait' ? 'Indicative until price admission' : 'Debt divided by collateral value'} warn={ltv>70} /></div></div><section className="rounded-lg border border-dk-line bg-dk-panel p-6"><h2 className="text-xl font-semibold">Borrower controls</h2><div className="mt-5 grid gap-2"><Flag label="Borrow USDG" on={borrowAllowed} /><Flag label="Withdraw TSLA against debt" on={borrowAllowed} /><Flag label="Repay USDG" on={s.debt>0} /><Flag label="Add TSLA" on={s.debt>0} /></div>{s.debt>0 && <div className="mt-5 flex flex-wrap gap-2"><Btn a="repay" secondary disabled={s.borrowerWalletUsdg < 1}>Repay 1 USDG</Btn><Btn a="addCollateral" secondary disabled={s.borrowerWalletTsla < .01}>Add 0.01 TSLA</Btn></div>}<div className="mt-6 border-t border-dk-line pt-4 text-sm"><div className="flex justify-between"><span className="text-dk-muted">Borrower wallet</span><span className="num">{n(s.borrowerWalletUsdg)} USDG · {n(s.borrowerWalletTsla, 2)} TSLA</span></div><div className="mt-2 flex justify-between"><span className="text-dk-muted">Borrower escrow</span><span className="num">{n(s.buffer)} USDG</span></div><div className="mt-2 flex justify-between"><span className="text-dk-muted">Authorization</span><span>{s.authorized ? '65% target · 7 USDG cap' : 'None'}</span></div></div><p className="mt-6 text-sm text-dk-muted">{s.phase === 'prep' ? 'The threshold is falling. An executable buffer runs before any eligible partial trim.' : s.phase === 'closed' ? 'New credit is locked. Repayment and collateral deposits remain available.' : 'Actions depend on session, price quality, and the borrower limit.'}</p></section></div>
+}
+
+function Earn() {
+  const { state:s, recoverable, lenderAssets, shareValue, impaired, lenderOpen } = useGuided()
+  const window = (s.phase === 'open' || s.phase === 'credit') && s.gate === 'usable'
+  return <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]"><section className="rounded-lg border border-dk-line bg-dk-panel p-6"><div className="flex justify-between gap-3"><h2 className="text-xl font-semibold">Lender book</h2><span className={window ? 'text-dk-up' : 'text-dk-warn'}>{window ? 'Window open' : 'Window closed'}</span></div><div className="mt-7 grid gap-3 sm:grid-cols-3"><Box label="Lender assets" value={`${n(lenderAssets)} USDG`} note={s.phase === 'wait' ? 'Last accepted valuation, indicative' : 'Cash + recoverable loans'} /><Box label="Available cash" value={`${n(s.cash)} USDG`} note="Withdrawals draw on this" /><Box label="Recoverable loans" value={`${n(recoverable)} USDG`} note={`${n(s.debt)} USDG debt outstanding`} /></div><div className="mt-7 flex justify-between text-sm"><span className="text-dk-muted">Deposited</span><span className="num">{n(s.lenderDeposited)} USDG</span></div><div className="mt-3 flex h-4 overflow-hidden rounded-full bg-dk-raised"><div className="bg-dk-up" style={{width:`${lenderAssets?s.cash/lenderAssets*100:0}%`}} /><div className="bg-brand" style={{width:`${lenderAssets?recoverable/lenderAssets*100:0}%`}} /></div><p className="mt-5 text-sm text-dk-muted">Repayment moves value from a loan into vault cash. A shortfall reduces recoverable value and lender shares.</p></section><section className="rounded-lg border border-dk-line bg-dk-panel p-6"><h2 className="text-xl font-semibold">Lender position</h2><div className="num mt-7 text-5xl font-semibold">{n(shareValue,4)}</div><p className="mt-2 text-sm text-dk-muted">USDG value per 1 USDG initially deposited</p><div className="mt-7 grid grid-cols-2 gap-2"><Flag label="Deposit" on={lenderOpen} /><Flag label="Withdraw cash" on={window && s.cash>0} /></div><p className="mt-6 text-sm text-dk-muted">New lending stops when the book is impaired. Borrowing is capped at 90% utilization. Withdrawals use idle cash.</p>{impaired && <p className="mt-4 text-sm text-dk-warn">Known shortfall: {n(s.debt-recoverable)} USDG. New credit is blocked.</p>}</section></div>
+}
+
+function Portfolio() {
+  const { state:s, value, ltv, lenderAssets, recoverable } = useGuided()
+  const baseline = value ? 72/value*100 : 0
+  return <div className="space-y-5"><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><Box label="Debt carried" value={`${n(s.debt)} USDG`} /><Box label="TSLA retained" value={`${n(s.collateral,5)} TSLA`} note={`${n(value)} USDG at scenario price`} /><Box label="Loan to value" value={`${n(ltv,1)}%`} warn={ltv>70} /><Box label="No-action comparison" value={`${n(baseline,1)}%`} note="72 USDG debt at this price" /></div><div className="grid gap-5 lg:grid-cols-2"><section className="rounded-lg border border-dk-line bg-dk-panel p-6"><h2 className="text-xl font-semibold">What changed</h2><div className="mt-6 space-y-4 text-sm"><Row label="Debt" before="72 USDG" after={`${n(s.debt)} USDG`} /><Row label="Vault cash" before="13 USDG" after={`${n(s.cash)} USDG`} /><Row label="Borrower TSLA" before="0.25 TSLA" after={`${n(s.collateral,5)} TSLA`} /><Row label="Lender assets" before="85 USDG" after={`${n(lenderAssets)} USDG`} /></div>{s.liquidatorStock>0 && <p className="mt-6 border-t border-dk-line pt-4 text-sm text-dk-muted">Liquidator inventory: {n(s.liquidatorStock,5)} TSLA. Its sale value depends on the later stock price.</p>}</section><section className="rounded-lg border border-dk-line bg-dk-panel p-6"><h2 className="text-xl font-semibold">Scenario history</h2><ol className="mt-6 max-h-80 space-y-3 overflow-auto text-sm">{s.events.map((e,i) => <li key={`${i}-${e}`} className="flex gap-3 border-b border-dk-line pb-3"><span className="num text-dk-muted">{String(i+1).padStart(2,'0')}</span><span>{e}</span></li>)}</ol><p className="mt-4 text-xs text-dk-muted">Staged events. Confirmed testnet receipts appear only in the live view.</p></section></div><p className="text-sm text-dk-muted">Recoverable loans: {n(recoverable)} USDG. Share value uses cash plus recoverable loans.</p></div>
+}
+function Row({ label, before, after }: { label:string; before:string; after:string }) { return <div className="flex flex-wrap justify-between gap-2"><span className="text-dk-muted">{label}</span><span className="num">{before} <span className="mx-2 text-brand">→</span> {after}</span></div> }
+
+function Operations() {
+  const { state:s, ltv, value, impaired } = useGuided()
+  const threshold = s.phase === 'prep' ? 71.667 : s.phase === 'open' || s.phase === 'credit' ? 80 : 70
   const borrower = demoAccounts.find(a => a.label === 'Borrower')?.address
-  const Content = embedded ? 'div' : 'main'
-
-  return (
-    <div className={embedded ? 'w-full flex-1' : 'flex min-h-screen flex-col bg-dk-bg text-dk-ink'}>
-      {!embedded && <header className="border-b border-dk-line">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-5 py-4">
-          <Link href="/" aria-label="StockReef home"><Logo markClassName="h-7 w-auto text-brand" wordClassName="text-2xl" /></Link>
-          <span className="rounded border border-brand/60 px-2 py-1 text-xs font-semibold text-[#e4a07a]">Guided scenario</span>
-          <nav aria-label="Scenario views" className="order-3 flex w-full gap-1 overflow-x-auto md:order-2 md:ml-6 md:w-auto">
-            {(['trade', 'earn', 'portfolio', 'operations'] as const).map(v => <button key={v} type="button" onClick={() => setView(v)} aria-current={view === v ? 'page' : undefined} className={`whitespace-nowrap rounded px-3 py-2 text-sm font-medium ${view === v ? 'bg-dk-raised text-dk-up' : 'text-dk-muted hover:text-dk-ink'}`}>{v === 'earn' ? 'Lend' : v[0].toUpperCase() + v.slice(1)}</button>)}
-          </nav>
-          <div className="order-2 ml-auto flex items-center gap-3 md:order-3">
-            <span className="hidden text-xs text-dk-muted lg:inline">Robinhood Chain testnet</span>
-            {isConnected && address ? <button type="button" onClick={() => disconnect()} className="num rounded border border-dk-up px-3 py-2 text-sm text-dk-up" title="Disconnect wallet">{short(address)} ✓</button> : <button type="button" disabled={!connectors.length || isPending} onClick={() => connect({ connector: connectors[0], chainId: chain.id })} className="rounded border border-dk-up px-3 py-2 text-sm text-dk-up disabled:opacity-40">{isPending ? 'Connecting…' : 'Connect MetaMask'}</button>}
-          </div>
-        </div>
-      </header>}
-
-      <Content className="mx-auto w-full max-w-7xl flex-1 px-5 py-8">
-        <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="num text-xs font-semibold uppercase tracking-[0.18em] text-[#e4a07a]">{scenarioClock(stages[stage].time, tick)} · {stages[stage].label}</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{activeView === 'trade' ? 'TSLA-backed credit' : activeView === 'earn' ? 'USDG lender vault' : activeView === 'portfolio' ? 'Risk carried through the close' : 'Market controls'}</h1>
-          </div>
-          <button type="button" onClick={next} className="rounded-md bg-brand px-5 py-3 text-sm font-bold text-white hover:bg-[#a74f23] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">{stages[stage].action} →</button>
-        </div>
-
-        <div className="mb-7 grid gap-2 sm:grid-cols-5" aria-label="Scenario sequence">
-          {stages.map((s, i) => <button key={s.label} type="button" onClick={() => setStage(i)} aria-current={stage === i ? 'step' : undefined} className={`rounded-md border px-3 py-3 text-left text-sm ${i === stage ? 'border-brand bg-brand/10 text-dk-ink' : i < stage ? 'border-dk-up/40 bg-dk-up/5 text-dk-up' : 'border-dk-line text-dk-muted hover:border-dk-muted'}`}><span className="num mr-2 text-xs">0{i + 1}</span>{s.label}</button>)}
-        </div>
-
-        {activeView === 'trade' && <TradeScene stage={stage} tick={tick} price={price} debt={debt} collateral={collateral} value={value} ltv={ltv} borrower={borrower} />}
-        {activeView === 'earn' && <EarnScene stage={stage} debt={debt} cash={vaultCash} />}
-        {activeView === 'portfolio' && <PortfolioScene stage={stage} debt={debt} value={value} ltv={ltv} noBufferLtv={noBufferLtv} />}
-        {activeView === 'operations' && <OperationsScene stage={stage} borrower={borrower} />}
-      </Content>
-
-      {!embedded && <footer className="border-t border-dk-line px-5 py-4 text-xs text-dk-muted">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2"><span>Guided scenario: modeled prices and balances. Wallet connection and linked explorer receipts use Robinhood Chain testnet.</span><Link href="/evidence" className="text-dk-up hover:underline">Contract evidence ↗</Link></div>
-      </footer>}
-    </div>
-  )
-}
-
-function Box({ label, value, detail, tone = '' }: { label: string; value: string; detail?: string; tone?: string }) {
-  return <div className="rounded-lg border border-dk-line bg-dk-panel p-5"><div className="text-sm text-dk-muted">{label}</div><div className={`num mt-3 text-3xl font-semibold tracking-tight ${tone}`}>{value}</div>{detail && <div className="mt-2 text-xs text-dk-muted">{detail}</div>}</div>
-}
-
-function PriceChart({ stage, tick, price }: { stage: number; tick: number; price: number }) {
-  const closed = stage === 2
-  const points = useMemo(() => Array.from({ length: 61 }, (_, i) => {
-    const minute = i + (closed ? 0 : tick)
-    const drift = Math.sin(minute * 0.33) * 0.65 + Math.sin(minute * 0.91) * 0.28 + Math.cos(minute * 0.13) * 0.32
-    return price + drift - (Math.sin((60 + (closed ? 0 : tick)) * 0.33) * 0.65 + Math.sin((60 + (closed ? 0 : tick)) * 0.91) * 0.28 + Math.cos((60 + (closed ? 0 : tick)) * 0.13) * 0.32)
-  }), [closed, price, tick])
-  const min = Math.min(...points) - 0.5
-  const max = Math.max(...points) + 0.5
-  const path = points.map((v, i) => `${i ? 'L' : 'M'}${(i / 60 * 920).toFixed(1)},${(170 - (v - min) / (max - min) * 135).toFixed(1)}`).join(' ')
-  const bars = points.map((_, i) => 7 + Math.abs(Math.sin((i + tick) * 1.71) * 19 + Math.cos(i * 0.43) * 8))
-  return <section className="rounded-lg border border-dk-line bg-dk-panel p-5" aria-label="Modeled one-hour TSLA price and volume chart">
-    <div className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-2 text-sm text-dk-muted"><img src="/tesla-t.svg" alt="Tesla" className="h-5 w-5 object-contain" />TSLA / USDG · one-hour price path</div><div className="num mt-1 text-4xl font-semibold">{fmt(price)} <span className="text-lg text-dk-muted">USDG</span></div></div><span className="rounded border border-dk-sim/40 px-2 py-1 text-xs text-dk-sim">Modeled chart</span></div>
-    <svg viewBox="0 0 920 240" preserveAspectRatio="none" className="mt-7 h-56 w-full" role="img" aria-label={`Modeled one-hour price path ending at ${fmt(price)} USDG. ${closed ? 'The market is closed and the path is paused.' : 'The scenario path advances every three seconds.'}`}>
-      {[35, 80, 125, 170].map(y => <line key={y} x1="0" x2="920" y1={y} y2={y} stroke="#30343a" strokeWidth="1" />)}
-      <path d={`${path} L920,171 L0,171 Z`} fill="#3ecf8e" fillOpacity=".08" />
-      <path d={path} fill="none" stroke="#3ecf8e" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
-      {bars.map((h, i) => <rect key={i} x={i * 15.1} y={236 - h} width="6" height={h} fill="#c56430" fillOpacity=".38" />)}
-    </svg>
-    <div className="flex justify-between text-xs text-dk-muted"><span>60 minutes ago</span><span>{closed ? 'Last accepted before close' : 'Scenario clock moving'} · modeled volume{stage >= 3 ? ' · 2 Oct close reference' : ''}</span><span>Now</span></div>
-  </section>
-}
-
-function TradeScene({ stage, tick, price, debt, collateral, value, ltv, borrower }: { stage: number; tick: number; price: number; debt: number; collateral: number; value: number; ltv: number; borrower?: string }) {
-  const closed = stage === 2
-  const credit = stage === 4
-  return <div className="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(300px,1fr)]"><div className="space-y-5"><PriceChart stage={stage} tick={tick} price={price} /><div className="grid gap-3 sm:grid-cols-3"><Box label="Collateral" value={`${fmt(collateral)} TSLA`} detail={`${fmt(value)} USDG at scenario price`} /><Box label="Debt" value={`${fmt(debt)} USDG`} detail={stage >= 1 ? '7 USDG buffer applied' : '7 USDG buffer funded'} /><Box label="Loan to value" value={`${fmt(ltv, 1)}%`} tone={stage >= 3 ? 'text-dk-warn' : 'text-dk-up'} detail={stage >= 3 ? 'Reopening price scenario' : 'Fixed 400 USDG price'} /></div></div><div className="space-y-5"><section className="rounded-lg border border-dk-line bg-dk-panel p-6"><div className="flex items-center justify-between"><h2 className="text-xl font-semibold">Borrower actions</h2><span className={`text-xs font-bold ${closed ? 'text-dk-warn' : 'text-dk-up'}`}>{closed ? 'CLOSED' : stage === 3 ? 'RECOVERY' : 'OPEN'}</span></div><div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1"><Action label="Borrow USDG" active={credit} /><Action label="Withdraw TSLA" active={credit} /><Action label="Repay USDG" active /><Action label="Add TSLA" active /></div><div className="mt-6 border-t border-dk-line pt-5"><div className="flex justify-between text-sm"><span className="text-dk-muted">Borrower funded buffer</span><span className="num text-dk-up">{stage >= 1 ? '7 USDG repaid' : '7 USDG ready'}</span></div><div className="mt-3 h-2 rounded-full bg-dk-raised"><div className="h-2 rounded-full bg-dk-up transition-all duration-700" style={{ width: stage >= 1 ? '100%' : '48%' }} /></div></div></section><div className="rounded-lg border border-brand/40 bg-brand/5 p-5 text-sm text-dk-muted">{stage === 0 ? 'The funded buffer executes before an eligible liquidator trim.' : stage === 1 ? 'The borrower kept 0.25 TSLA while debt fell by 7 USDG.' : stage === 2 ? 'Repayment and TSLA deposits remain available during closure.' : stage === 3 ? 'Eligible recovery trims can be submitted before new credit returns.' : 'New credit is eligible after price admission and recovery.'}</div>{borrower && <Link href={`/trade?live=1&account=${borrower}`} className="inline-block text-sm font-semibold text-dk-up hover:underline">Open live borrower view ↗</Link>}</div></div>
-}
-
-function Action({ label, active }: { label: string; active: boolean }) {
-  return <div className={`flex items-center justify-between rounded-md border px-4 py-3 text-sm font-medium ${active ? 'border-dk-up/40 bg-dk-up/5 text-dk-up' : 'border-dk-line bg-dk-raised text-dk-faint'}`}><span>{label}</span><span aria-hidden="true">{active ? '↗' : '×'}</span></div>
-}
-
-function EarnScene({ stage, debt, cash }: { stage: number; debt: number; cash: number }) {
-  const open = stage === 4
-  return <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,1fr)]"><section className="rounded-lg border border-dk-line bg-dk-panel p-6"><div className="flex items-center justify-between"><h2 className="text-xl font-semibold">The lender book</h2><span className={open ? 'text-sm text-dk-up' : 'text-sm text-dk-warn'}>{open ? 'Lending window open' : 'Lending window closed'}</span></div><div className="mt-7 grid gap-3 sm:grid-cols-3"><Box label="Lender assets" value="85.00 USDG" detail="Cash plus recoverable loans" /><Box label="Available cash" value={`${fmt(cash)} USDG`} detail={stage >= 1 ? '+7 from funded repayment' : '85 deposited, 72 borrowed'} /><Box label="Loans outstanding" value={`${fmt(debt)} USDG`} detail={stage >= 1 ? 'Debt fell by 7' : 'One TSLA-backed borrower'} /></div><div className="mt-8"><div className="flex justify-between text-sm text-dk-muted"><span>Vault composition</span><span className="num">{fmt(debt / 85 * 100, 1)}% deployed</span></div><div className="mt-3 flex h-4 overflow-hidden rounded-full bg-dk-raised"><div className="bg-dk-up transition-all duration-700" style={{ width: `${cash / 85 * 100}%` }} /><div className="bg-brand transition-all duration-700" style={{ width: `${debt / 85 * 100}%` }} /></div><div className="mt-3 flex gap-6 text-xs text-dk-muted"><span><b className="text-dk-up">●</b> Available USDG</span><span><b className="text-brand">●</b> Recoverable loans</span></div></div></section><section className="rounded-lg border border-dk-line bg-dk-panel p-6"><h2 className="text-xl font-semibold">Lender position</h2><div className="num mt-8 text-5xl font-semibold">85.00 <span className="text-xl text-dk-muted">USDG</span></div><p className="mt-3 text-sm text-dk-muted">The buffer repayment moves 7 USDG from outstanding debt into vault cash. Total lender assets stay 85 USDG in this fixed-price scenario.</p><div className="mt-8 grid grid-cols-2 gap-3"><Action label="Deposit" active={open} /><Action label="Withdraw" active={open} /></div><Link href="/earn?live=1" className="mt-6 inline-block text-sm font-semibold text-dk-up hover:underline">Open live lender view ↗</Link></section></div>
-}
-
-function PortfolioScene({ stage, debt, value, ltv, noBufferLtv }: { stage: number; debt: number; value: number; ltv: number; noBufferLtv: number }) {
-  return <div className="space-y-5"><div className="grid gap-3 md:grid-cols-4"><Box label="Debt carried" value={`${fmt(debt)} USDG`} detail={stage >= 1 ? '7 USDG repaid before close' : 'Before buffer execution'} /><Box label="TSLA kept" value="0.25 TSLA" detail={`${fmt(value)} USDG at scenario price`} /><Box label="LTV now" value={`${fmt(ltv, 1)}%`} tone="text-dk-up" detail="Debt divided by collateral value" /><Box label="Without the buffer" value={`${fmt(noBufferLtv, 1)}%`} tone={stage >= 3 ? 'text-dk-warn' : ''} detail="Same price and collateral, 72 USDG debt" /></div><div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]"><section className="rounded-lg border border-dk-line bg-dk-panel p-6"><h2 className="text-xl font-semibold">What the control changed</h2><div className="mt-7 space-y-5"><Comparison label="Debt before the close" before="72 USDG" after={stage >= 1 ? '65 USDG' : '72 USDG'} /><Comparison label="Borrower TSLA held" before="0.25 TSLA" after="0.25 TSLA" /><Comparison label="LTV at reopening price" before={stage >= 3 ? `${fmt(noBufferLtv, 1)}%` : 'Pending'} after={stage >= 3 ? `${fmt(ltv, 1)}%` : 'Pending'} /></div></section><section className="rounded-lg border border-dk-line bg-dk-panel p-6"><h2 className="text-xl font-semibold">Scenario history</h2><ol className="mt-7 space-y-5 text-sm"><li className="flex justify-between gap-3"><span>USDG lent; TSLA posted</span><span className="num text-dk-muted">85 / 0.25</span></li><li className="flex justify-between gap-3 border-t border-dk-line pt-5"><span>Borrowed against TSLA</span><span className="num text-dk-muted">72 USDG</span></li>{stage >= 1 && <li className="flex justify-between gap-3 border-t border-dk-line pt-5"><span>Funded buffer applied</span><span className="num text-dk-up">7 USDG</span></li>}{stage >= 2 && <li className="flex justify-between gap-3 border-t border-dk-line pt-5"><span>New credit locked</span><span className="text-dk-warn">Closed</span></li>}{stage >= 3 && <li className="flex justify-between gap-3 border-t border-dk-line pt-5"><span>Reopening price scenario</span><span className="num text-dk-up">{fmt(value / 0.25)}</span></li>}</ol><p className="mt-6 border-t border-dk-line pt-4 text-xs text-dk-muted">Modeled sequence. Confirmed transactions are shown in the live app and Evidence.</p></section></div></div>
-}
-
-function Comparison({ label, before, after }: { label: string; before: string; after: string }) {
-  return <div><div className="text-sm text-dk-muted">{label}</div><div className="num mt-2 flex items-center gap-4 text-xl font-semibold"><span className="text-dk-faint">{before}</span><span className="text-brand">→</span><span className="text-dk-up">{after}</span></div></div>
-}
-
-function OperationsScene({ stage, borrower }: { stage: number; borrower?: string }) {
-  return <div className="grid gap-5 lg:grid-cols-3"><Box label="Session" value={stages[stage].label} tone={stage === 2 || stage === 3 ? 'text-dk-warn' : 'text-dk-up'} detail={stages[stage].time} /><Box label="Funded repayment" value={stage === 0 ? '7 USDG ready' : '7 USDG applied'} tone="text-dk-up" detail="Authorized borrower USDG executes first" /><Box label="New credit" value={stage === 4 ? 'Eligible' : stage === 0 ? 'Restricted' : 'Locked'} tone={stage === 4 ? 'text-dk-up' : 'text-dk-warn'} detail={stage === 3 ? 'Recovery interval in progress' : 'Subject to contract checks'} /><section className="rounded-lg border border-dk-line bg-dk-panel p-6 lg:col-span-2"><h2 className="text-xl font-semibold">Action order</h2><div className="mt-6 grid gap-3 sm:grid-cols-3"><Action label="Funded buffer first" active={stage === 0} /><Action label="Eligible partial trim" active={stage === 3} /><Action label="Fresh price before credit" active={stage >= 3} /></div><p className="mt-6 text-sm text-dk-muted">A buffer or trim changes real debt only when a transaction is submitted and confirmed. The controls here advance a modeled presentation.</p></section><section className="rounded-lg border border-brand/40 bg-brand/5 p-6"><h2 className="text-xl font-semibold">Real contract action</h2><p className="mt-4 text-sm text-dk-muted">The public borrower has a funded buffer on Robinhood Chain testnet. Open the live view when the contract reports it executable, connect MetaMask, and sign the transaction.</p>{borrower && <Link href={`/trade?live=1&account=${borrower}`} className="mt-6 inline-block rounded-md border border-dk-up px-4 py-2 text-sm font-semibold text-dk-up hover:bg-dk-up/10">Open live buffer action ↗</Link>}</section></div>
+  return <div className="space-y-5"><div className="grid gap-3 sm:grid-cols-3"><Box label="Stock price status" value={s.gate === 'stopped' ? 'Guardian stop' : s.gate === 'invalid' ? 'Rejected' : s.phase === 'wait' && !s.admitted ? 'Awaiting admission' : s.phase === 'closed' ? 'Indicative only' : 'Accepted'} note="120-second feed age, timestamps and answer bounds; faucet TSLA issuer pause flag is not required" warn={s.gate!=='usable'} /><Box label="Loans needing action" value={s.debt && ltv>threshold ? '1' : '0'} note={`LTV ${n(ltv,1)}% · threshold ${n(threshold,1)}%`} /><Box label="Missed execution" value={s.missed ? '1 loan' : '0 loans'} note="A clock change never repays debt" warn={s.missed} /></div><div className="grid gap-5 lg:grid-cols-2"><section className="rounded-lg border border-dk-line bg-dk-panel p-6"><h2 className="text-xl font-semibold">Price and guardian</h2><p className="mt-4 text-sm text-dk-muted">Invalid prices stop price-dependent actions. Manual repayment and collateral deposits remain available. Guardian resume requires 24 hours plus recovery checks.</p><div className="mt-5 flex flex-wrap gap-2"><Btn a="invalidPrice" secondary disabled={s.gate!=='usable' || !['prep','final','wait','recovery'].includes(s.phase)}>Reject price</Btn><Btn a="restorePrice" secondary disabled={s.gate!=='invalid'}>Publish valid price</Btn><Btn a="stop" secondary disabled={s.gate==='stopped'}>Guardian stop</Btn><Btn a="resume" secondary disabled={s.gate!=='stopped'}>Model 24h wait and resume</Btn></div></section><section className="rounded-lg border border-dk-line bg-dk-panel p-6"><h2 className="text-xl font-semibold">Capital and loss</h2><div className="mt-5 space-y-3 text-sm"><Row label="Liquidator USDG" before="15" after={n(s.liquidatorCash)} /><Row label="TSLA inventory" before="0" after={n(s.liquidatorStock,5)} /><Row label="Collateral value" before="100" after={n(value)} /></div><p className="mt-5 text-sm text-dk-muted">Scheduling trim: 2% stock bonus. Recovery trim: 5%. The liquidator supplies USDG and bears stock inventory risk.</p>{impaired && <p className="mt-3 text-sm text-dk-warn">Lender book impaired. New borrowing and deposits are blocked.</p>}</section></div><section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Other enforced controls"><Box label="Ordinary overnight" value="77% threshold" note="72% trim target" /><Box label="Weekend or holiday" value="70% threshold" note="65% trim target" /><Box label="Borrow utilization cap" value="90%" note="Contract enforced" /><Box label="Calendar coverage" value="Session based" note="Holidays, early closes, daylight saving" /></section><details className="rounded-lg border border-dk-line bg-dk-panel p-5 text-sm"><summary className="cursor-pointer font-semibold">Additional contract limits</summary><div className="mt-4 grid gap-3 text-dk-muted sm:grid-cols-2"><p>Borrower slots: 32 active accounts. Minimum loan: 5 USDG.</p><p>Borrower debt accrues at 10% annually. This is not a lender APY.</p><p>Outside loaded calendar coverage, price-dependent actions stop. Wind-down withdrawals use available cash.</p><p>The Robinhood testnet setup uses a mock TSLA price feed, a 1 USDG = 1 USD reference, and a demo clock.</p></div></details><div className="rounded-lg border border-brand/30 bg-brand/5 p-5 text-sm text-dk-muted">These controls model the contract policy. A real MetaMask confirmation and explorer receipt require the live testnet view. {borrower && <Link href={`/trade?live=1&account=${borrower}`} className="font-semibold text-dk-up hover:underline">Open live buffer action ↗</Link>}</div></div>
 }
