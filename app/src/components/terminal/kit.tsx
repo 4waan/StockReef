@@ -170,10 +170,12 @@ export function TxLink({ hash, children }: { hash: string; children?: ReactNode 
 export function TxStatusLine({ status }: { status?: TxStatus }) {
   if (!status || status.state === 'idle') return null
   const text = {
-    approving: 'Approving the token in your wallet…',
-    pending: 'Waiting for confirmation…',
+    checking: 'Checking the transaction against the chain…',
+    approving: 'Approve this exact amount in your wallet…',
+    pending: 'Sign in your wallet, then waiting for confirmation…',
     mined: 'Confirmed',
-    failed: `Failed: ${status.error ?? 'reverted'}`,
+    rejected: 'Cancelled in the wallet',
+    failed: `Not sent: ${status.error ?? 'reverted'}`,
   }[status.state]
   const tone = status.state === 'failed' ? 'text-dk-down' : status.state === 'mined' ? 'text-dk-up' : 'text-dk-muted'
   return (

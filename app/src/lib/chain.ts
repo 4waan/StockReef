@@ -8,6 +8,7 @@ export const robinhoodTestnet = defineChain({
   nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
   rpcUrls: { default: { http: ['https://rpc.testnet.chain.robinhood.com'] } },
   blockExplorers: { default: { name: 'Blockscout', url: 'https://explorer.testnet.chain.robinhood.com' } },
+  contracts: { multicall3: { address: '0xcA11bde05977b3631167028862bE2a173976CA11' } },
   testnet: true,
 })
 
@@ -21,6 +22,7 @@ export interface Contracts {
   escrow: Address
   gate: Address
   policy: Address
+  calendar: Address
   demoController: Address
   loanToken: Address
   collateralToken: Address
@@ -35,6 +37,7 @@ export const contracts: Contracts | undefined = raw
       escrow: raw.escrow as Address,
       gate: raw.gate as Address,
       policy: raw.policy as Address,
+      calendar: raw.calendar as Address,
       demoController: raw.demoController as Address,
       loanToken: raw.loanToken as Address,
       collateralToken: raw.collateralToken as Address,
@@ -47,6 +50,11 @@ export const ZERO = '0x0000000000000000000000000000000000000000' as Address
 export function explorerTx(hash: string): string | undefined {
   const url = chain.blockExplorers?.default.url
   return url ? `${url}/tx/${hash}` : undefined
+}
+
+export function explorerAddress(address: string): string | undefined {
+  const url = chain.blockExplorers?.default.url
+  return url ? `${url}/address/${address}` : undefined
 }
 
 /** Public role accounts. Override with NEXT_PUBLIC_DEMO_ACCOUNTS="Borrower:0x..,Lender:0x..". */

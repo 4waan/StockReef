@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { maxUint256, type Address } from 'viem'
+import { BaseError, ContractFunctionRevertedError, UserRejectedRequestError, type Address } from 'viem'
 import { usePublicClient, useReadContract, useWriteContract, useAccount } from 'wagmi'
 import { lensAbi, erc20Abi, marketAbi, escrowAbi, policyAbi, gateAbi, demoAbi } from '@/generated/abi'
 import { chain, contracts, ZERO } from './chain'
@@ -66,13 +66,34 @@ export function useProtocolNow(snapshotTime: bigint | undefined): number | undef
   return now
 }
 
-export type TxStatus = { state: 'idle' | 'approving' | 'pending' | 'mined' | 'failed'; hash?: string; error?: string }
+export type TxStatus = {
+  state: 'idle' | 'checking' | 'approving' | 'pending' | 'mined' | 'failed' | 'rejected'
+  hash?: string
+  approvalHash?: string
+  error?: string
+}
+
+/** A readable reason from a viem error: the contract's custom error name and arguments when there is one. */
+export function revertReason(error: unknown): string {
+  const e = error as BaseError
+  const reverted = typeof e?.walk === 'function' ? (e.walk(x => x instanceof ContractFunctionRevertedError) as ContractFunctionRevertedError | null) : null
+  if (reverted?.data?.errorName) {
+    const args = (reverted.data.args ?? []).map(a => String(a)).join(', ')
+    return `${reverted.data.errorName}${args ? `(${args})` : ''}`
+  }
+  if (reverted?.reason) return reverted.reason
+  const m = error as { shortMessage?: string; message?: string }
+  return (m.shortMessage ?? m.message ?? 'failed').split('\n')[0]
+}
 
 /**
- * Sends a contract call (after an approval when `approve` is given), waits for the receipt and refreshes
- * every read so the screen shows the result immediately.
+ * Sends a contract call safely and waits for the receipt, then refreshes every read.
+ *
+ * Wallet safety (why MetaMask no longer warns): a token approval, when needed, is for the exact amount of this
+ * action, never unlimited; and the call is simulated against the chain before the wallet opens, so the wallet is
+ * never asked to sign a transaction that would revert. A failed check shows the contract's own reason instead.
  */
-export function useTx() {
+export function useTx(onMined?: (hash: string) => void) {
   const client = usePublicClient({ chainId: chain.id })
   const queryClient = useQueryClient()
   const { address } = useAccount()
@@ -83,32 +104,32 @@ export function useTx() {
     call: Parameters<typeof writeContractAsync>[0],
     approve?: { token: Address; spender: Address; amount: bigint },
   ) {
+    let approvalHash: string | undefined
     try {
-      if (approve && address && client) {
-        const allowance = (await client.readContract({
-          address: approve.token,
-          abi: erc20Abi,
-          functionName: 'allowance',
-          args: [address, approve.spender],
-        })) as bigint
+      if (!client || !address) throw new Error('Connect a wallet first')
+      if (approve) {
+        const allowance = (await client.readContract({ address: approve.token, abi: erc20Abi, functionName: 'allowance', args: [address, approve.spender] })) as bigint
         if (allowance < approve.amount) {
           setStatus({ state: 'approving' })
-          const h = await writeContractAsync({
-            address: approve.token,
-            abi: erc20Abi,
-            functionName: 'approve',
-            args: [approve.spender, maxUint256],
-          })
-          await client.waitForTransactionReceipt({ hash: h })
+          const approveCall = { address: approve.token, abi: erc20Abi, functionName: 'approve', args: [approve.spender, approve.amount] } as const
+          await client.simulateContract({ ...approveCall, account: address })
+          const h = await writeContractAsync(approveCall)
+          approvalHash = h
+          const r = await client.waitForTransactionReceipt({ hash: h })
+          if (r.status !== 'success') throw new Error('The approval reverted')
         }
       }
-      setStatus({ state: 'pending' })
+      setStatus({ state: 'checking', approvalHash })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await client.simulateContract({ ...(call as any), account: address })
+      setStatus({ state: 'pending', approvalHash })
       const hash = await writeContractAsync(call)
-      const receipt = await client!.waitForTransactionReceipt({ hash })
-      setStatus({ state: receipt.status === 'success' ? 'mined' : 'failed', hash })
+      const receipt = await client.waitForTransactionReceipt({ hash })
+      setStatus({ state: receipt.status === 'success' ? 'mined' : 'failed', hash, approvalHash })
+      if (receipt.status === 'success') onMined?.(hash)
     } catch (error) {
-      const e = error as { shortMessage?: string; message?: string }
-      setStatus({ state: 'failed', error: (e.shortMessage ?? e.message ?? 'failed').split('\n')[0] })
+      const rejected = (error as BaseError)?.walk?.(x => x instanceof UserRejectedRequestError)
+      setStatus(rejected ? { state: 'rejected', approvalHash } : { state: 'failed', error: revertReason(error), approvalHash })
     } finally {
       await queryClient.invalidateQueries()
     }

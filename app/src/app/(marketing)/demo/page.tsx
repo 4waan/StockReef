@@ -1,7 +1,6 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-import { GuidedExperience } from '@/components/guided/Experience'
-
+/** The guided demo now runs inside the app: the terminal with the session bar. */
 export default function DemoPage() {
-  return <GuidedExperience />
+  redirect('/trade')
 }

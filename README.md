@@ -8,7 +8,7 @@
 
 StockReef helps reduce TSLA-backed debt before market closures and controls when new USDG credit can resume.
 
-**[Open StockReef](https://stock-reef.vercel.app/)** · **[Guided demo](https://stock-reef.vercel.app/demo)** · **[How risk is controlled](#how-stockreef-controls-risk)** · **[Friday example](#a-friday-close-in-numbers)** · **[Run locally](#run-locally)**
+**[Open StockReef](https://stock-reef.vercel.app/)** · **[Demo video script](docs/DEMO_VIDEO_SCRIPT.md)** · **[How risk is controlled](#how-stockreef-controls-risk)** · **[Friday example](#a-friday-close-in-numbers)** · **[Run locally](#run-locally)**
 
 `Robinhood Chain 46630` · `Paxos USDG` · `Faucet TSLA` · `Operator-set price and clock`
 
@@ -20,7 +20,7 @@ StockReef helps reduce TSLA-backed debt before market closures and controls when
 
 The current implementation includes a TSLA/USDG lending market, a keeper, and a web app. The keeper submits permissionless transactions; the contracts enforce the rules on every call.
 
-Trade, Earn, Portfolio, and Operations open on a coordinated guided scenario. Its moving price, balances, and session clock are modeled for the presentation. Use **Live testnet** in the app header to inspect deployed contract state, connect MetaMask, submit transactions, and open real explorer receipts. The public landing page's Market now panel also reads the contracts.
+The app runs one scripted weekend: a Friday close and the Monday reopening, with TSLA moving from 400.00 to a 376.00 reopening price. Only the clock and the TSLA price are scripted. Balances, collateral value, LTV, thresholds, borrow limits, trim and buffer amounts, and lender valuation come from the deployed contracts at each scripted step. MetaMask signing, confirmations and explorer receipts are real. See [what is scripted and what is live](#the-scripted-session).
 
 ```mermaid
 flowchart LR
@@ -198,15 +198,49 @@ RPC_URL=http://127.0.0.1:8545 npm run keeper -- once
 
 The command above simulates only. For execution, configure `KEEPER_KEY` and a USDG-funded `LIQUIDATOR_KEY` from the [environment template](ops/keeper/.env.example), then run `npm run keeper -- watch --execute`. Load those environment variables in the shell that runs the keeper; its entry point does not automatically load `.env` files. Use test accounts locally; never commit keys.
 
-The app opens on a landing page and has five views:
+The app opens on a landing page and has six views, all built around the borrower's current position:
 
 | View | What it does |
 |---|---|
-| **Trade** (`/trade`) | Borrow, repay, add or withdraw collateral, and fund or authorize a repayment buffer. Charts the loan's LTV against the falling threshold for the session, with each execution marked. |
-| **Earn** (`/earn`) | Lender deposits (slippage-checked), withdrawals and redemptions, the lender window, and the book valuation. |
-| **Portfolio** (`/portfolio`) | One account's loan, buffer, lending, wallet, interest accrued, and full history. |
-| **Operations** (`/operations`) | Actions ready, loans needing recovery, stock price status, the guardian stop, and operator controls. |
+| **Trade** (`/trade`) | Trading terminal. The market bar sits above the risk tiles (closure plan, falling threshold, funded buffer, partial liquidation). The main area charts LTV against the contract's threshold schedule, with confirmed transactions marked. The action ticket on the right covers repay, collateral, borrow and buffer, each with a review before signing. Detail panels below include permissionless buffer execution and liquidator trims. |
+| **Portfolio** (`/portfolio`) | Position health dashboard: collateral, debt, LTV against the threshold, and one card per control. The controls are debt reduction, falling threshold, funded buffer, partial liquidation, closed-session protection, controlled reopening and lender loss accounting. |
+| **TSLA** (`/markets/tsla`) | Asset page: company, ticker, token contract and price index, the session chart, market parameters, and the limit schedule by phase. |
+| **Lend** (`/earn`) | Lender book: cash, recoverable loans and recognized shortfall, share value, a what-if price, per-loan recoverable value, and slippage-checked deposits and withdrawals. |
+| **Operations** (`/operations`) | The testnet as it is now: actions ready, loans needing recovery, stock price status, the guardian stop, and operator controls. |
 | **Evidence** (`/evidence`) | The worked example, the scripted closure sequence, the scenario harness, and the chain 46630 deployment. |
+
+### The scripted session
+
+The session bar at the bottom of Trade, Portfolio, TSLA and Lend moves through seven steps: Fri 13:00 open, 15:15 preparation, 15:30 final window, 16:00 close, Mon 09:31 reopening wait, 09:35 price admitted, and 09:45 credit returns. Use **Next step** or the arrow keys; **H** hides the bar for recording, and `?step=prep` links to a step.
+
+| Scripted ([`app/src/lib/script.ts`](app/src/lib/script.ts)) | Live (deployed contracts, read in [`app/src/lib/scenario.ts`](app/src/lib/scenario.ts)) |
+|---|---|
+| One TSLA/USDG market | Account and market balances, buffer escrow and plan |
+| TSLA path 400.00 → 398.40 → 397.80 → 397.20, reopening at 376.00 | Collateral value (`PriceGate.valueOf`) and LTV |
+| Buttons and keys that advance the session phase | Thresholds, borrow limits, targets (`SessionRiskPolicy.ltAt`, `borrowLimit`, constants) |
+| Funded public demo accounts | Trim and buffer amounts (`quoteTrim`, `executableAmount`) at the scripted snapshot |
+| The 376.00 reopening price | Admission and recovery timing (gate rules; `PriceGate.refresh` once the testnet is aligned) |
+| Fixed chart observations matching those prices | Wallet connection, signing, confirmations and explorer receipts, marked on the chart |
+
+The weekend is the first Friday on the deployed calendar whose closure lasts at least 24 hours. With the testnet aligned to a step, `npm run check-scenario -- <step>` compares every field with `StockReefLens` and exits non-zero on any difference.
+
+### Wallet safety
+
+- **Exact approvals only.** Each token approval is for the exact amount of the action, never an unlimited allowance.
+- **Simulated before signing.** Every transaction is simulated against the chain before the wallet opens. A call that would revert shows the contract's reason (for example `BufferPending`) and never reaches MetaMask.
+- **Verify the contracts.** Run [`ops/verify-46630.sh`](ops/verify-46630.sh) once from a full checkout to verify them on Blockscout, so wallets and the explorer show named, readable calls.
+
+### Preparing the testnet for a demo
+
+From `app/`, with role keys in the ignored `.env.roles`:
+
+```bash
+npm run demo -- prepare          # Friday 13:00 on the next weekend, fresh price, borrower reset to 72 USDG debt and a funded 7 USDG plan
+npm run demo -- step prep        # move the testnet to a scripted step (prep, final, closed, wait, admit, credit)
+npm run demo -- price --watch    # keep the 120-second price window fresh while recording
+```
+
+Add `--fork` to rehearse on `anvil --fork-url https://rpc.testnet.chain.robinhood.com --auto-impersonate` without keys. The [demo video script](docs/DEMO_VIDEO_SCRIPT.md) gives the pitch and demo beat by beat.
 
 The app shows a [public borrower, lender, and liquidator](evidence/public-market-46630.json) in its profile menu. A visitor can inspect their on-chain balances and positions without connecting a wallet. Set `NEXT_PUBLIC_DEMO_ACCOUNTS` to override the role labels and addresses. Moving the operator-set clock does not itself execute buffers or trims; the keeper or a caller must submit those transactions.
 

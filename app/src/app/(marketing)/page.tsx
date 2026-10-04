@@ -28,7 +28,7 @@ export default function Landing() {
             <Link href="/demo" className="self-center px-3 py-3 text-sm font-semibold text-brand underline underline-offset-4 hover:text-charcoal">Guided demo ↗</Link>
           </div>
           <p className="mt-6 max-w-3xl text-sm leading-relaxed text-charcoal/65">
-            On Robinhood Chain testnet, the market uses Paxos USDG and faucet TSLA. The guided app views show a coordinated example. Switch to Live testnet inside the app for deployed contract balances, transactions, and MetaMask actions.
+            On Robinhood Chain testnet, the market uses Paxos USDG and faucet TSLA. The app runs a scripted Friday close and Monday reopening for the TSLA price and clock; balances, limits, amounts and every transaction come from the deployed contracts.
           </p>
         </section>
 
@@ -65,7 +65,7 @@ export default function Landing() {
           <h2 className="text-[clamp(36px,6vw,68px)] font-extrabold leading-[1.02] tracking-tight">Use the market</h2>
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             <UseCard title="Borrow" body="Post TSLA, borrow USDG, and see the repayment needed before the close." href="/trade" action="Open Trade" />
-            <UseCard title="Lend" body="Deposit USDG and see vault cash, outstanding loans, and your share value." href="/earn" action="Open Earn" />
+            <UseCard title="Lend" body="Deposit USDG and see vault cash, outstanding loans, and your share value." href="/earn" action="Open Lend" />
             <UseCard title="Operate" body="Review eligible repayments, trims, price status, and transaction receipts." href="/operations" action="Open Operations" />
           </div>
         </section>
@@ -78,7 +78,7 @@ export default function Landing() {
             <p className="mt-3 max-w-sm">TSLA-backed USDG lending on Robinhood Chain 46630. The stock price and market clock are set by the operator.</p>
           </div>
           <nav aria-label="Footer" className="flex max-w-xl flex-wrap gap-x-5 gap-y-2 font-medium">
-            <Link href="/trade">Trade</Link><Link href="/earn">Earn</Link><Link href="/portfolio">Portfolio</Link><Link href="/operations">Operations</Link><Link href="/evidence">Evidence</Link>
+            <Link href="/trade">Trade</Link><Link href="/portfolio">Portfolio</Link><Link href="/markets/tsla">TSLA</Link><Link href="/earn">Lend</Link><Link href="/operations">Operations</Link><Link href="/evidence">Evidence</Link>
             <a href="https://github.com/4waan/StockReef" target="_blank" rel="noreferrer">GitHub ↗</a>
           </nav>
         </div>

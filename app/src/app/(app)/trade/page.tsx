@@ -1,10 +1,5 @@
-'use client'
-
-import { useSearchParams } from 'next/navigation'
-import { GuidedExperience } from '@/components/guided/Experience'
-import LiveTradePage from '@/components/live/TradePage'
+import { TerminalPage } from '@/components/reef/Terminal'
 
 export default function TradePage() {
-  const live = useSearchParams().get('live') === '1'
-  return live ? <LiveTradePage /> : <GuidedExperience view="trade" embedded />
+  return <TerminalPage />
 }
