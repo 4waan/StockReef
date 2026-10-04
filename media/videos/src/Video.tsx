@@ -215,7 +215,7 @@ const Captions: React.FC<{segment: Segment | null}> = ({segment}) => {
 	);
 };
 
-const Teleprompter: React.FC<{timeline: Timeline; segment: Segment | null}> = ({timeline, segment}) => {
+export const Teleprompter: React.FC<{timeline: Timeline; segment: Segment | null; clock?: React.CSSProperties}> = ({timeline, segment, clock: clockStyle}) => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
 	const clock = `${Math.floor(frame / fps / 60)}:${String(Math.floor((frame / fps) % 60)).padStart(2, '0')}.${Math.floor(((frame % fps) / fps) * 10)}`;
@@ -226,7 +226,7 @@ const Teleprompter: React.FC<{timeline: Timeline; segment: Segment | null}> = ({
 
 	return (
 		<>
-			<div style={{position: 'absolute', right: 72, top: 112, fontFamily: F.mono, fontSize: 30, color: C.amber}}>{clock}</div>
+			<div style={{position: 'absolute', right: 72, top: 112, fontFamily: F.mono, fontSize: 30, color: C.amber, ...clockStyle}}>{clock}</div>
 			<div
 				style={{
 					position: 'absolute',

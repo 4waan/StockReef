@@ -1,7 +1,7 @@
 import React from 'react';
 import {AbsoluteFill, Audio, Easing, Img, interpolate, OffthreadVideo, Sequence, staticFile, useCurrentFrame} from 'remotion';
 import timeline from './timeline-demo.json';
-import {Backdrop} from './Video';
+import {Backdrop, Teleprompter, type Timeline as GuideTimeline} from './Video';
 import {Outro} from './Pitch';
 import {C, ease, F, rise, useFonts} from './theme';
 import landing from '../public/rec/landing.json';
@@ -290,26 +290,18 @@ const Caption: React.FC<{ch: Chapter}> = ({ch}) => {
 	);
 };
 
-/** Guide render: the line to read now, the next one, and the timecode, for recording the voice-over. */
-const Prompter: React.FC<{ch: Chapter}> = ({ch}) => {
+// The guide render uses the same teleprompter as the pitch (and the Lemma videos): a countdown to each chapter's
+// first line, then the chapter's lines with the current one highlighted, and the timecode.
+const GUIDE = {
+	...tl,
+	introEnd: 0,
+	segments: tl.segments.map((ch, index) => ({...ch, index, words: 0, answerStart: ch.phrases[0]?.start ?? ch.questionStart})),
+} as unknown as GuideTimeline;
+
+const Guide: React.FC = () => {
 	const f = useCurrentFrame();
-	const abs = ch.questionStart + f;
-	const i = ch.phrases.findIndex((x) => abs < x.end);
-	const cur = ch.phrases[i];
-	const next = ch.phrases[i + 1];
-	const tc = `${Math.floor(abs / FPS / 60)}:${String(Math.floor((abs / FPS) % 60)).padStart(2, '0')}`;
-	return (
-		<div style={{position: 'absolute', left: 60, right: 60, bottom: 24, padding: '20px 30px', borderRadius: 18, background: `${C.surface}f5`, border: `3px solid ${cur && abs >= cur.start ? C.red : C.amber}`}}>
-			<div style={{display: 'flex', gap: 20, fontFamily: F.mono, fontSize: 24, color: C.muted}}>
-				<span style={{color: C.text, fontWeight: 700}}>{tc}</span>
-				<span>{ch.speaker}</span>
-				<span>{ch.id}</span>
-				<span>{cur && abs < cur.start ? `starts in ${((cur.start - abs) / FPS).toFixed(1)} s` : 'speak'}</span>
-			</div>
-			<div style={{fontFamily: F.head, fontSize: 40, marginTop: 8, color: C.text}}>{cur?.text ?? ''}</div>
-			<div style={{fontFamily: F.head, fontSize: 28, marginTop: 6, color: C.faint}}>{next?.text ?? ''}</div>
-		</div>
-	);
+	const segment = GUIDE.segments.find((s) => f >= s.questionStart && f < s.end) ?? null;
+	return <Teleprompter timeline={GUIDE} segment={segment} clock={{right: 150, top: 66, fontSize: 24}} />;
 };
 
 const GRAPHICS: Partial<Record<string, React.FC<{ch: Chapter}>>> = {data: DataScene, tests: TestsScene, next: NextScene};
@@ -328,10 +320,11 @@ export const Demo: React.FC<DemoProps> = ({guide, voices}) => {
 						{G ? <G ch={ch} /> : <AppWindow ch={ch} />}
 						{G ? null : <TxToasts ch={ch} />}
 						<Header ch={ch} index={index} />
-						{guide ? <Prompter ch={ch} /> : <Caption ch={ch} />}
+						{guide ? null : <Caption ch={ch} />}
 					</Sequence>
 				);
 			})}
+			{guide ? <Guide /> : null}
 			<Sequence from={tl.outroStart} name="Outro">
 				<Outro />
 			</Sequence>
