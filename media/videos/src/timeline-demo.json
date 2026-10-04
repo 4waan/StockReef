@@ -167,24 +167,19 @@
 			],
 			"phrases": [
 				{
-					"text": "Here's the live app with a real loan book on testnet.",
+					"text": "I connect the borrower's wallet to the live app on testnet,",
 					"start": 1458,
 					"end": 1593
 				},
 				{
-					"text": "I connect the borrower's wallet,",
+					"text": "and the portfolio shows the whole loan and every protection.",
 					"start": 1597,
-					"end": 1658
+					"end": 1720
 				},
 				{
-					"text": "and the portfolio puts the whole loan in one place, from health to every protection.",
-					"start": 1663,
-					"end": 1847
-				},
-				{
-					"text": "Lenders see each loan and what it's worth,",
+					"text": "Lenders see a real book of four loans and what each is worth,",
 					"start": 1773,
-					"end": 1871
+					"end": 1932
 				},
 				{
 					"text": "and operations lists who needs to act before the close.",
@@ -230,13 +225,13 @@
 				},
 				{
 					"text": "At quarter past three this loan is just over the line,",
-					"start": 2547,
-					"end": 2682
+					"start": 2556,
+					"end": 2691
 				},
 				{
 					"text": "so the app shows exactly what to do, repay seven dollars thirty four by half past three.",
-					"start": 2686,
-					"end": 2894
+					"start": 2695,
+					"end": 2903
 				}
 			]
 		},
@@ -384,8 +379,8 @@
 				},
 				{
 					"text": "A liquidator trims part of his loan now, for a small two percent bonus.",
-					"start": 4038,
-					"end": 4209
+					"start": 4053,
+					"end": 4224
 				},
 				{
 					"text": "His debt falls to eighteen dollars, and the loan stays open at sixty five percent.",

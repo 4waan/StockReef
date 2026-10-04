@@ -34,6 +34,7 @@ const segments = script.chapters.map((ch) => {
 	const phrases = ch.phrases.map((p) => {
 		const [anchor, text] = Array.isArray(p) ? p : [undefined, p];
 		const s = anchor ?? at;
+		if (anchor !== undefined && anchor < at - 0.16) console.warn(`  ${ch.id}: "${text.slice(0, 40)}…" starts at ${anchor} s, before the previous line ends (${(at - 0.15).toFixed(1)} s)`);
 		const e = s + words(text) / wordsPerSecond;
 		at = e + 0.15;
 		if (e > t + 0.01) console.warn(`  ${ch.id}: "${text.slice(0, 40)}…" ends at ${e.toFixed(1)} s, after the chapter (${t.toFixed(1)} s)`);
