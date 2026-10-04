@@ -1,169 +1,151 @@
-// Synthesizes a video's music bed from src/timeline-<video>.json: a soft pad, a
-// quiet arpeggio and a sub bass on a four-chord loop, a chime on every
-// question card, and the bed dipped under every answer so a voice sits on top.
-// Original audio, so nothing needs a license. Writes public/music-<video>.wav.
+// Synthesizes a video's music bed from src/timeline-<video>.json and writes
+// public/music-<video>.wav (48 kHz, 16-bit stereo). Everything is generated
+// here, with no samples, so nothing needs a license.
 //
-//   node scripts/music.mjs pitch|demo
-import {readFileSync, writeFileSync} from 'node:fs';
+//   node scripts/music.mjs pitch|demo [timeline.json] [out.wav]
+//
+// The optional paths are for testing: another timeline (one with a cues
+// array, for example) and another output file.
+//
+// The music: a warm F# minor bed at about 96 BPM that resolves to A major on
+// the outro, with a soft sub bass, a filtered saw pad, muted plucks and an FM
+// electric piano through a ping-pong delay, and light drums (soft kick,
+// shaker, brushed hats, an occasional clap). Three StockReef sounds sit on
+// top: the closing bell, the ticking clock and the confirmation chime. The
+// harmony, tempo grid and cue handling are in music/score.mjs.
+//
+// While the voice speaks (each caption phrase, short pauses bridged) the bed
+// dips about 4 dB, its pad and plucks close down and a gentle cut around
+// 2.5 kHz leaves the speech band to the voice; in the gaps it comes back up.
+// The result is normalized to about -20 LUFS with peaks under -3 dBFS.
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {Biquad, CONTROL, Control, RATE, SVF, dbToGain, limit, loudness, peak, pingPong, random, reverb, stereo, writeWav} from './music/dsp.mjs';
+import * as play from './music/instruments.mjs';
+import {plan} from './music/score.mjs';
 
-const video = process.argv[2];
-if (!['pitch', 'demo'].includes(video)) throw new Error('usage: node scripts/music.mjs pitch|demo');
-const timeline = JSON.parse(readFileSync(new URL(`../src/timeline-${video}.json`, import.meta.url), 'utf8'));
-const RATE = 44100;
-const seconds = timeline.total / timeline.fps;
-const length = Math.ceil(seconds * RATE);
-const left = new Float32Array(length);
-const right = new Float32Array(length);
+const LOUDNESS = -20;
+const CEILING = dbToGain(-4);
 
-const midi = (n) => 440 * 2 ** ((n - 69) / 12);
-const BPM = 80;
-const beat = 60 / BPM;
-const bar = beat * 4;
-// Am9, F add9, Cmaj7/E, G6: two bars each. Only two of the four hold an E,
-// so no single note drones under the whole piece.
-const chords = [
-	{root: 45, notes: [57, 60, 64, 67, 71]},
-	{root: 41, notes: [53, 57, 60, 65, 67]},
-	{root: 40, notes: [55, 60, 64, 67, 71]},
-	{root: 43, notes: [55, 59, 62, 67, 69]},
-];
-const chordLength = bar * 2;
+const [video, timelineFile, outFile] = process.argv.slice(2);
+if (!['pitch', 'demo'].includes(video)) throw new Error('usage: node scripts/music.mjs pitch|demo [timeline.json] [out.wav]');
+const timeline = JSON.parse(readFileSync(timelineFile ?? new URL(`../src/timeline-${video}.json`, import.meta.url), 'utf8'));
+const output = outFile ? path.resolve(outFile) : fileURLToPath(new URL(`../public/music-${video}.wav`, import.meta.url));
 
-function addTone(start, duration, freq, gain, {attack = 0.01, release = 0.3, pan = 0, shape = 'sine', decay = 0} = {}) {
-	const s0 = Math.max(0, Math.floor(start * RATE));
-	const s1 = Math.min(length, Math.floor((start + duration + release) * RATE));
-	const lg = gain * Math.cos(((pan + 1) * Math.PI) / 4);
-	const rg = gain * Math.sin(((pan + 1) * Math.PI) / 4);
-	let phase = Math.random() * Math.PI * 2;
-	const step = (2 * Math.PI * freq) / RATE;
-	for (let i = s0; i < s1; i++) {
-		const t = i / RATE - start;
-		let env = t < attack ? t / attack : 1;
-		if (decay > 0) env *= Math.exp(-t / decay);
-		if (t > duration) env *= Math.max(0, 1 - (t - duration) / release);
-		let v = Math.sin(phase);
-		if (shape === 'soft') v = 0.88 * v + 0.06 * Math.sin(phase * 2) + 0.04 * Math.sin(phase * 3);
-		phase += step;
-		left[i] += v * env * lg;
-		right[i] += v * env * rg;
+const score = plan(timeline);
+const {notes, total, sections} = score;
+const length = Math.ceil(total * RATE);
+const rand = random(video === 'pitch' ? 11 : 23);
+
+// Control signals. speech is 1 while the voice speaks (eased in and out);
+// pump is the kick's sidechain; brightness is the pad's filter cutoff.
+const speech = new Control(length, 0);
+for (const [t0, t1] of score.speech) speech.v.fill(1, speech.index(t0), speech.index(t1));
+speech.smooth(0.15, 0.45);
+
+const pump = new Control(length, 1);
+for (const k of notes.kick) {
+	// Dips by the kick's own level (at most about 2 dB) and recovers in ~0.3 s.
+	const i0 = pump.index(k.start);
+	for (let j = 0; j * CONTROL < 0.5 * RATE && i0 + j < pump.v.length; j++) {
+		const dt = (j * CONTROL) / RATE;
+		pump.v[i0 + j] = Math.min(pump.v[i0 + j], 1 - k.gain * Math.min(1, dt / 0.004) * Math.exp(-dt / 0.12));
 	}
 }
 
-// Pad: two slightly detuned voices per note, slow attack and release.
-for (let t = 0, k = 0; t < seconds; t += chordLength, k++) {
-	const chord = chords[k % chords.length];
-	chord.notes.forEach((n, j) => {
-		const pan = (j / (chord.notes.length - 1)) * 1.2 - 0.6;
-		addTone(t, chordLength, midi(n) * 1.002, 0.028, {attack: 1.8, release: 2.2, pan, shape: 'soft'});
-		addTone(t, chordLength, midi(n) * 0.998, 0.028, {attack: 2.2, release: 2.2, pan: -pan, shape: 'soft'});
-	});
-	addTone(t, chordLength, midi(chord.root), 0.03, {attack: 0.6, release: 1.2});
-}
+const cutoff = (s) => (s.kind === 'outro' ? 2600 : s.kind === 'intro' ? 1700 : 900 + 1500 * s.energy);
+const brightness = Control.keys(length, sections.flatMap((s) => [[s.t0, cutoff(s)], [s.t1, cutoff(s)]])).smooth(0.4, 0.4);
 
-// Arpeggio: quarter notes an octave up, plucked, panned across.
-const pattern = [0, 2, 4, 3, 1, 3, 4, 2];
-for (let t = bar * 2, step = 0; t < seconds - 2; t += beat, step++) {
-	const chord = chords[Math.floor(t / chordLength) % chords.length];
-	const note = chord.notes[pattern[step % pattern.length]] + 12;
-	const pan = Math.sin(step * 0.7) * 0.5;
-	addTone(t, 0.05, midi(note), 0.03, {attack: 0.008, release: 0.08, decay: 0.6, pan});
-}
+// The bed (everything but the motifs on top) and the shared reverb send.
+const send = stereo(length);
+const bed = {...stereo(length), sendL: send.L, sendR: send.R};
+const fx = {...stereo(length), sendL: send.L, sendR: send.R};
 
-// Simple stereo reverb: four feedback delays per side.
-function reverb(buffer, delays, feedback, mix) {
-	const dry = buffer.slice();
-	for (const ms of delays) {
-		const d = Math.floor((ms / 1000) * RATE);
-		const line = new Float32Array(length);
-		for (let i = d; i < length; i++) line[i] = dry[i - d] + line[i - d] * feedback;
-		for (let i = 0; i < length; i++) buffer[i] += (line[i] * mix) / delays.length;
+// Pad: high-passed to leave the low end to the bass, low-passed by the
+// section's energy and closed further while someone talks.
+const pad = stereo(length);
+for (const note of [...notes.pad, ...notes.swell]) play.padVoice(pad, {...note, rand});
+{
+	const hp = [new Biquad('highpass', 130, 0.6), new Biquad('highpass', 130, 0.6)];
+	const lp = [new SVF(), new SVF()];
+	for (let i = 0; i < length; i++) {
+		if ((i & 31) === 0) for (const f of lp) f.tune(brightness.at(i) * (1 - 0.4 * speech.at(i)), 0.8);
+		const g = 0.5 + 0.5 * pump.at(i);
+		const l = lp[0].process(hp[0].process(pad.L[i])) * g;
+		const r = lp[1].process(hp[1].process(pad.R[i])) * g;
+		bed.L[i] += l;
+		bed.R[i] += r;
+		send.L[i] += l * 0.3;
+		send.R[i] += r * 0.3;
 	}
 }
-reverb(left, [29.7, 37.1, 41.1, 43.7], 0.78, 0.55);
-reverb(right, [31.3, 35.9, 40.3, 45.1], 0.78, 0.55);
 
-// High-pass at 90 Hz (two biquads, 24 dB per octave): the feedback delays
-// pile up low rumble that laptop speakers cannot play and that eats headroom.
-function highpass(buffer, cutoff) {
-	const w = (2 * Math.PI * cutoff) / RATE;
-	const alpha = Math.sin(w) / Math.SQRT2;
-	const cos = Math.cos(w);
-	const a0 = 1 + alpha;
-	const b0 = (1 + cos) / 2 / a0;
-	const b1 = -(1 + cos) / a0;
-	const b2 = b0;
-	const a1 = (-2 * cos) / a0;
-	const a2 = (1 - alpha) / a0;
-	let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-	for (let i = 0; i < buffer.length; i++) {
-		const x = buffer[i];
-		const y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
-		x2 = x1;
-		x1 = x;
-		y2 = y1;
-		y1 = y;
-		buffer[i] = y;
+// Plucks and electric piano: open when nobody speaks, pulled down out of
+// the speech band under the voice, then a dotted-eighth ping-pong.
+const lead = stereo(length);
+for (const note of notes.pluck) play.pluck(lead, note);
+for (const note of notes.keys) play.keys(lead, note);
+{
+	const lp = [new SVF(), new SVF()];
+	for (let i = 0; i < length; i++) {
+		if ((i & 31) === 0) for (const f of lp) f.tune(5200 * (1 - 0.62 * speech.at(i)), 0.7);
+		lead.L[i] = lp[0].process(lead.L[i]);
+		lead.R[i] = lp[1].process(lead.R[i]);
+	}
+	pingPong(lead, {time: 0.75 * score.beat0, feedback: 0.36, mix: 0.28});
+	for (let i = 0; i < length; i++) {
+		bed.L[i] += lead.L[i];
+		bed.R[i] += lead.R[i];
+		send.L[i] += lead.L[i] * 0.32;
+		send.R[i] += lead.R[i] * 0.32;
 	}
 }
-for (const channel of [left, right]) {
-	highpass(channel, 90);
-	highpass(channel, 90);
+
+// Bass, drums and transitions straight onto the bed.
+for (const note of notes.bass) play.bass(bed, {...note, pump});
+for (const hit of notes.kick) play.kick(bed, hit);
+for (const hit of notes.shaker) play.shaker(bed, {...hit, rand, send: 0.12});
+for (const hit of notes.brush) play.brush(bed, {...hit, rand, send: 0.15});
+for (const hit of notes.clap) play.clap(bed, {...hit, rand, send: 0.45});
+for (const r of notes.riser) play.riser(bed, {...r, rand, send: 0.35});
+for (const hit of notes.impact) play.impact(bed, hit);
+
+// The StockReef sounds.
+for (const b of notes.bell) play.bell(fx, {...b, send: 0.55});
+for (const c of notes.chime) play.chime(fx, {...c, send: 0.45});
+for (const t of notes.tick) play.tick(fx, {...t, send: 0.12});
+
+reverb(send, bed, {seconds: 2.8, damping: 0.45});
+
+// Master: duck and carve the bed under the voice, add the motifs, trim the
+// rumble, open fast, fade to silence exactly at the end.
+const L = new Float32Array(length);
+const R = new Float32Array(length);
+{
+	const eq = [new Biquad('peaking', 2500, 0.8, 0), new Biquad('peaking', 2500, 0.8, 0)];
+	const hp = [new Biquad('highpass', 35), new Biquad('highpass', 35)];
+	const outroStart = sections.find((s) => s.kind === 'outro')?.t0 ?? total;
+	const fade = Math.max(0.5, Math.min(3, 0.55 * (total - outroStart)));
+	for (let i = 0; i < length; i++) {
+		const s = speech.at(i);
+		if ((i & 63) === 0) for (const f of eq) f.set('peaking', 2500, 0.8, -5 * s);
+		const duck = 1 - 0.38 * s;
+		const fxDuck = 1 - 0.25 * s;
+		const t = i / RATE;
+		const edge = Math.min(1, t / 0.01, Math.max(0, total - t - 1 / RATE) / fade);
+		const g = Math.sin((Math.PI / 2) * edge) ** 2;
+		L[i] = hp[0].process(eq[0].process(bed.L[i]) * duck + fx.L[i] * fxDuck) * g;
+		R[i] = hp[1].process(eq[1].process(bed.R[i]) * duck + fx.R[i] * fxDuck) * g;
+	}
 }
 
-// Ducking: full level on the intro, question cards and outro; low under answers.
-const fps = timeline.fps;
-const under = 0.42;
-const gainAt = new Float32Array(length).fill(1);
-for (const s of timeline.segments) {
-	const a = Math.floor(((s.answerStart + 3) / fps) * RATE);
-	const b = Math.floor((s.end / fps) * RATE);
-	for (let i = a; i < b && i < length; i++) gainAt[i] = under;
-}
-// Smooth the ducking curve (about 250 ms).
-const smooth = Math.exp(-1 / (0.25 * RATE));
-let g = 1;
+const gain = dbToGain(LOUDNESS - loudness(L, R));
 for (let i = 0; i < length; i++) {
-	g = gainAt[i] + (g - gainAt[i]) * smooth;
-	left[i] *= g;
-	right[i] *= g;
+	L[i] *= gain;
+	R[i] *= gain;
 }
-
-// Chime on each question card: a soft bell (two partials), not ducked.
-for (const s of timeline.segments) {
-	const t = s.questionStart / fps + 0.05;
-	addTone(t, 0.02, midi(88), 0.09, {attack: 0.003, release: 0.02, decay: 0.9, pan: -0.15});
-	addTone(t, 0.02, midi(95), 0.05, {attack: 0.003, release: 0.02, decay: 0.6, pan: 0.15});
-	addTone(t + 0.09, 0.02, midi(91), 0.06, {attack: 0.003, release: 0.02, decay: 1.1, pan: 0.1});
-}
-
-// Fade in over 2 s, out over the last 4 s, then normalize to -3 dBFS peak.
-for (let i = 0; i < length; i++) {
-	const t = i / RATE;
-	const f = Math.min(1, t / 2, (seconds - t) / 4);
-	left[i] *= Math.max(0, f);
-	right[i] *= Math.max(0, f);
-}
-let peak = 0;
-for (let i = 0; i < length; i++) peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));
-const norm = 0.708 / peak;
-
-const data = Buffer.alloc(length * 4);
-for (let i = 0; i < length; i++) {
-	data.writeInt16LE(Math.round(Math.max(-1, Math.min(1, left[i] * norm)) * 32767), i * 4);
-	data.writeInt16LE(Math.round(Math.max(-1, Math.min(1, right[i] * norm)) * 32767), i * 4 + 2);
-}
-const header = Buffer.alloc(44);
-header.write('RIFF', 0);
-header.writeUInt32LE(36 + data.length, 4);
-header.write('WAVEfmt ', 8);
-header.writeUInt32LE(16, 16);
-header.writeUInt16LE(1, 20);
-header.writeUInt16LE(2, 22);
-header.writeUInt32LE(RATE, 24);
-header.writeUInt32LE(RATE * 4, 28);
-header.writeUInt16LE(4, 32);
-header.writeUInt16LE(16, 34);
-header.write('data', 36);
-header.writeUInt32LE(data.length, 40);
-writeFileSync(new URL(`../public/music-${video}.wav`, import.meta.url), Buffer.concat([header, data]));
-console.log(`music-${video}.wav: ${seconds.toFixed(1)} s`);
+limit(L, R, CEILING);
+writeWav(output, L, R);
+const db = (x) => (20 * Math.log10(x)).toFixed(1);
+console.log(`${path.basename(output)}: ${total.toFixed(1)} s, ${loudness(L, R).toFixed(1)} LUFS, peak ${db(peak(L, R))} dBFS`);

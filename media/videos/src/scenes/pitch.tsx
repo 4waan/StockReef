@@ -36,15 +36,14 @@ export const Q1: React.FC<SceneProps> = ({t, ph}) => {
 					<div style={{position: 'absolute', left: 0, top: 0, height: '100%', width: W * token, background: C.brand, borderRadius: 10}} />
 				</Row>
 				<Row title="TSLA on Nasdaq" sub="09:30 to 16:00 ET, weekdays" top={250}>
-					<div
-						style={{
-							position: 'absolute',
-							inset: 0,
-							borderRadius: 10,
-							backgroundImage: `repeating-linear-gradient(45deg, ${C.line} 0 6px, transparent 6px 14px)`,
-							opacity: market,
-						}}
-					/>
+					<svg width="100%" height="100%" style={{position: 'absolute', inset: 0, opacity: market}}>
+						<defs>
+							<pattern id="closed-hatch" width={14} height={14} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+								<line x1={0} y1={0} x2={0} y2={14} stroke={C.line} strokeWidth={6} />
+							</pattern>
+						</defs>
+						<rect width="100%" height="100%" fill="url(#closed-hatch)" />
+					</svg>
 					{[0, 1, 2, 3, 4].map((d) => (
 						<div
 							key={d}
@@ -145,8 +144,8 @@ export const Q2: React.FC<SceneProps> = ({t, ph}) => {
 			</svg>
 			<div style={{position: 'absolute', right: 0, top: 70, width: 520, display: 'flex', flexDirection: 'column', gap: 28}}>
 				<Card style={{opacity: stat1, transform: `translateY(${(1 - stat1) * 20}px)`}}>
-					<div style={{...big(96), color: C.accent}}>33%</div>
-					<div style={{fontSize: 30, marginTop: 10, lineHeight: 1.3}}>of TSLA&apos;s price variance happens while the market is closed</div>
+					<div style={{...big(96), color: C.accent}}>65.5 hours</div>
+					<div style={{fontSize: 30, marginTop: 10, lineHeight: 1.3}}>every weekend with no real TSLA price, while loans stay open</div>
 				</Card>
 				<Card style={{opacity: stat2, transform: `translateY(${(1 - stat2) * 20}px)`}}>
 					<div style={{...big(96), color: C.red}}>1 in 16</div>

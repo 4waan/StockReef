@@ -1,485 +1,725 @@
 {
 	"fps": 30,
-	"total": 8318,
-	"introEnd": 270,
-	"outroStart": 8168,
+	"introEnd": 90,
+	"outroStart": 8317,
+	"total": 8467,
 	"segments": [
 		{
-			"id": "d1",
-			"index": 0,
-			"question": "What's the problem?",
+			"id": "intro",
+			"question": "StockReef, live on Robinhood Chain testnet",
 			"speaker": "Aryan",
-			"questionStart": 270,
-			"answerStart": 333,
-			"end": 775,
-			"words": 33,
+			"questionStart": 0,
+			"answerStart": 0,
+			"end": 501,
+			"graphic": false,
+			"clips": [
+				{
+					"clip": "landing",
+					"from": 0,
+					"to": 13.9,
+					"speed": 1,
+					"start": 0,
+					"end": 417
+				},
+				{
+					"clip": "landing",
+					"from": 16.6,
+					"to": 19.4,
+					"speed": 1,
+					"start": 417,
+					"end": 501
+				}
+			],
+			"urls": [
+				{
+					"frame": 0,
+					"url": "stock-reef.vercel.app"
+				},
+				{
+					"frame": 417,
+					"url": "stock-reef.vercel.app/trade"
+				}
+			],
 			"phrases": [
 				{
-					"text": "A tokenized stock trades all weekend,",
-					"start": 342,
-					"end": 415
+					"text": "This is StockReef, live on Robinhood Chain testnet.",
+					"start": 18,
+					"end": 116
 				},
 				{
-					"text": "but its real price stops on Friday at four.",
-					"start": 415,
-					"end": 525
+					"text": "It lets you borrow dollars against tokenized Tesla stock,",
+					"start": 120,
+					"end": 231
 				},
 				{
-					"text": "Over five years Tesla opened at least five percent away",
-					"start": 525,
-					"end": 647
+					"text": "and it manages the moment other lenders ignore,",
+					"start": 235,
+					"end": 333
 				},
 				{
-					"text": "from Friday's close on one Monday in sixteen.",
-					"start": 647,
-					"end": 745
+					"text": "when the stock market closes for the weekend.",
+					"start": 338,
+					"end": 436
 				}
 			]
 		},
 		{
-			"id": "d2",
-			"index": 1,
-			"question": "Who has it?",
+			"id": "problem",
+			"question": "What breaks when Wall Street closes",
 			"speaker": "Aryan",
-			"questionStart": 775,
-			"answerStart": 838,
-			"end": 1243,
-			"words": 30,
-			"phrases": [
+			"questionStart": 501,
+			"answerStart": 501,
+			"end": 969,
+			"graphic": false,
+			"clips": [
 				{
-					"text": "Our first user holds Tesla and borrows USDG against it",
-					"start": 847,
+					"clip": "problem",
+					"from": 0,
+					"to": 15.6,
+					"speed": 1,
+					"start": 501,
 					"end": 969
+				}
+			],
+			"urls": [
+				{
+					"frame": 501,
+					"url": "stock-reef.vercel.app/markets/tsla"
+				}
+			],
+			"phrases": [
+				{
+					"text": "Tesla's token trades all weekend, but its real price stops at four on Friday.",
+					"start": 513,
+					"end": 684
 				},
 				{
-					"text": "at about seventy two percent.",
-					"start": 969,
-					"end": 1030
+					"text": "One Monday in sixteen opens five percent or more away,",
+					"start": 689,
+					"end": 811
 				},
 				{
-					"text": "That's healthy on a Friday afternoon,",
-					"start": 1030,
-					"end": 1103
-				},
-				{
-					"text": "and it's exactly the loan a weekend gap hurts.",
-					"start": 1103,
-					"end": 1213
+					"text": "and a loan can't react in between.",
+					"start": 816,
+					"end": 902
 				}
 			]
 		},
 		{
-			"id": "d3",
-			"index": 2,
-			"question": "What's missing today?",
+			"id": "data",
+			"question": "Lending today ignores the clock",
 			"speaker": "Aryan",
-			"questionStart": 1243,
-			"answerStart": 1306,
-			"end": 1689,
-			"words": 28,
+			"questionStart": 969,
+			"answerStart": 969,
+			"end": 1449,
+			"graphic": true,
+			"clips": [],
+			"urls": [],
 			"phrases": [
 				{
-					"text": "Lending markets treat stocks like crypto that never stops trading.",
-					"start": 1315,
-					"end": 1438
+					"text": "Three billion dollars of stock RWAs are on chain, but lending against them is tiny,",
+					"start": 981,
+					"end": 1165
 				},
 				{
-					"text": "A borrowing lock stops a loan from growing over the weekend,",
-					"start": 1438,
-					"end": 1573
+					"text": "because markets keep one fixed limit around the clock.",
+					"start": 1169,
+					"end": 1279
 				},
 				{
-					"text": "but it never makes the debt smaller.",
-					"start": 1573,
-					"end": 1659
+					"text": "In a deep weekend gap, that costs lenders four times more.",
+					"start": 1284,
+					"end": 1419
 				}
 			]
 		},
 		{
-			"id": "d4",
-			"index": 3,
-			"question": "What's our insight?",
+			"id": "book",
+			"question": "A real loan book on testnet",
+			"speaker": "Awaan",
+			"questionStart": 1449,
+			"answerStart": 1449,
+			"end": 2331,
+			"graphic": false,
+			"clips": [
+				{
+					"clip": "book",
+					"from": 0,
+					"to": 38.2,
+					"speed": 1.3,
+					"start": 1449,
+					"end": 2331
+				}
+			],
+			"urls": [
+				{
+					"frame": 1449,
+					"url": "stock-reef.vercel.app/portfolio"
+				},
+				{
+					"frame": 1767,
+					"url": "stock-reef.vercel.app/earn"
+				},
+				{
+					"frame": 2073,
+					"url": "stock-reef.vercel.app/operations"
+				}
+			],
+			"phrases": [
+				{
+					"text": "Here's the live app with a real loan book on testnet.",
+					"start": 1458,
+					"end": 1593
+				},
+				{
+					"text": "I connect the borrower's wallet,",
+					"start": 1597,
+					"end": 1658
+				},
+				{
+					"text": "and the portfolio puts the whole loan in one place, from health to every protection.",
+					"start": 1663,
+					"end": 1847
+				},
+				{
+					"text": "Lenders see each loan and what it's worth,",
+					"start": 1773,
+					"end": 1871
+				},
+				{
+					"text": "and operations lists who needs to act before the close.",
+					"start": 2079,
+					"end": 2201
+				}
+			]
+		},
+		{
+			"id": "countdown",
+			"question": "Two hours before the bell",
+			"speaker": "Awaan",
+			"questionStart": 2331,
+			"answerStart": 2331,
+			"end": 2940,
+			"graphic": false,
+			"clips": [
+				{
+					"clip": "countdown",
+					"from": 0,
+					"to": 19.1,
+					"speed": 1,
+					"start": 2331,
+					"end": 2904
+				}
+			],
+			"urls": [
+				{
+					"frame": 2331,
+					"url": "stock-reef.vercel.app/trade?step=prep"
+				}
+			],
+			"phrases": [
+				{
+					"text": "Two hours before the bell, StockReef starts lowering the safe limit,",
+					"start": 2340,
+					"end": 2475
+				},
+				{
+					"text": "from eighty percent down to seventy.",
+					"start": 2479,
+					"end": 2553
+				},
+				{
+					"text": "At quarter past three this loan is just over the line,",
+					"start": 2547,
+					"end": 2682
+				},
+				{
+					"text": "so the app shows exactly what to do, repay seven dollars thirty four by half past three.",
+					"start": 2686,
+					"end": 2894
+				}
+			]
+		},
+		{
+			"id": "paydown",
+			"question": "Pay it down before the bell",
+			"speaker": "Awaan",
+			"questionStart": 2940,
+			"answerStart": 2940,
+			"end": 3882,
+			"graphic": false,
+			"clips": [
+				{
+					"clip": "paydown",
+					"from": 0,
+					"to": 6.4,
+					"speed": 1,
+					"start": 2940,
+					"end": 3132
+				},
+				{
+					"clip": "paydown",
+					"from": 6.4,
+					"to": 12.4,
+					"speed": 1.5,
+					"start": 3132,
+					"end": 3252
+				},
+				{
+					"clip": "paydown",
+					"from": 12.4,
+					"to": 24.4,
+					"speed": 1,
+					"start": 3252,
+					"end": 3612
+				},
+				{
+					"clip": "paydown",
+					"from": 27,
+					"to": 36,
+					"speed": 1,
+					"start": 3612,
+					"end": 3882
+				}
+			],
+			"urls": [
+				{
+					"frame": 2940,
+					"url": "stock-reef.vercel.app/trade?step=prep"
+				},
+				{
+					"frame": 3612,
+					"url": "explorer.testnet.chain.robinhood.com/tx/0x4c3711ce9da287cb889b9d8482aff6e37985cd3fb37cc5f7e53fb8656b3921fe"
+				}
+			],
+			"phrases": [
+				{
+					"text": "This borrower funded a repayment buffer in advance.",
+					"start": 2949,
+					"end": 3047
+				},
+				{
+					"text": "I run it, and a real transaction goes to Robinhood Chain.",
+					"start": 3078,
+					"end": 3213
+				},
+				{
+					"text": "Confirmed in seconds, the debt drops from seventy two to sixty five dollars.",
+					"start": 3258,
+					"end": 3417
+				},
+				{
+					"text": "The loan is back under the line, with nothing sold and no penalty paid.",
+					"start": 3422,
+					"end": 3593
+				},
+				{
+					"text": "And here's the receipt on the Robinhood Chain explorer.",
+					"start": 3618,
+					"end": 3728
+				}
+			]
+		},
+		{
+			"id": "trim",
+			"question": "A partial trim, not a wipe-out",
+			"speaker": "Awaan",
+			"questionStart": 3882,
+			"answerStart": 3882,
+			"end": 4679,
+			"graphic": false,
+			"clips": [
+				{
+					"clip": "trim",
+					"from": 0,
+					"to": 9,
+					"speed": 1,
+					"start": 3882,
+					"end": 4152
+				},
+				{
+					"clip": "trim",
+					"from": 9,
+					"to": 27.2,
+					"speed": 4,
+					"start": 4152,
+					"end": 4289
+				},
+				{
+					"clip": "trim",
+					"from": 30.5,
+					"to": 40,
+					"speed": 1.3,
+					"start": 4289,
+					"end": 4508
+				},
+				{
+					"clip": "trim",
+					"from": 44.3,
+					"to": 50,
+					"speed": 1,
+					"start": 4508,
+					"end": 4679
+				}
+			],
+			"urls": [
+				{
+					"frame": 3882,
+					"url": "stock-reef.vercel.app/operations?step=prep"
+				},
+				{
+					"frame": 4289,
+					"url": "stock-reef.vercel.app/trade?account=0x11286a7523005D642761ABcD1880af4895FF3FC4"
+				},
+				{
+					"frame": 4508,
+					"url": "explorer.testnet.chain.robinhood.com/tx/0x83ec266caab015186650d3ac96336d0dbd3cf0a29d3753dc5c3aac011fce4793"
+				}
+			],
+			"phrases": [
+				{
+					"text": "Ben has no buffer, and at seventy four percent he's over the line.",
+					"start": 3891,
+					"end": 4050
+				},
+				{
+					"text": "A liquidator trims part of his loan now, for a small two percent bonus.",
+					"start": 4038,
+					"end": 4209
+				},
+				{
+					"text": "His debt falls to eighteen dollars, and the loan stays open at sixty five percent.",
+					"start": 4302,
+					"end": 4486
+				},
+				{
+					"text": "Both transactions are on chain.",
+					"start": 4515,
+					"end": 4576
+				}
+			]
+		},
+		{
+			"id": "weekend",
+			"question": "Closed for the weekend, reopened with care",
 			"speaker": "Aryan",
-			"questionStart": 1689,
-			"answerStart": 1752,
-			"end": 2134,
-			"words": 28,
-			"phrases": [
+			"questionStart": 4679,
+			"answerStart": 4679,
+			"end": 6322,
+			"graphic": false,
+			"clips": [
 				{
-					"text": "Reduce the debt before the close, while a usable price still exists.",
-					"start": 1761,
-					"end": 1908
+					"clip": "weekend",
+					"from": 1,
+					"to": 18,
+					"speed": 1,
+					"start": 4679,
+					"end": 5189
 				},
 				{
-					"text": "So the threshold falls through the afternoon,",
-					"start": 1908,
-					"end": 1994
+					"clip": "weekend",
+					"from": 18,
+					"to": 34,
+					"speed": 4,
+					"start": 5189,
+					"end": 5309
 				},
 				{
-					"text": "and the borrower sees an amount and a deadline.",
-					"start": 1994,
-					"end": 2104
+					"clip": "weekend",
+					"from": 34,
+					"to": 35.5,
+					"speed": 1,
+					"start": 5309,
+					"end": 5354
+				},
+				{
+					"clip": "monday",
+					"from": 0,
+					"to": 8.086,
+					"speed": 1,
+					"start": 5354,
+					"end": 5597
+				},
+				{
+					"clip": "monday-admit",
+					"from": 0,
+					"to": 8.683,
+					"speed": 1,
+					"start": 5597,
+					"end": 5857
+				},
+				{
+					"clip": "recovery",
+					"from": 1,
+					"to": 9,
+					"speed": 1,
+					"start": 5857,
+					"end": 6097
+				},
+				{
+					"clip": "recovery",
+					"from": 9,
+					"to": 27,
+					"speed": 4,
+					"start": 6097,
+					"end": 6232
+				},
+				{
+					"clip": "recovery",
+					"from": 27,
+					"to": 30,
+					"speed": 1,
+					"start": 6232,
+					"end": 6322
 				}
-			]
-		},
-		{
-			"id": "d5",
-			"index": 4,
-			"question": "Why on chain, why Robinhood Chain?",
-			"speaker": "Awaan",
-			"questionStart": 2134,
-			"answerStart": 2197,
-			"end": 2616,
-			"words": 31,
-			"phrases": [
+			],
+			"urls": [
 				{
-					"text": "A rule a lender can rely on has to be enforced by the contract,",
-					"start": 2206,
-					"end": 2378
+					"frame": 4679,
+					"url": "stock-reef.vercel.app/trade?step=closed"
 				},
 				{
-					"text": "not by a server.",
-					"start": 2378,
-					"end": 2427
+					"frame": 5354,
+					"url": "stock-reef.vercel.app/trade?step=wait"
 				},
 				{
-					"text": "And Robinhood Chain is where the Tesla token and Paxos USDG already live.",
-					"start": 2427,
-					"end": 2586
+					"frame": 5597,
+					"url": "stock-reef.vercel.app/trade?step=admit"
+				},
+				{
+					"frame": 5858,
+					"url": "stock-reef.vercel.app/operations?step=admit"
 				}
-			]
-		},
-		{
-			"id": "d6",
-			"index": 5,
-			"question": "What does the borrower see at 15:15?",
-			"speaker": "Awaan",
-			"questionStart": 2616,
-			"answerStart": 2679,
-			"end": 3123,
-			"words": 33,
+			],
 			"phrases": [
 				{
-					"text": "At 15:15 the threshold is down to seventy one point seven percent,",
-					"start": 2688,
-					"end": 2835
+					"text": "At four the market closes and new borrowing locks.",
+					"start": 4688,
+					"end": 4798
 				},
 				{
-					"text": "and the loan sits just above it.",
-					"start": 2835,
-					"end": 2921
+					"text": "Paying down still works, so the borrower repays a dollar on chain.",
+					"start": 4817,
+					"end": 4964
 				},
-				{
-					"text": "The terminal turns that into one instruction,",
-					"start": 2921,
-					"end": 3007
-				},
-				{
-					"text": "repay seven dollars thirty four by 15:30.",
-					"start": 3007,
-					"end": 3093
-				}
-			]
-		},
-		{
-			"id": "d7",
-			"index": 6,
-			"question": "Show the transaction",
-			"speaker": "Awaan",
-			"questionStart": 3123,
-			"answerStart": 3186,
-			"end": 3579,
-			"words": 29,
-			"phrases": [
-				{
-					"text": "This borrower funded a repayment buffer in advance,",
-					"start": 3195,
-					"end": 3293
-				},
-				{
-					"text": "so anyone can execute it now.",
-					"start": 3293,
-					"end": 3366
-				},
-				{
-					"text": "We run it and sign,",
-					"start": 3366,
-					"end": 3427
-				},
-				{
-					"text": "and no stock is sold and no bonus is paid.",
-					"start": 3427,
-					"end": 3549
-				}
-			]
-		},
-		{
-			"id": "d8",
-			"index": 7,
-			"question": "Show the state change",
-			"speaker": "Awaan",
-			"questionStart": 3579,
-			"answerStart": 3642,
-			"end": 4024,
-			"words": 28,
-			"phrases": [
-				{
-					"text": "The debt drops from seventy two to sixty five dollars,",
-					"start": 3651,
-					"end": 3774
-				},
-				{
-					"text": "and the loan moves back under the falling threshold.",
-					"start": 3774,
-					"end": 3884
-				},
-				{
-					"text": "The receipt sits on the chart where it happened.",
-					"start": 3884,
-					"end": 3994
-				}
-			]
-		},
-		{
-			"id": "d9",
-			"index": 8,
-			"question": "What if nothing had executed?",
-			"speaker": "Awaan",
-			"questionStart": 4024,
-			"answerStart": 4087,
-			"end": 4457,
-			"words": 27,
-			"phrases": [
-				{
-					"text": "Without the buffer, a liquidator could trim twenty one dollars of debt",
-					"start": 4096,
-					"end": 4243
-				},
-				{
-					"text": "at a two percent bonus.",
-					"start": 4243,
-					"end": 4304
-				},
-				{
-					"text": "The loan stays open, but the borrower pays for waiting.",
-					"start": 4304,
-					"end": 4427
-				}
-			]
-		},
-		{
-			"id": "d10",
-			"index": 9,
-			"question": "What happens over the weekend?",
-			"speaker": "Aryan",
-			"questionStart": 4457,
-			"answerStart": 4520,
-			"end": 4865,
-			"words": 25,
-			"phrases": [
-				{
-					"text": "From 15:30 there's no new borrowing, and at four the market closes.",
-					"start": 4529,
-					"end": 4676
-				},
-				{
-					"text": "Repaying and adding collateral still work,",
-					"start": 4676,
-					"end": 4749
-				},
-				{
-					"text": "but the loan can only get smaller.",
-					"start": 4749,
-					"end": 4835
-				}
-			]
-		},
-		{
-			"id": "d11",
-			"index": 10,
-			"question": "How does Monday reopen?",
-			"speaker": "Awaan",
-			"questionStart": 4865,
-			"answerStart": 4928,
-			"end": 5468,
-			"words": 41,
-			"phrases": [
 				{
 					"text": "On Monday a fresh price of three seventy six arrives,",
-					"start": 4937,
-					"end": 5059
+					"start": 5363,
+					"end": 5485
 				},
 				{
-					"text": "but nothing runs on it until it's admitted five minutes after the open.",
-					"start": 5059,
-					"end": 5218
+					"text": "but nothing trusts it until it's admitted five minutes after the open.",
+					"start": 5490,
+					"end": 5637
 				},
 				{
-					"text": "Valued at that price this loan sits just under the seventy percent limit,",
-					"start": 5218,
-					"end": 5377
+					"text": "Cleo's loan crossed seventy percent at the new price,",
+					"start": 5867,
+					"end": 5977
 				},
 				{
-					"text": "because the buffer already ran.",
-					"start": 5377,
-					"end": 5438
+					"text": "so a recovery trim brings it back before new credit returns.",
+					"start": 5982,
+					"end": 6116
 				}
 			]
 		},
 		{
-			"id": "d12",
-			"index": 11,
-			"question": "Who carries a loss?",
+			"id": "lenders",
+			"question": "Lenders see losses before they happen",
 			"speaker": "Aryan",
-			"questionStart": 5468,
-			"answerStart": 5531,
-			"end": 6097,
-			"words": 43,
+			"questionStart": 6322,
+			"answerStart": 6322,
+			"end": 6838,
+			"graphic": false,
+			"clips": [
+				{
+					"clip": "lenders",
+					"from": 0,
+					"to": 17.2,
+					"speed": 1,
+					"start": 6322,
+					"end": 6838
+				}
+			],
+			"urls": [
+				{
+					"frame": 6322,
+					"url": "stock-reef.vercel.app/earn?step=admit"
+				}
+			],
 			"phrases": [
 				{
-					"text": "Lenders see every loan valued at what it can actually recover.",
-					"start": 5540,
-					"end": 5675
+					"text": "Lenders are protected by design.",
+					"start": 6331,
+					"end": 6392
 				},
 				{
-					"text": "If Tesla fell to two twenty, this loan would leave a twelve dollar shortfall,",
-					"start": 5675,
-					"end": 5847
+					"text": "Their shares always reflect what the loans can really recover,",
+					"start": 6397,
+					"end": 6519
 				},
 				{
-					"text": "and share value would drop to eighty five cents,",
-					"start": 5847,
-					"end": 5957
+					"text": "so if Tesla fell to two twenty, the shortfall shows today and is shared fairly.",
+					"start": 6532,
+					"end": 6716
 				},
 				{
-					"text": "so no lender can exit ahead of the loss.",
-					"start": 5957,
-					"end": 6067
+					"text": "Nobody finds it after a default.",
+					"start": 6720,
+					"end": 6794
 				}
 			]
 		},
 		{
-			"id": "d13",
-			"index": 12,
-			"question": "What happens when something goes wrong?",
+			"id": "failure",
+			"question": "When the price feed goes quiet",
 			"speaker": "Awaan",
-			"questionStart": 6097,
-			"answerStart": 6160,
-			"end": 6504,
-			"words": 25,
+			"questionStart": 6838,
+			"answerStart": 6838,
+			"end": 7357,
+			"graphic": false,
+			"clips": [
+				{
+					"clip": "failure",
+					"from": 0,
+					"to": 17.3,
+					"speed": 1,
+					"start": 6838,
+					"end": 7357
+				}
+			],
+			"urls": [
+				{
+					"frame": 6838,
+					"url": "stock-reef.vercel.app/trade?step=credit"
+				}
+			],
 			"phrases": [
 				{
-					"text": "Here the price feed stops, and we try to borrow two minutes later.",
-					"start": 6169,
-					"end": 6328
+					"text": "Now a deliberate failure.",
+					"start": 6847,
+					"end": 6896
 				},
 				{
-					"text": "The contract refuses the stale price,",
-					"start": 6328,
-					"end": 6401
+					"text": "The price feed has been quiet for two minutes.",
+					"start": 6900,
+					"end": 7011
 				},
 				{
-					"text": "so the wallet never even opens.",
-					"start": 6401,
-					"end": 6474
+					"text": "I try to borrow one dollar,",
+					"start": 7012,
+					"end": 7085
+				},
+				{
+					"text": "and the contract refuses the stale price before my wallet is even asked to sign.",
+					"start": 7090,
+					"end": 7274
 				}
 			]
 		},
 		{
-			"id": "d14",
-			"index": 13,
-			"question": "Is it durable?",
-			"speaker": "Aryan",
-			"questionStart": 6504,
-			"answerStart": 6567,
-			"end": 6986,
-			"words": 31,
-			"phrases": [
-				{
-					"text": "Five hundred thirty five tests cover the risky paths,",
-					"start": 6576,
-					"end": 6686
-				},
-				{
-					"text": "including fork tests on the real Tesla token.",
-					"start": 6686,
-					"end": 6784
-				},
-				{
-					"text": "And every number in this app matches the contract's own view, field by field.",
-					"start": 6784,
-					"end": 6956
-				}
-			]
-		},
-		{
-			"id": "d15",
-			"index": 14,
-			"question": "What roadblocks did we overcome?",
+			"id": "tests",
+			"question": "Built to hold up",
 			"speaker": "Awaan",
-			"questionStart": 6986,
-			"answerStart": 7049,
-			"end": 7503,
-			"words": 34,
+			"questionStart": 7357,
+			"answerStart": 7357,
+			"end": 7807,
+			"graphic": true,
+			"clips": [],
+			"urls": [],
 			"phrases": [
 				{
-					"text": "A stale demo price made every screen read zero,",
-					"start": 7058,
-					"end": 7168
+					"text": "Under the app, five hundred thirty one tests run in about a minute,",
+					"start": 7369,
+					"end": 7528
 				},
 				{
-					"text": "so the contracts now value a scripted session directly.",
-					"start": 7168,
-					"end": 7278
+					"text": "covering the risky paths with fuzz, property and invariant suites.",
+					"start": 7533,
+					"end": 7655
 				},
 				{
-					"text": "And MetaMask warned on unlimited approvals,",
-					"start": 7278,
-					"end": 7351
-				},
-				{
-					"text": "so every approval is now exact and checked before signing.",
-					"start": 7351,
-					"end": 7473
+					"text": "Four more run against Robinhood Chain mainnet.",
+					"start": 7660,
+					"end": 7745
 				}
 			]
 		},
 		{
-			"id": "d16",
-			"index": 15,
-			"question": "What did we trade off, and what's next?",
+			"id": "next",
+			"question": "Next for StockReef",
 			"speaker": "Aryan",
-			"questionStart": 7503,
-			"answerStart": 7566,
-			"end": 8168,
-			"words": 46,
+			"questionStart": 7807,
+			"answerStart": 7807,
+			"end": 8317,
+			"graphic": true,
+			"clips": [],
+			"urls": [],
 			"phrases": [
 				{
-					"text": "On testnet the operator sets the price and clock,",
-					"start": 7575,
-					"end": 7685
+					"text": "Next for StockReef, we calibrate the limits against real gaps,",
+					"start": 7819,
+					"end": 7941
 				},
 				{
-					"text": "so we can show a weekend on demand.",
-					"start": 7685,
-					"end": 7783
+					"text": "add stock RWAs one market at a time,",
+					"start": 7946,
+					"end": 8044
 				},
 				{
-					"text": "Next we calibrate the limits against real gaps and add more stocks,",
-					"start": 7783,
-					"end": 7930
-				},
-				{
-					"text": "then get audited and launch on Robinhood Chain mainnet.",
-					"start": 7930,
-					"end": 8040
+					"text": "get audited, and launch on Robinhood Chain mainnet.",
+					"start": 8048,
+					"end": 8146
 				},
 				{
 					"text": "StockReef reduces stock-backed debt before the market closes.",
-					"start": 8040,
-					"end": 8138
+					"start": 8151,
+					"end": 8249
 				}
 			]
+		}
+	],
+	"cues": [
+		{
+			"frame": 2331,
+			"kind": "tick-on"
+		},
+		{
+			"frame": 3252,
+			"kind": "chime"
+		},
+		{
+			"frame": 3300,
+			"kind": "tick-off"
+		},
+		{
+			"frame": 4287,
+			"kind": "chime"
+		},
+		{
+			"frame": 4688,
+			"kind": "bell"
+		},
+		{
+			"frame": 5309,
+			"kind": "chime"
+		},
+		{
+			"frame": 5354,
+			"kind": "lift"
+		},
+		{
+			"frame": 6239,
+			"kind": "chime"
+		},
+		{
+			"frame": 6838,
+			"kind": "breath"
+		},
+		{
+			"frame": 7807,
+			"kind": "lift"
 		}
 	]
 }

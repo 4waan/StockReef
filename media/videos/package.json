@@ -8,7 +8,7 @@
     "prepare:pitch": "node scripts/timeline.mjs pitch && node scripts/music.mjs pitch",
     "render:pitch": "npm run prepare:pitch && remotion render src/index.ts Pitch out/stockreef-pitch-music-only.mp4",
     "render:pitch-guide": "npm run prepare:pitch && remotion render src/index.ts PitchGuide out/stockreef-pitch-guide.mp4",
-    "prepare:demo": "node scripts/timeline.mjs demo && node scripts/music.mjs demo",
+    "prepare:demo": "node scripts/demo-timeline.mjs && node scripts/music.mjs demo",
     "render:demo": "npm run prepare:demo && remotion render src/index.ts Demo out/stockreef-demo-music-only.mp4",
     "render:demo-guide": "npm run prepare:demo && remotion render src/index.ts DemoGuide out/stockreef-demo-guide.mp4",
     "capture": "node capture/pages.mjs",

@@ -1,8 +1,7 @@
 import React from 'react';
 import {Composition} from 'remotion';
-import {Demo} from './Demo';
+import {Demo, DEMO_FRAMES} from './Demo';
 import {Pitch} from './Pitch';
-import demoTimeline from './timeline-demo.json';
 import pitchTimeline from './timeline-pitch.json';
 import type {VideoProps} from './Video';
 
@@ -14,7 +13,7 @@ export const RemotionRoot: React.FC = () => (
 	<>
 		<Composition id="Pitch" component={Pitch} durationInFrames={pitchTimeline.total} {...size} defaultProps={music} />
 		<Composition id="PitchGuide" component={Pitch} durationInFrames={pitchTimeline.total} {...size} defaultProps={guide} />
-		<Composition id="Demo" component={Demo} durationInFrames={demoTimeline.total} {...size} defaultProps={music} />
-		<Composition id="DemoGuide" component={Demo} durationInFrames={demoTimeline.total} {...size} defaultProps={guide} />
+		<Composition id="Demo" component={Demo} durationInFrames={DEMO_FRAMES} {...size} defaultProps={music} />
+		<Composition id="DemoGuide" component={Demo} durationInFrames={DEMO_FRAMES} {...size} defaultProps={guide} />
 	</>
 );

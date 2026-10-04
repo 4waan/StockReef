@@ -76,32 +76,20 @@ const VideoView: React.FC<VideoProps & {config: VideoConfig}> = ({guide, voices,
 	);
 };
 
-const Backdrop: React.FC = () => {
-	const frame = useCurrentFrame();
-	const drift = Math.sin(frame / 240) * 60;
-	return (
-		<AbsoluteFill>
-			<AbsoluteFill
-				style={{
-					backgroundImage: `linear-gradient(${C.line}33 1px, transparent 1px), linear-gradient(90deg, ${C.line}33 1px, transparent 1px)`,
-					backgroundSize: '64px 64px',
-					maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 80%)',
-				}}
-			/>
-			<div
-				style={{
-					position: 'absolute',
-					width: 1400,
-					height: 1400,
-					left: 260 + drift,
-					top: -520,
-					borderRadius: '50%',
-					background: `radial-gradient(circle, ${C.brandDeep}2e 0%, transparent 60%)`,
-				}}
-			/>
-		</AbsoluteFill>
-	);
-};
+/** A flat light page under a burnt orange grid: 56 px cells, hairline lines, no gradients or glows. */
+export const GRID = 56;
+export const Backdrop: React.FC = () => (
+	<AbsoluteFill>
+		<svg width="1920" height="1080" style={{position: 'absolute', inset: 0}}>
+			<defs>
+				<pattern id="reef-grid" width={GRID} height={GRID} patternUnits="userSpaceOnUse" x={-4} y={-4}>
+					<path d={`M ${GRID} 0 L 0 0 0 ${GRID}`} fill="none" stroke={C.brand} strokeOpacity={0.16} strokeWidth={1} />
+				</pattern>
+			</defs>
+			<rect width="1920" height="1080" fill="url(#reef-grid)" />
+		</svg>
+	</AbsoluteFill>
+);
 
 const SegmentView: React.FC<{segment: Segment; total: number; Scene: React.FC<SceneProps>}> = ({segment, total, Scene}) => {
 	const f = useCurrentFrame();

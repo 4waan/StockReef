@@ -1,0 +1,1297 @@
+No files changed, compilation skipped
+
+Ran 15 tests for test/unit/AuditFixes.t.sol:AuditFixesTest
+[PASS] test_lenderEntryClosedWhileImpaired() (gas: 943745)
+[PASS] test_lenderEntryOpenAtHighUtilization() (gas: 2395766)
+[PASS] test_lens_borrowCapacityZeroBelowTheMinimumLoan() (gas: 497727)
+[PASS] test_lens_bufferCoverageNeedsThePlanAtTheNextWindow() (gas: 1323384)
+[PASS] test_lens_missedExecutionUsesTheDebtAtTheClose() (gas: 992661)
+[PASS] test_lens_projectsTheReopening() (gas: 531996)
+[PASS] test_lens_trimAtFinalAccruesDebtToF() (gas: 538596)
+[PASS] test_ownerRepay_balanceJustShortOfTheDebtStopsAtTheMinimumLoan() (gas: 542205)
+[PASS] test_ownerRepay_capThatWouldLeaveDustStopsAtTheMinimumLoan() (gas: 540576)
+[PASS] test_ownerRepay_maxRepaysTheWholeDebt() (gas: 464789)
+[PASS] test_ownerRepay_withoutBalanceRepaysNothing() (gas: 410600)
+[PASS] test_recovery_bufferRunsBeforeRecoveryTrims() (gas: 1368117)
+[PASS] test_trim_noSweepWhenCollateralIsWorthSomething() (gas: 596520)
+[PASS] test_trim_sweepsWorthlessDust() (gas: 1123779)
+[PASS] test_zeroAddressesRejected() (gas: 351873)
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 34.19ms (21.97ms CPU time)
+
+Ran 1 test for test/unit/AuditFixes.t.sol:DeployMockGuardTest
+[PASS] test_mockTokensOnlyOnTestChains() (gas: 23811601)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 5.35ms (4.57ms CPU time)
+
+Ran 3 tests for test/unit/AuditFixes.t.sol:GateConfigTest
+[PASS] test_loanBoundMustKeepThePriceAboveZero() (gas: 2503800)
+[PASS] test_priceCeilingIsABadAnswer() (gas: 2173004)
+[PASS] test_rejectsFeedDecimalsAbove18() (gas: 582332)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 3.25ms (650.19µs CPU time)
+
+Ran 4 tests for test/unit/AuditFixes.t.sol:TerminalCloseTest
+[PASS] test_lens_noLenderWindowAfterTheLastCoveredSession() (gas: 522702)
+[PASS] test_lens_windDownFlagsMissedExecutionAndNoCoverage() (gas: 722590)
+[PASS] test_terminalSession_usesTheExtendedClassAndNoNewCredit() (gas: 836878)
+[PASS] test_windDown_cashOnlyExitsWithoutTrims() (gas: 742013)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 14.55ms (5.76ms CPU time)
+
+Ran 3 tests for test/unit/PriceGate.t.sol:PriceGateWiringTest
+[PASS] test_refreshAndPolicy_neverWriteMarketOrEscrowState() (gas: 2986922)
+[PASS] test_wiring_everyContractDerivesFromTheGate() (gas: 2787549)
+[PASS] test_wiring_marketRejectsTokensTheGateDoesNotPrice() (gas: 298811)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 16.81ms (11.40ms CPU time)
+
+Ran 28 tests for test/unit/SessionCalendar.t.sol:SessionCalendarTest
+[PASS] testFuzz_ContextIsConsistent(uint64) (runs: 512, μ: 38113, ~: 37785)
+[PASS] testFuzz_NoCallWritesStorage(uint8,bytes) (runs: 512, μ: 11239, ~: 10989)
+[PASS] test_BoundsAreTheFirstAndLastLoadedSessions() (gas: 385617)
+[PASS] test_CommittedScheduleIsTheNyseRegularSchedule() (gas: 24438950)
+[PASS] test_CommittedSessionsMeetTheUncheckedDataPreconditions() (gas: 3182145)
+[PASS] test_DaylightSavingChangeMovesTheUtcOpen() (gas: 49529)
+[PASS] test_EmptyAndHugeCountsNeverDeploy() (gas: 114510)
+[PASS] test_EmptyOrInvertedSessionIsRejected() (gas: 690679)
+[PASS] test_EveryOpenAndCloseResolvesToItsOwnSession() (gas: 29126914)
+[PASS] test_EverySessionMatchesGeneratedJson() (gas: 1834759)
+[PASS] test_EverySlotDecodesIndependently() (gas: 435110)
+[PASS] test_FridayCloseToMondayOpen() (gas: 35042)
+[PASS] test_HolidayDoesNotCreateAWeekendReopen() (gas: 36886)
+[PASS] test_HolidayRulesGiveThePublishedDates() (gas: 59848)
+[PASS] test_LastLoadedSessionIsInSessionButNotCovered() (gas: 102088)
+[PASS] test_LookupReadsAreLogarithmic() (gas: 69858007)
+[PASS] test_OutsideCoverageFailsClosed() (gas: 45172)
+[PASS] test_OutsideTheScheduleIsTheZeroContext() (gas: 69834)
+[PASS] test_OverlapIsReportedAtTheFirstBadIndex() (gas: 257734)
+[PASS] test_PackedWordsAreTheSessionList() (gas: 1243816)
+[PASS] test_PaddingSlotReadsZeroAndPastTheLastWordPanics() (gas: 19092)
+[PASS] test_PrevCloseOfEverySession() (gas: 11155132)
+[PASS] test_RevertsOnBadInput() (gas: 151287)
+[PASS] test_SessionOpeningAtThePreviousCloseIsRejected() (gas: 1001555)
+[PASS] test_SingleSessionCalendarIsNeverCovered() (gas: 389334)
+[PASS] test_ThanksgivingIsNotASessionAndFridayClosesEarly() (gas: 49693)
+[PASS] test_TwoSessionCalendarAtEverySecond() (gas: 605822)
+[PASS] test_WordCountIsTheCeilingOfAQuarter() (gas: 4137278)
+Suite result: ok. 28 passed; 0 failed; 0 skipped; finished in 518.03ms (725.58ms CPU time)
+
+Ran 2 tests for test/unit/RepaymentEscrow.t.sol:EscrowReentrancyTest
+[PASS] test_hookedLoanToken_bufferStaysExact() (gas: 895354)
+[PASS] test_hookedLoanToken_reentryCannotMoveFunds() (gas: 991031)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 9.31ms (2.48ms CPU time)
+
+Ran 7 tests for test/unit/SessionRiskPolicy.t.sol:PolicyConsumersTest
+[PASS] test_commitment_stopOrOutageDuringOpenKeepsThePhaseAndNeverCommitsEscrow() (gas: 581974)
+[PASS] test_constants_riskParametersAreConsistent() (gas: 47135)
+[PASS] test_refresh_phaseChangesNeverMovePositionsPlansOrCash() (gas: 1389007)
+[PASS] test_stop_blocksEveryPriceActionInEveryPhaseWhileExitsWork() (gas: 3204996)
+[PASS] test_windDown_noPricePermissionAndExitsContinueForGood() (gas: 1331403)
+[PASS] test_wiring_everyContractSharesOneGateCalendarAndClock() (gas: 2788322)
+[PASS] test_wiring_marketRejectsAGateThatPricesOtherTokens() (gas: 1484408)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 30.44ms (23.02ms CPU time)
+
+Ran 36 tests for test/unit/StockReefLens.t.sol:StockReefLensTest
+[PASS] test_account_addCollateralRawRoundsUpAndReachesTheTarget() (gas: 868779)
+[PASS] test_account_addCollateralValueRoundsUp() (gas: 540011)
+[PASS] test_account_borrowCapacityMatchesWhatBorrowAccepts() (gas: 775652)
+[PASS] test_account_bufferCoverageAndExecution() (gas: 1074045)
+[PASS] test_account_bufferCoverageCountsTheAllowanceSpentThisSession() (gas: 1993113)
+[PASS] test_account_bufferIsInactiveFromItsExpiry() (gas: 1100597)
+[PASS] test_account_capacityHonoursTheUtilizationCap() (gas: 704832)
+[PASS] test_account_closurePlanForTheWorkedExample() (gas: 602851)
+[PASS] test_account_emptyAccountShowsZeros() (gas: 415976)
+[PASS] test_account_ltvIsMaxWhenCollateralIsWorthless() (gas: 674207)
+[PASS] test_account_ltvRoundsUp() (gas: 543045)
+[PASS] test_account_missedExecutionIsDetectedAtTheClose() (gas: 1783288)
+[PASS] test_account_missedExecutionIsStrictAtTheThreshold() (gas: 703000)
+[PASS] test_account_missedExecutionThroughTheClosureUntilAdmission() (gas: 1739462)
+[PASS] test_account_noCapacityForANewAccountAtTheAccountCap() (gas: 9649224)
+[PASS] test_account_noCapacityWhileABufferAuthorizationBlocksBorrowing() (gas: 1439536)
+[PASS] test_account_noCapacityWhileTheBookIsImpaired() (gas: 891947)
+[PASS] test_account_planTargetFollowsTheGoverningClose() (gas: 2417201)
+[PASS] test_account_repayToTargetRoundsUpAndReachesTheTarget() (gas: 688813)
+[PASS] test_account_trimAtFinalIsQuotedOnlyBeforeTheClose() (gas: 1514585)
+[PASS] test_account_valuesAtTheBookPriceWhenTheQuoteIsUnusable() (gas: 709553)
+[PASS] test_account_viewsLagAnUnrecordedAdmissionUntilTheKeeperRefreshes() (gas: 917296)
+[PASS] test_gas_viewsAndLenderDepositAtTheAccountCap() (gas: 12540938)
+[PASS] test_lens_viewsWriteNothingAndNeverRefreshTheGate() (gas: 3623179)
+[PASS] test_market_flagsAPendingCorporateAction() (gas: 181503)
+[PASS] test_market_lenderWindowDuringTheReopening() (gas: 680008)
+[PASS] test_market_lenderWindowFromPreparationProjectsTheNextSession() (gas: 679900)
+[PASS] test_market_mirrorsTheLastAcceptanceAndTheDebtIndex() (gas: 633160)
+[PASS] test_market_multiplierEffectiveTimeIsTruncatedTo64Bits() (gas: 181418)
+[PASS] test_market_multiplierIsPendingOnlyBeforeItsEffectiveTime() (gas: 506127)
+[PASS] test_market_noLenderWindowOutsideCoverage() (gas: 402772)
+[PASS] test_market_noLenderWindowProjectedIntoWindDown() (gas: 861363)
+[PASS] test_market_reportsBookAndWindows() (gas: 726649)
+[PASS] test_market_simulationClockFollowsTheClock() (gas: 12216141)
+[PASS] test_market_utilizationIsZeroWhenEmptyAndCanExceedTheCap() (gas: 9132674)
+[PASS] test_wiring_everyContractSharesOneGateCalendarClockAndTokenPair() (gas: 789324)
+Suite result: ok. 36 passed; 0 failed; 0 skipped; finished in 139.86ms (133.78ms CPU time)
+
+Ran 72 tests for test/unit/StockReefMarket.t.sol:StockReefMarketTest
+[PASS] testFuzz_interest_borrowAndRepayCannotProfit(uint256,uint256) (runs: 512, μ: 810811, ~: 811059)
+[PASS] test_borrow_accountCapOf32() (gas: 9690404)
+[PASS] test_borrow_activeBufferAuthorizationBlocksFromA() (gas: 1096923)
+[PASS] test_borrow_allIdleCashFailsOnTheUtilizationCapFirst() (gas: 774128)
+[PASS] test_borrow_belowTheMinimumLoanReverts() (gas: 710904)
+[PASS] test_borrow_blockedFromTheFinalWindowUntilCreditReturns() (gas: 1800419)
+[PASS] test_borrow_blockedWhileTheMarketIsImpaired() (gas: 1163882)
+[PASS] test_borrow_bufferAuthorizationBlocksFromAOnlyUntilItsExpiry() (gas: 1479588)
+[PASS] test_borrow_exactlyNinetyPercentUtilizationIsAllowed() (gas: 918805)
+[PASS] test_borrow_limitFallsDuringPreparation() (gas: 1039503)
+[PASS] test_borrow_paysExactlyTheAmountToTheReceiver() (gas: 875305)
+[PASS] test_borrow_utilizationCapOf90Percent() (gas: 914880)
+[PASS] test_borrow_withinTheOpenLimit() (gas: 927884)
+[PASS] test_collateral_depositRepayAndDebtFreeWithdrawalNeedNeitherGateNorPolicy() (gas: 1010228)
+[PASS] test_collateral_frozenTransfersRevertAndPreserveBalances() (gas: 137504)
+[PASS] test_collateral_movesExactlyAndDonationsStayStuck() (gas: 165756)
+[PASS] test_collateral_withdrawalWithDebtFollowsTheBorrowLimit() (gas: 1167924)
+[PASS] test_collateral_zeroDebtWithdrawalNeedsNoPrice() (gas: 140129)
+[PASS] test_config_parametersNeverChangeAndThereIsNoAdmin() (gas: 1140607)
+[PASS] test_config_rejectsATokenPairTheGateDoesNotPrice() (gas: 745956)
+[PASS] test_config_sharesOneGateClockAndTokenPair() (gas: 43141)
+[PASS] test_gas_fullCapValuation() (gas: 10188519)
+[PASS] test_guarded_aPersistentStopLeavesOnlyRepaymentsAndWindDownExits() (gas: 5481775)
+[PASS] test_guarded_aStopBlocksPricesNotExits() (gas: 2023619)
+[PASS] test_interest_followsTheGoldenIndex() (gas: 76174)
+[PASS] test_interest_isIndependentOfCheckpoints() (gas: 3647151)
+[PASS] test_lender_checkedVariantsAcceptExactBoundsAndRejectOneBeyond() (gas: 1613602)
+[PASS] test_lender_checkedVariantsEnforceSlippage() (gas: 685138)
+[PASS] test_lender_depositsOnlyInTheOpenWindow() (gas: 955114)
+[PASS] test_lender_earnsInterestThroughTheBook() (gas: 1095827)
+[PASS] test_lender_maxRedeemFloorsTheCashConversion() (gas: 1402345)
+[PASS] test_lender_onlyTheOwnerOrAnApprovedSpenderBurnsShares() (gas: 681488)
+[PASS] test_lender_runOffStopsDeposits() (gas: 1114232)
+[PASS] test_lender_withdrawalsAreLimitedByIdleCash() (gas: 999790)
+[PASS] test_minLoan_trimDustCanOnlyBeRepaidInFullAndKeepsItsSlot() (gas: 1147726)
+[PASS] test_reentrancy_tokenCallbacksCannotReenterTheMarket() (gas: 14450919)
+[PASS] test_refresh_aTrimAdmitsTheReopeningPriceItThenUses() (gas: 981854)
+[PASS] test_repay_anyoneCanRepayForABorrower() (gas: 880869)
+[PASS] test_repay_cannotLeaveDustBelowTheMinimumLoan() (gas: 841733)
+[PASS] test_repay_exactlyTheDebtClearsTheAccount() (gas: 936688)
+[PASS] test_repay_inFullClearsExactlyAndFreesTheSlot() (gas: 927303)
+[PASS] test_repay_worksInEveryStateWithoutAPrice() (gas: 959243)
+[PASS] test_transfers_shortInboundTransfersAreRejected() (gas: 1209950)
+[PASS] test_trimMath_insolvencyBoundaryTakesAllCollateral() (gas: 12421)
+[PASS] test_trimMath_insolventPositionTakesAllCollateral() (gas: 12667)
+[PASS] test_trimMath_matchesGoldenDemoExample() (gas: 66947)
+[PASS] test_trimMath_matchesGoldenWorkedExample() (gas: 66932)
+[PASS] test_trimMath_partialFillIsCappedByMaxRepay() (gas: 14492)
+[PASS] test_trimMath_seizedCollateralRoundsDown() (gas: 14559)
+[PASS] test_trim_bonusTierUsesTheLtvRoundedUp() (gas: 919523)
+[PASS] test_trim_exactMinCollateralOutIsAccepted() (gas: 1173713)
+[PASS] test_trim_finalWindowYesClosedNo() (gas: 1484155)
+[PASS] test_trim_fullFillMoreThanOneUnitAboveTheTargetRevertsTargetMissed() (gas: 1266380)
+[PASS] test_trim_insolventPartialFillWritesNothingOff() (gas: 1143305)
+[PASS] test_trim_notEligibleAtOrBelowTheThreshold() (gas: 1024909)
+[PASS] test_trim_openTrimAboveEightyUsesDistressTerms() (gas: 1144584)
+[PASS] test_trim_partialFillReportsRemainingExcess() (gas: 1091593)
+[PASS] test_trim_positionExactlyAtTheThresholdIsNotEligible() (gas: 952288)
+[PASS] test_trim_quoteRespectsTheSnapshotPermission() (gas: 948088)
+[PASS] test_trim_reopeningGapExhaustsCollateralAndWritesOffTheResidual() (gas: 1033848)
+[PASS] test_trim_respectsDeadlineAndSlippage() (gas: 1093408)
+[PASS] test_trim_thatWouldReleaseNoCollateralRevertsZeroAmount() (gas: 10422773)
+[PASS] test_trim_workedExampleAt1515() (gas: 1115521)
+[PASS] test_valuation_isIndicativeWhilePricesAreLocked() (gas: 866967)
+[PASS] test_valuation_lockedBookUsesTheLastAcceptedPrice() (gas: 1099953)
+[PASS] test_valuation_marksAKnownShortfallBeforeAnyTrim() (gas: 1065206)
+[PASS] test_views_surviveAFailingFeedButNotUndecodableData() (gas: 1090877)
+[PASS] test_windDown_doesNotApplyBeforeCoverageStarts() (gas: 48469)
+[PASS] test_windDown_exitsUseTheLiveQuoteOrElseTheLastAcceptedPrice() (gas: 1215125)
+[PASS] test_windDown_isAbsorbingWhileExitsRepaymentsAndFreeWithdrawalsContinue() (gas: 2856822)
+[PASS] test_windDown_lendersExitAgainstCashAfterTheCalendarEnds() (gas: 999858)
+[PASS] test_zeroAmounts_revertForEveryBorrowerAndTrimCall() (gas: 872085)
+Suite result: ok. 72 passed; 0 failed; 0 skipped; finished in 882.36ms (877.43ms CPU time)
+
+Ran 60 tests for test/unit/RepaymentEscrow.t.sol:RepaymentEscrowTest
+[PASS] testFuzz_authorize_validatesAndWritesOnlyTheCallersPlan(uint256,uint256,uint256) (runs: 512, μ: 335200, ~: 345990)
+[PASS] testFuzz_execute_boundedIsolatedAndAgreesWithTheView(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256) (runs: 512, μ: 7044581, ~: 7056463)
+[PASS] test_activePlan_blocksBorrowingFromAOnlyUntilItsExpiry() (gas: 1206393)
+[PASS] test_authorization_endsExactlyAtExpiry() (gas: 928773)
+[PASS] test_authorize_acceptsTheBoundaryValuesAndWritesOnlyTheCallersPlan() (gas: 289942)
+[PASS] test_authorize_letsAnIndebtedAccountCommitItself() (gas: 1577343)
+[PASS] test_authorize_rejectsExpiredOrEmptyPlans() (gas: 18671)
+[PASS] test_authorize_rejectsTargetsAboveTheDeepestPlan() (gas: 11616)
+[PASS] test_authorize_revertsWhileCommitted() (gas: 826392)
+[PASS] test_cancel_clearsTheAuthorizationButKeepsBalanceAndSpend() (gas: 1255655)
+[PASS] test_commitment_endsWithFullRepaymentOrExpiry() (gas: 662738)
+[PASS] test_commitment_expiredAuthorizationReleasesFunds() (gas: 664755)
+[PASS] test_commitment_followsTheSchedulePhaseNotTheEffectiveState() (gas: 1523982)
+[PASS] test_commitment_locksFromAUntilAFullReopening() (gas: 1373407)
+[PASS] test_commitment_priceOutageOrGuardianStopNeverFreezesEscrow() (gas: 697919)
+[PASS] test_deposit_allowedEvenWhileCommitted() (gas: 712192)
+[PASS] test_deposit_creditsTheNamedAccountNotThePayer() (gas: 890744)
+[PASS] test_deposit_rejectsAFeeOnTransferLoanToken() (gas: 9239650)
+[PASS] test_deposit_worksInEveryStateAndPullsOnlyFromTheCaller() (gas: 652524)
+[PASS] test_deposit_zeroAmountReverts() (gas: 11556)
+[PASS] test_escrowIsNeverLenderCash() (gas: 600880)
+[PASS] test_executableAmount_exactFundsRepayInFullAndShortFundsStopAtTheMinimum() (gas: 408155)
+[PASS] test_executableAmount_exactlyAtTheTargetNeedsNothing() (gas: 375495)
+[PASS] test_executableAmount_keepsARemainderOfExactlyTheMinimum() (gas: 368639)
+[PASS] test_executableAmount_needRoundsUp() (gas: 377670)
+[PASS] test_executable_isFalseOutsideTheBufferWindow() (gas: 950815)
+[PASS] test_execute_allowanceRestartsFromZeroInEachSession() (gas: 1390919)
+[PASS] test_execute_cutsOnlyTheNamedDebtAndPaysTheCallerNothing() (gas: 1210991)
+[PASS] test_execute_eventsReportTheAmountRepaid() (gas: 837924)
+[PASS] test_execute_frozenTransferRevertsAndPreservesBalances() (gas: 851188)
+[PASS] test_execute_isCappedByBalanceAndSessionAllowance() (gas: 829337)
+[PASS] test_execute_neverLeavesDustBelowTheMinimum() (gas: 712606)
+[PASS] test_execute_neverPullsFromTheBorrowersWalletAndLeavesNoApproval() (gas: 864661)
+[PASS] test_execute_onlyDuringPreparationWithAValidPrice() (gas: 978686)
+[PASS] test_execute_reauthorizingCannotResetTheSessionAllowance() (gas: 1084881)
+[PASS] test_execute_refreshesTheGateAndUsesThatPrice() (gas: 869934)
+[PASS] test_execute_repaysExactlyToTheTargetWithoutAReward() (gas: 829807)
+[PASS] test_execute_requiresAnActiveAuthorization() (gas: 680772)
+[PASS] test_execute_sessionCapResetsNextSession() (gas: 1186310)
+[PASS] test_execute_stopsAtTheMinimumWhenFundsAreShort() (gas: 811410)
+[PASS] test_execute_unboundedCapAndExpiryDoNotOverflow() (gas: 813756)
+[PASS] test_ordering_partialBufferThenTrimForTheRest() (gas: 943674)
+[PASS] test_ordering_trimWaitsForAnExecutableBuffer() (gas: 948477)
+[PASS] test_ownerOnly_strangersActOnlyOnTheirOwnPlan() (gas: 1223967)
+[PASS] test_ownerRepay_cutsOnlyTheCallersDebt() (gas: 913431)
+[PASS] test_ownerRepay_doesNotCountAgainstTheSessionAllowance() (gas: 842175)
+[PASS] test_ownerRepay_repaysAtMostTheDebtAndKeepsTheRest() (gas: 470157)
+[PASS] test_ownerRepay_revertPaths() (gas: 1020952)
+[PASS] test_ownerRepay_worksInEveryStateWithoutAuthorization() (gas: 712011)
+[PASS] test_ownerRepay_worksWhileClosedOrGuarded() (gas: 649620)
+[PASS] test_repay_effectsPrecedeTheMarketCallWithAnExactApproval() (gas: 2663883)
+[PASS] test_repay_revertsWhenTheMarketTakesADifferentAmount() (gas: 2795446)
+[PASS] test_stop_haltsBuffersButKeepsRepaymentsTopUpsAndWindDownExits() (gas: 1119606)
+[PASS] test_surplus_donationsAndUnclaimableCreditsAreNeverSpendable() (gas: 325125)
+[PASS] test_windDown_noBufferButRepaymentsTopUpsAndWithdrawalsContinue() (gas: 874244)
+[PASS] test_windDown_releasesPlans() (gas: 671476)
+[PASS] test_wiring_escrowSharesTheMarketsGatePolicyClockAndToken() (gas: 687352)
+[PASS] test_withdraw_paysTheChosenReceiverAndDebitsOnlyTheCaller() (gas: 746033)
+[PASS] test_withdraw_revertPaths() (gas: 882016)
+[PASS] test_writeOff_leavesTheEscrowToTheBorrower() (gas: 750535)
+Suite result: ok. 60 passed; 0 failed; 0 skipped; finished in 1.70s (1.69s CPU time)
+
+Ran 17 tests for test/unit/DemoController.t.sol:DemoControllerTest
+[PASS] testFuzz_advanceIsBoundedAndPublishesNothing(uint256,uint64) (runs: 512, μ: 129687, ~: 122693)
+[PASS] testFuzz_blockClockIsTheBlockTimestamp(uint64) (runs: 512, μ: 59937, ~: 59933)
+[PASS] testFuzz_deployOnlyOnTheTestChainAllowlist(uint64) (runs: 512, μ: 108057, ~: 108051)
+[PASS] testFuzz_onlyTheOperatorActs(address,uint64,int256) (runs: 512, μ: 28521, ~: 28521)
+[PASS] testFuzz_stepIsBoundedAndStampsTheNewTime(uint256,uint64,int256) (runs: 512, μ: 113173, ~: 116306)
+[PASS] testFuzz_stepToIsBoundedAndMonotonic(uint256,uint256,int256) (runs: 512, μ: 77470, ~: 58701)
+[PASS] test_blockTimeCarriesTheClockPastLatest() (gas: 157462)
+[PASS] test_clockNeverMovesBackwards() (gas: 102002)
+[PASS] test_namedChains() (gas: 1469905)
+[PASS] test_neverPastTheLastLoadedOpen() (gas: 329172)
+[PASS] test_onlyTheOperator() (gas: 8967)
+[PASS] test_ownsItsClockAndFeed() (gas: 32895)
+[PASS] test_pushPublishesWithoutMovingTime() (gas: 157321)
+[PASS] test_refusesProductionChains() (gas: 74099)
+[PASS] test_stepEmitsTheMoveTheRoundAndTheStep() (gas: 105813)
+[PASS] test_stepMovesTheClockAndPublishesTogether() (gas: 100104)
+[PASS] test_stepsAreBoundedToSevenDays() (gas: 104566)
+Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 422.54ms (422.08ms CPU time)
+
+Ran 7 tests for test/properties/CalendarProperties.t.sol:CalendarPropertiesTest
+[PASS] testFuzz_AcceptedCalendarsHoldFewerThan2pow31Sessions(uint256,uint8,uint8) (runs: 512, μ: 394679, ~: 362338)
+[PASS] testFuzz_ArbitraryCalendarsAcceptedIffOrderedAndSearchMatchesLinearScan(uint256,uint8,uint8) (runs: 512, μ: 695719, ~: 250185)
+[PASS] testFuzz_CommittedCalendarMatchesLinearScan(uint256) (runs: 512, μ: 1030243, ~: 1081258)
+[PASS] testFuzz_CommittedCoverageIsFirstOpenToLastOpen(uint64) (runs: 512, μ: 12992, ~: 11780)
+[PASS] testFuzz_CommittedIndexAdvancesByTheOpensPassed(uint64,uint64) (runs: 512, μ: 673782, ~: 666934)
+[PASS] testFuzz_ResumeDelayAlwaysLeavesTheStoppedSession(uint256,uint64,uint64) (runs: 512, μ: 62509, ~: 62047)
+[PASS] testFuzz_WordCountMustBeTheCeilingOfAQuarter(uint256,uint256) (runs: 512, μ: 273455, ~: 138730)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 2.55s (4.80s CPU time)
+
+Ran 2 tests for test/properties/CalendarProperties.t.sol:CalendarWalkInvariantsTest
+[PASS] invariant_contextMatchesTheWalkingReference() (runs: 32, calls: 6400, reverts: 0)
+
+╭---------------------+------------+-------+---------+----------╮
+| Contract            | Selector   | Calls | Reverts | Discards |
++===============================================================+
+| CalendarWalkHandler | skip       | 2176  | 0       | 0        |
+|---------------------+------------+-------+---------+----------|
+| CalendarWalkHandler | step       | 2105  | 0       | 0        |
+|---------------------+------------+-------+---------+----------|
+| CalendarWalkHandler | toBoundary | 2119  | 0       | 0        |
+╰---------------------+------------+-------+---------+----------╯
+
+[PASS] invariant_indexNeverMovesBackwards() (runs: 32, calls: 6400, reverts: 0)
+
+╭---------------------+------------+-------+---------+----------╮
+| Contract            | Selector   | Calls | Reverts | Discards |
++===============================================================+
+| CalendarWalkHandler | skip       | 2165  | 0       | 0        |
+|---------------------+------------+-------+---------+----------|
+| CalendarWalkHandler | step       | 2140  | 0       | 0        |
+|---------------------+------------+-------+---------+----------|
+| CalendarWalkHandler | toBoundary | 2095  | 0       | 0        |
+╰---------------------+------------+-------+---------+----------╯
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 2.43s (2.42s CPU time)
+
+Ran 3 tests for test/unit/DemoController.t.sol:DemoClockTest
+[PASS] testFuzz_onlyTheOperatorMovesTheClock(address,uint64) (runs: 512, μ: 16478, ~: 16478)
+[PASS] testFuzz_timeIsBlockTimePlusAForwardOffset(uint256[10]) (runs: 512, μ: 118284, ~: 118774)
+[PASS] test_timeRevertsInsteadOfWrapping() (gas: 38332)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 173.23ms (172.91ms CPU time)
+
+Ran 1 test for test/properties/CalendarProperties.t.sol:CalendarResumeTest
+[PASS] testFuzz_ResumeNeedsAFreshAdmission(uint256,uint256,uint256) (runs: 512, μ: 392432, ~: 391780)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 2.87s (2.86s CPU time)
+
+Ran 4 tests for test/unit/DemoController.t.sol:DemoInvariantsTest
+[PASS] invariant_clockNeverMovesBackwards() (runs: 64, calls: 6400, reverts: 0)
+
+╭-------------+----------+-------+---------+----------╮
+| Contract    | Selector | Calls | Reverts | Discards |
++=====================================================+
+| DemoHandler | advance  | 795   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | drift    | 830   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | intrude  | 791   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | push     | 837   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | step     | 1525  | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | stepTo   | 1622  | 0       | 0        |
+╰-------------+----------+-------+---------+----------╯
+
+[PASS] invariant_movesAreBoundedBySevenDaysAndLatest() (runs: 64, calls: 6400, reverts: 0)
+
+╭-------------+----------+-------+---------+----------╮
+| Contract    | Selector | Calls | Reverts | Discards |
++=====================================================+
+| DemoHandler | advance  | 781   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | drift    | 815   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | intrude  | 809   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | push     | 809   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | step     | 1627  | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | stepTo   | 1559  | 0       | 0        |
+╰-------------+----------+-------+---------+----------╯
+
+[PASS] invariant_onlyTheOperatorActs() (runs: 64, calls: 6400, reverts: 0)
+
+╭-------------+----------+-------+---------+----------╮
+| Contract    | Selector | Calls | Reverts | Discards |
++=====================================================+
+| DemoHandler | advance  | 821   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | drift    | 804   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | intrude  | 754   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | push     | 824   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | step     | 1578  | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | stepTo   | 1619  | 0       | 0        |
+╰-------------+----------+-------+---------+----------╯
+
+[PASS] invariant_roundsAreStampedAtTheClockTime() (runs: 64, calls: 6400, reverts: 0)
+
+╭-------------+----------+-------+---------+----------╮
+| Contract    | Selector | Calls | Reverts | Discards |
++=====================================================+
+| DemoHandler | advance  | 771   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | drift    | 778   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | intrude  | 843   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | push     | 828   | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | step     | 1594  | 0       | 0        |
+|-------------+----------+-------+---------+----------|
+| DemoHandler | stepTo   | 1586  | 0       | 0        |
+╰-------------+----------+-------+---------+----------╯
+
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 3.42s (3.42s CPU time)
+
+Ran 5 tests for test/unit/DemoController.t.sol:DemoMarketTest
+[PASS] test_controllerNeverRefreshesTheGate() (gas: 244921)
+[PASS] test_emptyDemoFeedFailsClosed() (gas: 15318969)
+[PASS] test_lensLabelsTheDemoClock() (gas: 974834)
+[PASS] test_simulatedTimeAccruesInterest() (gas: 1000395)
+[PASS] test_valuationIgnoresTheUiMultiplier() (gas: 1169534)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 12.68ms (8.36ms CPU time)
+
+Ran 11 tests for test/unit/DemoController.t.sol:DemoMocksTest
+[PASS] testFuzz_feed_onlyTheOwnerPublishes(address,int256,uint64) (runs: 512, μ: 24164, ~: 24164)
+[PASS] testFuzz_tokens_moveExactAmounts(uint256,uint256) (runs: 512, μ: 182847, ~: 186847)
+[PASS] testFuzz_tokens_onlyTheIssuerAdministers(address) (runs: 512, μ: 25718, ~: 25718)
+[PASS] test_feed_bumpPhaseRestartsRoundsAndOrder() (gas: 117756)
+[PASS] test_feed_missingDataRevertsNoData() (gas: 54426)
+[PASS] test_feed_roundsFollowChainlinkEncoding() (gas: 152621)
+[PASS] test_feed_timestampsNeverDecreaseWithinAPhase() (gas: 199471)
+[PASS] test_stock_multiplierNeverSwitchesAtEffectiveAt() (gas: 84976)
+[PASS] test_stock_pauseFlag() (gas: 788417)
+[PASS] test_tokens_frozenPartiesRevertWithBalancesIntact() (gas: 205052)
+[PASS] test_tokens_frozenSpenderIsNotBlocked() (gas: 145734)
+Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 121.16ms (120.46ms CPU time)
+
+Ran 4 tests for test/properties/LensProperties.t.sol:LensDifferentialTest
+[PASS] testFuzz_borrowCapacityIsSoundAndTight(uint256,uint256,uint256,uint256,uint256,uint256) (runs: 512, μ: 1456145, ~: 1445928)
+[PASS] testFuzz_bufferExecutableNowMatchesExecuteBuffer(uint256,uint256,uint256,uint256,uint256,uint256) (runs: 512, μ: 1794706, ~: 1632465)
+[PASS] testFuzz_closurePlanReachesTheTarget(uint256,uint256,uint256,uint256,uint256,uint256) (runs: 512, μ: 1444374, ~: 1345139)
+[PASS] testFuzz_trimNowMatchesTrim(uint256,uint256,uint256,uint256,uint256,uint256) (runs: 512, μ: 1542541, ~: 1543976)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 7.60s (11.76s CPU time)
+
+Ran 32 tests for test/properties/GateArithmetic.t.sol:GateArithmeticTest
+[PASS] testFuzz_creditAt_isTheLaterRecoveryEnd(uint32,uint32) (runs: 512, μ: 2203, ~: 2193)
+[PASS] testFuzz_loanRound_followsTheRoundRules(int256,uint256,uint256) (runs: 512, μ: 2733108, ~: 2732882)
+[PASS] testFuzz_peg_pricesTheAnswerAndNeverSetsLoanBits(uint256,uint8,uint256,uint32) (runs: 512, μ: 2349930, ~: 2350018)
+[PASS] testFuzz_priceWad_feedModeIsTheFlooredRatio(uint256,uint256,uint8,uint8) (runs: 512, μ: 2759172, ~: 2759587)
+[PASS] testFuzz_quote_neverRevertsWithinManifestBounds(int256,int256,uint256,uint256) (runs: 512, μ: 2758294, ~: 2759343)
+[PASS] testFuzz_revertingSource_setsExactlyItsOwnBit(uint8,uint8) (runs: 512, μ: 3489345, ~: 3482721)
+[PASS] testFuzz_sequencer_followsTheUptimeRules(int256,uint256,uint64,uint32) (runs: 512, μ: 3019124, ~: 3011008)
+[PASS] testFuzz_stockRound_followsTheRoundRules(int256,uint256,uint64,uint32,uint256) (runs: 512, μ: 2645162, ~: 2644500)
+[PASS] testFuzz_valueScale_isTenToTheExponentOrRejected(uint8,uint8) (runs: 512, μ: 1505838, ~: 637750)
+[PASS] test_answers_adversarialValues() (gas: 4946475)
+[PASS] test_clock_extremeTimes() (gas: 4962711)
+[PASS] test_constructor_decimalsCallsAreNotCaught() (gas: 3412270)
+[PASS] test_constructor_declaredDecimalsMustMatchEverySource() (gas: 2534825)
+[PASS] test_constructor_pegNeverReadsTheLoanFeedFields() (gas: 2034213)
+[PASS] test_creditAt_exactOverflowBound() (gas: 17363)
+[PASS] test_feedLoanAnswer_exactOverflowBound() (gas: 2942955)
+[PASS] test_feedLoanDecimals_exactBounds() (gas: 3969176)
+[PASS] test_feedStockAnswer_exactOverflowBound() (gas: 2783090)
+[PASS] test_gasLimits_quoteNeverTurnsStarvationIntoAReason() (gas: 172013796)
+[PASS] test_gasLimits_refreshNeverTurnsStarvationIntoAReason() (gas: 591082653)
+[PASS] test_pegAnswer_exactOverflowBound() (gas: 2453279)
+[PASS] test_pegStockDecimals_exactBounds() (gas: 3580839)
+[PASS] test_priceWad_isComputedForAnUnusableQuote() (gas: 270696)
+[PASS] test_reasons_areTwentyOneDistinctBitsWithAlignedRoundShifts() (gas: 12557)
+[PASS] test_recoveryGrace_exactOverflowBound() (gas: 4962661)
+[PASS] test_requestResume_exactOverflowBound() (gas: 2621921)
+[PASS] test_sequencer_boundaryTable() (gas: 3026855)
+[PASS] test_sequencer_graceExtremes() (gas: 4343766)
+[PASS] test_timestamps_adversarialValues() (gas: 2440068)
+[PASS] test_tokenDecimalsAreCheckedOnlyAtDeployment() (gas: 2673970)
+[PASS] test_valueConversions_bounds() (gas: 23787)
+[PASS] test_valueScale_exponentBounds() (gas: 9067563)
+Suite result: ok. 32 passed; 0 failed; 0 skipped; finished in 3.80s (4.61s CPU time)
+
+Ran 23 tests for test/properties/ERC4626Properties.t.sol:MarketERC4626PropertiesTest
+[PASS] testFuzz_convert_roundsDownWithTheVirtualOffset(uint256,uint256,uint256,bool) (runs: 512, μ: 479880, ~: 454162)
+[PASS] testFuzz_deposit_mintsThePreviewAndMovesExactlyTheAssets(uint256,uint256,bool) (runs: 512, μ: 470196, ~: 407782)
+[PASS] testFuzz_donations_changeNoAccountingOrConversion(uint256,uint256,uint256,uint256,bool) (runs: 512, μ: 653649, ~: 677723)
+[PASS] testFuzz_inflation_aDonationCannotSkimTheNextDepositor(uint256,uint256,uint256) (runs: 512, μ: 5887769, ~: 5887977)
+[PASS] testFuzz_locks_closeEveryLenderPathButNotPreviewsOrTransfers(uint256,uint256,uint256) (runs: 512, μ: 839485, ~: 865376)
+[PASS] testFuzz_max_entryIsUnlimitedWhileOpen(uint256,uint256,uint256,bool) (runs: 512, μ: 539603, ~: 539203)
+[PASS] testFuzz_max_redeemIsExactlyWhatSucceeds(uint256,bool,uint256,bool) (runs: 512, μ: 841686, ~: 868280)
+[PASS] testFuzz_max_withdrawIsExactlyWhatSucceeds(uint256,bool,uint256,bool) (runs: 512, μ: 816976, ~: 797307)
+[PASS] testFuzz_mint_chargesThePreview(uint256,uint256,bool) (runs: 512, μ: 470487, ~: 405329)
+[PASS] testFuzz_previews_roundAgainstTheCaller(uint256,uint256,uint256,bool) (runs: 512, μ: 516658, ~: 543027)
+[PASS] testFuzz_redeem_paysThePreview(uint256,uint256,bool) (runs: 512, μ: 475344, ~: 458121)
+[PASS] testFuzz_roundTrip_depositThenRedeem(uint256,uint256,bool) (runs: 512, μ: 480433, ~: 425986)
+[PASS] testFuzz_roundTrip_depositThenWithdraw(uint256,uint256,bool) (runs: 512, μ: 481674, ~: 538530)
+[PASS] testFuzz_roundTrip_mintThenRedeem(uint256,uint256,bool) (runs: 512, μ: 480301, ~: 426156)
+[PASS] testFuzz_roundTrip_mintThenWithdraw(uint256,uint256,bool) (runs: 512, μ: 484445, ~: 442894)
+[PASS] testFuzz_roundTrip_redeemThenDeposit(uint256,uint256,bool) (runs: 512, μ: 511080, ~: 538487)
+[PASS] testFuzz_roundTrip_redeemThenMint(uint256,uint256,bool) (runs: 512, μ: 529004, ~: 521128)
+[PASS] testFuzz_roundTrip_withdrawThenDeposit(uint256,uint256,bool) (runs: 512, μ: 511724, ~: 538442)
+[PASS] testFuzz_roundTrip_withdrawThenMint(uint256,uint256,bool) (runs: 512, μ: 509230, ~: 481331)
+[PASS] testFuzz_windDown_exitsOnlyAgainstIdleCash(uint256,bool,uint256) (runs: 512, μ: 738528, ~: 695844)
+[PASS] testFuzz_withdraw_burnsThePreview(uint256,uint256,bool) (runs: 512, μ: 481812, ~: 458169)
+[PASS] test_runOff_blocksDepositAndMintAndTheirViewsAgree() (gas: 6480122)
+[PASS] test_zeroAmounts_areNoOpsWhileTheWindowIsOpen() (gas: 472414)
+Suite result: ok. 23 passed; 0 failed; 0 skipped; finished in 19.19s (19.18s CPU time)
+
+Ran 2 tests for test/invariant/GateInvariants.t.sol:GateInvariantsTest
+[PASS] invariant_everyRefreshAndGuardianCallMatchesTheModel() (runs: 32, calls: 3840, reverts: 0)
+
+╭-------------+----------------+-------+---------+----------╮
+| Contract    | Selector       | Calls | Reverts | Discards |
++===========================================================+
+| GateHandler | creditBoundary | 511   | 0       | 0        |
+|-------------+----------------+-------+---------+----------|
+| GateHandler | fault          | 560   | 0       | 0        |
+|-------------+----------------+-------+---------+----------|
+| GateHandler | guardianAct    | 567   | 0       | 0        |
+|-------------+----------------+-------+---------+----------|
+| GateHandler | jump           | 594   | 0       | 0        |
+|-------------+----------------+-------+---------+----------|
+| GateHandler | print          | 559   | 0       | 0        |
+|-------------+----------------+-------+---------+----------|
+| GateHandler | quiet          | 499   | 0       | 0        |
+|-------------+----------------+-------+---------+----------|
+| GateHandler | step           | 550   | 0       | 0        |
+╰-------------+----------------+-------+---------+----------╯
+
+[PASS] invariant_recordsStayConsistentBetweenCalls() (runs: 32, calls: 3840, reverts: 0)
+
+╭-------------+----------------+-------+---------+----------╮
+| Contract    | Selector       | Calls | Reverts | Discards |
++===========================================================+
+| GateHandler | creditBoundary | 567   | 0       | 0        |
+|-------------+----------------+-------+---------+----------|
+| GateHandler | fault          | 541   | 0       | 0        |
+|-------------+----------------+-------+---------+----------|
+| GateHandler | guardianAct    | 565   | 0       | 0        |
+|-------------+----------------+-------+---------+----------|
+| GateHandler | jump           | 578   | 0       | 0        |
+|-------------+----------------+-------+---------+----------|
+| GateHandler | print          | 565   | 0       | 0        |
+|-------------+----------------+-------+---------+----------|
+| GateHandler | quiet          | 490   | 0       | 0        |
+|-------------+----------------+-------+---------+----------|
+| GateHandler | step           | 534   | 0       | 0        |
+╰-------------+----------------+-------+---------+----------╯
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 17.20s (26.94s CPU time)
+
+Ran 2 tests for test/properties/LensProperties.t.sol:LensInvariantsTest
+[PASS] invariant_lensQuotesMatchExecution() (runs: 20, calls: 2000, reverts: 0)
+
+╭-------------+---------------+-------+---------+----------╮
+| Contract    | Selector      | Calls | Reverts | Discards |
++==========================================================+
+| LensHandler | addCollateral | 188   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | borrow        | 177   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | executeBuffer | 212   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | fundBuffer    | 201   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | lend          | 196   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | repayToTarget | 189   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | tick          | 203   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | topUpToTarget | 206   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | trim          | 428   | 0       | 0        |
+╰-------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_lensViewsMatchTheirSources() (runs: 20, calls: 2000, reverts: 0)
+
+╭-------------+---------------+-------+---------+----------╮
+| Contract    | Selector      | Calls | Reverts | Discards |
++==========================================================+
+| LensHandler | addCollateral | 215   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | borrow        | 202   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | executeBuffer | 199   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | fundBuffer    | 186   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | lend          | 200   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | repayToTarget | 197   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | tick          | 205   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | topUpToTarget | 204   | 0       | 0        |
+|-------------+---------------+-------+---------+----------|
+| LensHandler | trim          | 392   | 0       | 0        |
+╰-------------+---------------+-------+---------+----------╯
+
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 24.16s (44.17s CPU time)
+
+Ran 2 tests for test/properties/LensProperties.t.sol:LensWeekTest
+[PASS] testFuzz_lenderWindowAcrossTheEndOfCoverage(uint256) (runs: 512, μ: 1576924, ~: 1594502)
+[PASS] testFuzz_viewsHoldAcrossAWeek(uint256,int256,uint256) (runs: 512, μ: 1989079, ~: 2047171)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 8.84s (13.94s CPU time)
+
+Ran 3 tests for test/properties/PolicyProperties.t.sol:PolicyEdgeCalendarTest
+[PASS] test_class_aGapOfExactly24HoursIsExtendedAndOneSecondLessIsOvernight() (gas: 2131305)
+[PASS] test_evaluateRevertsOnlyForACloseBelowPrep() (gas: 4070529)
+[PASS] test_singleSessionCalendarIsNeverCovered() (gas: 2058835)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 1.40ms (1.12ms CPU time)
+
+Ran 15 tests for test/properties/PolicyProperties.t.sol:PolicyModelTest
+[PASS] testFuzz_borrowLimitIsTheLowerOfTheCapAndTheGap(uint256) (runs: 512, μ: 6646, ~: 6357)
+[PASS] testFuzz_borrowLimitRevertsBelowTheGap(uint256) (runs: 512, μ: 9392, ~: 9609)
+[PASS] testFuzz_closureLimitsHoldFromFinalUntilCreditReturns(uint256,uint256,uint256,uint256) (runs: 512, μ: 414038, ~: 413110)
+[PASS] testFuzz_creditAtIsTheLaterOfOpenPlus15AndAdmissionPlus10(uint64,uint64) (runs: 512, μ: 2319, ~: 2149)
+[PASS] testFuzz_evaluateMatchesTheModel(uint256,uint256,uint256) (runs: 512, μ: 329046, ~: 353071)
+[PASS] testFuzz_evaluateNeverRevertsOnTheCommittedCalendar(uint64,uint32,uint256) (runs: 512, μ: 37925, ~: 32450)
+[PASS] testFuzz_everyBoundaryOfAnySessionToTheSecond(uint256,uint256) (runs: 512, μ: 974482, ~: 972610)
+[PASS] testFuzz_limitsNeverRiseAndWindowsAreIntervalsWithinASession(uint256,uint256,uint256,uint256,uint256) (runs: 512, μ: 145133, ~: 145083)
+[PASS] testFuzz_onTimeAdmissionAppliesTheClosingClassFromA(uint256,uint256,uint256) (runs: 512, μ: 94698, ~: 94337)
+[PASS] testFuzz_policyTakesTheAdmissionRecordAtFaceValue(uint256,uint256,uint256) (runs: 512, μ: 130472, ~: 130074)
+[PASS] testFuzz_rampIsTheFloorOfTheExactLineAndNeverRises(uint64,uint64,uint64,bool) (runs: 512, μ: 29463, ~: 30885)
+[PASS] testFuzz_windDownIsAbsorbing(uint64,uint32,uint64,uint64) (runs: 512, μ: 84118, ~: 83123)
+[PASS] test_calendar_sessionsSuitThePolicyTimings() (gas: 2605079)
+[PASS] test_class_everyCloseAndReopeningFollowsTheGapRule() (gas: 50956648)
+[PASS] test_lateAdmissionAfterALetsLtRiseWhenCreditReturns() (gas: 124080)
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 3.35s (6.31s CPU time)
+
+Ran 3 tests for test/properties/PolicyProperties.t.sol:PolicyInvariants
+[PASS] invariant_everySnapshotKeepsThePolicyRules() (runs: 32, calls: 4800, reverts: 0)
+
+╭---------------+-------------+-------+---------+----------╮
+| Contract      | Selector    | Calls | Reverts | Discards |
++==========================================================+
+| PolicyHandler | guardianAct | 1178  | 0       | 0        |
+|---------------+-------------+-------+---------+----------|
+| PolicyHandler | issuerAct   | 1191  | 0       | 0        |
+|---------------+-------------+-------+---------+----------|
+| PolicyHandler | leap        | 1210  | 0       | 0        |
+|---------------+-------------+-------+---------+----------|
+| PolicyHandler | tick        | 1221  | 0       | 0        |
+╰---------------+-------------+-------+---------+----------╯
+
+[PASS] invariant_refreshesAndPhaseChangesNeverMoveTheBook() (runs: 32, calls: 4800, reverts: 0)
+
+╭---------------+-------------+-------+---------+----------╮
+| Contract      | Selector    | Calls | Reverts | Discards |
++==========================================================+
+| PolicyHandler | guardianAct | 1223  | 0       | 0        |
+|---------------+-------------+-------+---------+----------|
+| PolicyHandler | issuerAct   | 1192  | 0       | 0        |
+|---------------+-------------+-------+---------+----------|
+| PolicyHandler | leap        | 1201  | 0       | 0        |
+|---------------+-------------+-------+---------+----------|
+| PolicyHandler | tick        | 1184  | 0       | 0        |
+╰---------------+-------------+-------+---------+----------╯
+
+[PASS] invariant_stopsAndWindDownBlockPricesNotExits() (runs: 32, calls: 4800, reverts: 0)
+
+╭---------------+-------------+-------+---------+----------╮
+| Contract      | Selector    | Calls | Reverts | Discards |
++==========================================================+
+| PolicyHandler | guardianAct | 1182  | 0       | 0        |
+|---------------+-------------+-------+---------+----------|
+| PolicyHandler | issuerAct   | 1204  | 0       | 0        |
+|---------------+-------------+-------+---------+----------|
+| PolicyHandler | leap        | 1248  | 0       | 0        |
+|---------------+-------------+-------+---------+----------|
+| PolicyHandler | tick        | 1166  | 0       | 0        |
+╰---------------+-------------+-------+---------+----------╯
+
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 23.86s (23.85s CPU time)
+
+Ran 6 tests for test/invariant/EscrowInvariants.t.sol:EscrowInvariantsTest
+[PASS] invariant_buffersStayWithinWindowCapBalanceAndTarget() (runs: 16, calls: 3200, reverts: 0)
+
+╭---------------+---------------+-------+---------+----------╮
+| Contract      | Selector      | Calls | Reverts | Discards |
++============================================================+
+| EscrowHandler | authorize     | 213   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | borrow        | 225   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | deposit       | 251   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | donate        | 258   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | executeBuffer | 248   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | keeperRound   | 241   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | marketRepay   | 233   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | ownerRepay    | 228   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | tick          | 287   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | toNextSession | 254   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | toPreparation | 230   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | trim          | 269   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | withdraw      | 263   | 0       | 0        |
+╰---------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_commitmentFollowsTheSchedulePhase() (runs: 16, calls: 3200, reverts: 0)
+
+╭---------------+---------------+-------+---------+----------╮
+| Contract      | Selector      | Calls | Reverts | Discards |
++============================================================+
+| EscrowHandler | authorize     | 264   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | borrow        | 248   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | deposit       | 236   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | donate        | 264   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | executeBuffer | 263   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | keeperRound   | 270   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | marketRepay   | 220   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | ownerRepay    | 225   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | tick          | 231   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | toNextSession | 249   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | toPreparation | 253   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | trim          | 245   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | withdraw      | 232   | 0       | 0        |
+╰---------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_escrowHoldsEveryPlanBalancePlusAnUnspendableSurplus() (runs: 16, calls: 3200, reverts: 0)
+
+╭---------------+---------------+-------+---------+----------╮
+| Contract      | Selector      | Calls | Reverts | Discards |
++============================================================+
+| EscrowHandler | authorize     | 246   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | borrow        | 228   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | deposit       | 234   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | donate        | 242   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | executeBuffer | 274   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | keeperRound   | 266   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | marketRepay   | 238   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | ownerRepay    | 243   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | tick          | 242   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | toNextSession | 252   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | toPreparation | 248   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | trim          | 250   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | withdraw      | 237   | 0       | 0        |
+╰---------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_noApprovalLeftAndReentryMovesNothing() (runs: 16, calls: 3200, reverts: 0)
+
+╭---------------+---------------+-------+---------+----------╮
+| Contract      | Selector      | Calls | Reverts | Discards |
++============================================================+
+| EscrowHandler | authorize     | 273   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | borrow        | 232   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | deposit       | 245   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | donate        | 235   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | executeBuffer | 229   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | keeperRound   | 249   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | marketRepay   | 240   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | ownerRepay    | 291   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | tick          | 268   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | toNextSession | 204   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | toPreparation | 243   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | trim          | 266   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | withdraw      | 225   | 0       | 0        |
+╰---------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_onlyTheOwnerMovesOrControlsItsPlan() (runs: 16, calls: 3200, reverts: 0)
+
+╭---------------+---------------+-------+---------+----------╮
+| Contract      | Selector      | Calls | Reverts | Discards |
++============================================================+
+| EscrowHandler | authorize     | 248   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | borrow        | 256   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | deposit       | 224   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | donate        | 267   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | executeBuffer | 273   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | keeperRound   | 260   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | marketRepay   | 216   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | ownerRepay    | 236   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | tick          | 243   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | toNextSession | 236   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | toPreparation | 251   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | trim          | 245   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | withdraw      | 245   | 0       | 0        |
+╰---------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_planBalancesMoveOnlyByExactAmountsOfTheirOwnActions() (runs: 16, calls: 3200, reverts: 0)
+
+╭---------------+---------------+-------+---------+----------╮
+| Contract      | Selector      | Calls | Reverts | Discards |
++============================================================+
+| EscrowHandler | authorize     | 255   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | borrow        | 244   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | deposit       | 243   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | donate        | 242   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | executeBuffer | 245   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | keeperRound   | 250   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | marketRepay   | 216   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | ownerRepay    | 258   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | tick          | 260   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | toNextSession | 237   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | toPreparation | 253   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | trim          | 263   | 0       | 0        |
+|---------------+---------------+-------+---------+----------|
+| EscrowHandler | withdraw      | 234   | 0       | 0        |
+╰---------------+---------------+-------+---------+----------╯
+
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 45.60s (52.10s CPU time)
+
+Ran 30 tests for test/properties/MarketAccounting.t.sol:MarketAccountingPropertiesTest
+[PASS] testFuzz_activeSet_staysExactThroughRepaymentsAndReborrows(uint256,uint256) (runs: 512, μ: 3191416, ~: 2747063)
+[PASS] testFuzz_book_actionsAtAFixedPriceNeverLowerTotalAssets(uint256,uint256,uint256,uint256,uint256) (runs: 512, μ: 1383683, ~: 1409209)
+[PASS] testFuzz_book_bufferExecutionNeverLowersTotalAssets(uint256,uint256) (runs: 512, μ: 856921, ~: 865929)
+[PASS] testFuzz_book_matchesItsDefinition(uint256,uint256,bool,uint256) (runs: 512, μ: 980753, ~: 972622)
+[PASS] testFuzz_constants_everySnapshotKeepsTheTrimDenominatorPositive(uint256,bool) (runs: 512, μ: 180783, ~: 182698)
+[PASS] testFuzz_debt_borrowAndRepayRoundAgainstTheBorrower(uint256,uint256,uint256) (runs: 512, μ: 672734, ~: 672831)
+[PASS] testFuzz_debt_borrowMintsCeilSharesAndDebtRoundsUp(uint256,uint256,uint256) (runs: 512, μ: 541897, ~: 541729)
+[PASS] testFuzz_debt_borrowingExactlyTheLimitCanFailByOneUnit(uint256,uint256) (runs: 512, μ: 603203, ~: 603494)
+[PASS] testFuzz_freshBorrowIsNeverTrimmableOrImpaired(uint256,uint256,uint256) (runs: 512, μ: 587957, ~: 587102)
+[PASS] testFuzz_impairment_blocksAllNewCreditIffSomeLoanIsUnderwater(uint256) (runs: 512, μ: 769164, ~: 736476)
+[PASS] testFuzz_index_neverDecreasesSecondToSecond(uint256) (runs: 512, μ: 19045, ~: 19356)
+[PASS] testFuzz_interest_debtDependsOnlyOnTheTime(uint256,uint256,uint256) (runs: 512, μ: 2185116, ~: 2247860)
+[PASS] testFuzz_interest_lendersNeverEarnMoreThanBorrowersOwe(uint256,uint256) (runs: 512, μ: 916201, ~: 916595)
+[PASS] testFuzz_minLoan_borrowAndRepayLeaveNoDebtOrAtLeastTheMinimum(uint256,uint256,uint256) (runs: 512, μ: 500536, ~: 500171)
+[PASS] testFuzz_trimMath_staysInRangeForRealisticBalances(uint256,uint256,uint256,uint256,bool,uint256) (runs: 512, μ: 20858, ~: 20636)
+[PASS] testFuzz_trim_eligibleOnlyStrictlyAboveTheThreshold(uint256,uint256) (runs: 512, μ: 702290, ~: 728577)
+[PASS] testFuzz_trim_fullFillEndsWithinOneUnitOfTheTargetOrRevertsTargetMissed(uint256,uint256,uint256,uint256) (runs: 512, μ: 877851, ~: 881117)
+[PASS] testFuzz_trim_insolventPartialFillWritesNothingOff(uint256,uint256,uint256) (runs: 512, μ: 728744, ~: 726813)
+[PASS] testFuzz_trim_insolventSweepTakesEverythingAndWritesOffTheRest(uint256,uint256) (runs: 512, μ: 922016, ~: 919950)
+[PASS] testFuzz_trim_movesExactlyItsQuote(uint256,uint256,uint256) (runs: 512, μ: 1024616, ~: 1031092)
+[PASS] testFuzz_trim_quoteAndBookNeverRevertForPolicySnapshots(uint256,uint256,uint256) (runs: 512, μ: 1059586, ~: 1041982)
+[PASS] testFuzz_trim_solventFullFillLandsOnTheTarget(uint256,uint256,uint256,uint256) (runs: 512, μ: 736142, ~: 734153)
+[PASS] testFuzz_trim_solventTrimNeverRaisesLtv(uint256,uint256,uint256) (runs: 512, μ: 716102, ~: 714842)
+[PASS] testFuzz_trim_valueAgreesWithTheGate(uint256,uint256) (runs: 512, μ: 224896, ~: 224997)
+[PASS] testFuzz_utilization_capIsExactlyNinetyPercentOfCashPlusDebt(uint256,uint256) (runs: 512, μ: 919160, ~: 980340)
+[PASS] testFuzz_withdrawCollateral_keepsDebtWithinTheBorrowLimit(uint256,uint256,uint256) (runs: 512, μ: 737268, ~: 735916)
+[PASS] test_constants_keepTheTrimAndValuationMathConsistent() (gas: 31886)
+[PASS] test_index_isMonotoneAroundRangeReductionBoundaries() (gas: 7332473)
+[PASS] test_index_startsAtOneAndOverflowsOnlyAfterCenturies() (gas: 28368)
+[PASS] test_trim_quoteRevertsOnlyForCraftedSnapshots() (gas: 471731)
+Suite result: ok. 30 passed; 0 failed; 0 skipped; finished in 21.50s (37.44s CPU time)
+
+Ran 8 tests for test/invariant/MarketInvariants.t.sol:MarketInvariants
+[PASS] invariant_actionsMoveExactlyWhatTheyShould() (runs: 20, calls: 8000, reverts: 0)
+
+╭---------------+------------------+-------+---------+----------╮
+| Contract      | Selector         | Calls | Reverts | Discards |
++===============================================================+
+| MarketHandler | addCollateral    | 616   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | borrow           | 586   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | donate           | 585   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | executeBuffer    | 551   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | fundBuffer       | 569   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | lend             | 573   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | mintShares       | 573   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | redeem           | 590   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | removeCollateral | 537   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | repay            | 551   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | spenderRedeem    | 578   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | tick             | 572   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | trim             | 543   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | withdrawExit     | 576   | 0       | 0        |
+╰---------------+------------------+-------+---------+----------╯
+
+[PASS] invariant_actionsOnlyInTheirWindows() (runs: 12, calls: 4800, reverts: 0)
+
+╭---------------+------------------+-------+---------+----------╮
+| Contract      | Selector         | Calls | Reverts | Discards |
++===============================================================+
+| MarketHandler | addCollateral    | 350   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | borrow           | 329   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | donate           | 333   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | executeBuffer    | 335   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | fundBuffer       | 352   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | lend             | 311   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | mintShares       | 331   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | redeem           | 355   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | removeCollateral | 353   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | repay            | 338   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | spenderRedeem    | 327   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | tick             | 348   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | trim             | 364   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | withdrawExit     | 374   | 0       | 0        |
+╰---------------+------------------+-------+---------+----------╯
+
+[PASS] invariant_bookNeverExceedsCashPlusDebt() (runs: 12, calls: 4800, reverts: 0)
+
+╭---------------+------------------+-------+---------+----------╮
+| Contract      | Selector         | Calls | Reverts | Discards |
++===============================================================+
+| MarketHandler | addCollateral    | 347   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | borrow           | 335   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | donate           | 330   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | executeBuffer    | 338   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | fundBuffer       | 332   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | lend             | 354   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | mintShares       | 365   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | redeem           | 356   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | removeCollateral | 348   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | repay            | 358   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | spenderRedeem    | 341   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | tick             | 329   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | trim             | 354   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | withdrawExit     | 313   | 0       | 0        |
+╰---------------+------------------+-------+---------+----------╯
+
+[PASS] invariant_bookSharesAndActiveSetAddUp() (runs: 20, calls: 8000, reverts: 0)
+
+╭---------------+------------------+-------+---------+----------╮
+| Contract      | Selector         | Calls | Reverts | Discards |
++===============================================================+
+| MarketHandler | addCollateral    | 583   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | borrow           | 590   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | donate           | 573   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | executeBuffer    | 558   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | fundBuffer       | 555   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | lend             | 624   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | mintShares       | 588   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | redeem           | 570   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | removeCollateral | 562   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | repay            | 586   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | spenderRedeem    | 565   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | tick             | 552   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | trim             | 564   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | withdrawExit     | 530   | 0       | 0        |
+╰---------------+------------------+-------+---------+----------╯
+
+[PASS] invariant_collateralConservation() (runs: 12, calls: 4800, reverts: 0)
+
+╭---------------+------------------+-------+---------+----------╮
+| Contract      | Selector         | Calls | Reverts | Discards |
++===============================================================+
+| MarketHandler | addCollateral    | 332   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | borrow           | 342   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | donate           | 348   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | executeBuffer    | 378   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | fundBuffer       | 336   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | lend             | 343   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | mintShares       | 355   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | redeem           | 322   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | removeCollateral | 345   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | repay            | 342   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | spenderRedeem    | 340   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | tick             | 347   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | trim             | 329   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | withdrawExit     | 341   | 0       | 0        |
+╰---------------+------------------+-------+---------+----------╯
+
+[PASS] invariant_debtSharesAddUp() (runs: 12, calls: 4800, reverts: 0)
+
+╭---------------+------------------+-------+---------+----------╮
+| Contract      | Selector         | Calls | Reverts | Discards |
++===============================================================+
+| MarketHandler | addCollateral    | 337   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | borrow           | 340   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | donate           | 374   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | executeBuffer    | 370   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | fundBuffer       | 347   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | lend             | 342   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | mintShares       | 343   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | redeem           | 331   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | removeCollateral | 357   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | repay            | 338   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | spenderRedeem    | 344   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | tick             | 327   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | trim             | 338   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | withdrawExit     | 312   | 0       | 0        |
+╰---------------+------------------+-------+---------+----------╯
+
+[PASS] invariant_escrowBalancesAddUp() (runs: 12, calls: 4800, reverts: 0)
+
+╭---------------+------------------+-------+---------+----------╮
+| Contract      | Selector         | Calls | Reverts | Discards |
++===============================================================+
+| MarketHandler | addCollateral    | 334   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | borrow           | 373   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | donate           | 309   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | executeBuffer    | 342   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | fundBuffer       | 301   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | lend             | 352   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | mintShares       | 353   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | redeem           | 350   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | removeCollateral | 343   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | repay            | 345   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | spenderRedeem    | 356   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | tick             | 356   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | trim             | 336   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | withdrawExit     | 350   | 0       | 0        |
+╰---------------+------------------+-------+---------+----------╯
+
+[PASS] invariant_loanTokenConservation() (runs: 12, calls: 4800, reverts: 0)
+
+╭---------------+------------------+-------+---------+----------╮
+| Contract      | Selector         | Calls | Reverts | Discards |
++===============================================================+
+| MarketHandler | addCollateral    | 344   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | borrow           | 338   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | donate           | 378   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | executeBuffer    | 326   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | fundBuffer       | 349   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | lend             | 327   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | mintShares       | 348   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | redeem           | 321   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | removeCollateral | 357   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | repay            | 324   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | spenderRedeem    | 343   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | tick             | 331   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | trim             | 365   | 0       | 0        |
+|---------------+------------------+-------+---------+----------|
+| MarketHandler | withdrawExit     | 349   | 0       | 0        |
+╰---------------+------------------+-------+---------+----------╯
+
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 42.03s (73.52s CPU time)
+
+Ran 42 tests for test/unit/SessionRiskPolicy.t.sol:SessionRiskPolicyTest
+[PASS] testFuzz_admission_realGateRecordsOnlyInsideTheSessionFromOpenPlusFive(uint256,uint256) (runs: 512, μ: 237323, ~: 251537)
+[PASS] testFuzz_permissionsFollowTheSchedule(uint256) (runs: 512, μ: 252101, ~: 226676)
+[PASS] testFuzz_rampIsMonotoneAndBounded(uint64,uint64,bool) (runs: 512, μ: 12802, ~: 12852)
+[PASS] testFuzz_view_neverAllowsMoreThanATransactionAtTheSameSecond(uint256,uint256) (runs: 512, μ: 308031, ~: 312245)
+[PASS] test_bonus_fullTableByStateAndLtv() (gas: 3635191)
+[PASS] test_bonus_openTrimsUseTheDistressBonus() (gas: 358663)
+[PASS] test_bonus_schedulingVersusDistress() (gas: 478203)
+[PASS] test_borrowLimit_isTheLowerOfTheCapAndTheGap() (gas: 232060)
+[PASS] test_boundary_earlyClosesMoveTheWholeRampToTheSecond() (gas: 727722)
+[PASS] test_boundary_fridaySessionThroughTheWeekendToTheSecond() (gas: 819873)
+[PASS] test_boundary_mondayAdmittedAtTheGuardThroughTuesdayToTheSecond() (gas: 645287)
+[PASS] test_class_boundaryIs24Hours() (gas: 7264)
+[PASS] test_class_earlyCloseMovesTheWholeRamp() (gas: 569059)
+[PASS] test_class_firstLoadedSessionReopensUnderExtendedLimits() (gas: 342093)
+[PASS] test_class_holidaysEarlyClosesAndClockChangesAreExtended() (gas: 915205)
+[PASS] test_class_weekdayCloseBeforeAHolidayIsExtended() (gas: 137305)
+[PASS] test_constants_timingAndLimitFixturesMatchTheSpec() (gas: 27605)
+[PASS] test_creditAt_isTheLaterOfOpenPlus15AndAdmissionPlus10() (gas: 3758)
+[PASS] test_creditAt_staysZeroUntilTheSessionIsAdmitted() (gas: 311624)
+[PASS] test_guarded_guardianStopAppliesEvenWhileClosed() (gas: 167608)
+[PASS] test_guarded_invalidPriceDuringTradingStopsEverything() (gas: 380956)
+[PASS] test_guarded_otherReasonsGuardOnlyThePhasesThatUseThePrice() (gas: 7927624)
+[PASS] test_guarded_outageThenRecoveryGraceFromTheRealGate() (gas: 716816)
+[PASS] test_guarded_outsideTheLoadedCalendar() (gas: 179193)
+[PASS] test_guarded_staleQuoteWhileClosedIsExpected() (gas: 136489)
+[PASS] test_guarded_stopOverridesEveryPhaseAndKeepsTheSchedule() (gas: 595078)
+[PASS] test_immutability_policyAndCalendarCodeNeverWritesState() (gas: 4369845)
+[PASS] test_lt_risesWhenCreditReturnsAfterAnAdmissionInsidePreparation() (gas: 253358)
+[PASS] test_permissions_fullTruthTableByState() (gas: 842106)
+[PASS] test_ramp_exactGoldenValuesAtSecondsThatRound() (gas: 103510)
+[PASS] test_ramp_matchesIndependentGoldenValues() (gas: 402374)
+[PASS] test_ramp_preCloseSnapshotsFollowTheRampEverySecondAtBothEnds() (gas: 1430946)
+[PASS] test_ramp_workedExampleIsEligibleAt1515NotAtEquality() (gas: 378847)
+[PASS] test_reopen_guardedWithoutAdmissionByOpenPlus30() (gas: 304711)
+[PASS] test_reopen_lateAdmissionStillGetsTenMinutesOfRecovery() (gas: 419116)
+[PASS] test_reopen_sundayQuoteKeepsTheMarketWaiting() (gas: 3465538)
+[PASS] test_resume_newCreditNeedsAFreshAdmission() (gas: 675703)
+[PASS] test_timeline_weekendReopeningThroughOvernightClose() (gas: 1257771)
+[PASS] test_trimEligible_isStrictlyAboveLtAndNeedsTrimPermission() (gas: 707149)
+[PASS] test_uncovered_failsClosedWithEveryScheduleFieldZero() (gas: 574122)
+[PASS] test_view_equalsEvaluateOfTheQuoteAndNeverAllowsMoreThanATransaction() (gas: 339311)
+[PASS] test_windDown_startsAtTheLastOpenSecondAndCoverageEndsThere() (gas: 189887)
+Suite result: ok. 42 passed; 0 failed; 0 skipped; finished in 63.22s (63.31s CPU time)
+
+Ran 78 tests for test/unit/PriceGate.t.sol:PriceGateTest
+[PASS] testFuzz_admissionFor_matchesTheAdmittedSession(uint256) (runs: 512, μ: 192423, ~: 192421)
+[PASS] testFuzz_admissionNeedsOpenPlusFiveAndAPostOpenPrice(uint256,uint256) (runs: 512, μ: 2131537, ~: 2140758)
+[PASS] testFuzz_constructor_pegOnlyOnTheTwoTestChains(uint32,uint8) (runs: 512, μ: 3326878, ~: 4156657)
+[PASS] testFuzz_guardian_onlyTheOwnerActsAndAnyoneRefreshes(address) (runs: 512, μ: 208258, ~: 208258)
+[PASS] testFuzz_guardian_resumeComesAtLeast24HoursAfterTheLastStopAndRequest(uint256,uint256,uint256,uint256) (runs: 512, μ: 80562, ~: 77426)
+[PASS] testFuzz_refresh_isIdempotentAndMatchesTheView(uint256) (runs: 512, μ: 3704573, ~: 3703837)
+[PASS] testFuzz_valueConversionsRoundAgainstTheBorrower(uint256,uint256,uint256) (runs: 512, μ: 12409, ~: 12585)
+[PASS] test_admissionFor_onlyTheLatestAdmissionIsLive() (gas: 294778)
+[PASS] test_constructor_acceptsLoanFeedOutsideTestChains() (gas: 2233281)
+[PASS] test_constructor_allowsTheLabelledPegOnRobinhoodTestnet() (gas: 1952772)
+[PASS] test_constructor_recordsManifest() (gas: 22916)
+[PASS] test_constructor_revertsOnEachMissingAddressOrLimit() (gas: 484422)
+[PASS] test_constructor_revertsOnFeedDecimalsMismatch() (gas: 93724)
+[PASS] test_constructor_revertsOnLoanDecimalsMismatch() (gas: 90486)
+[PASS] test_constructor_revertsOnMissingFeedLimits() (gas: 83112)
+[PASS] test_constructor_revertsOnMissingLoanFeedLimits() (gas: 2383534)
+[PASS] test_constructor_revertsOnMissingPegLabel() (gas: 93332)
+[PASS] test_constructor_revertsOnPegOutsideTestChains() (gas: 94048)
+[PASS] test_constructor_revertsOnTokenDecimalsMismatch() (gas: 87174)
+[PASS] test_constructor_revertsOnZeroGuardian() (gas: 57185)
+[PASS] test_guardian_aStopAfterCreditAtIsRecordedAsAnOutage() (gas: 387882)
+[PASS] test_guardian_aStopHoldsAnOutageOpen() (gas: 397917)
+[PASS] test_guardian_aStopWithoutResumeHoldsAcrossSessions() (gas: 1063454)
+[PASS] test_guardian_aStoppedGateAdmitsNothingAndAcceptsNoPrice() (gas: 985460)
+[PASS] test_guardian_cannotRenounceButCanTransferInTwoSteps() (gas: 34363)
+[PASS] test_guardian_cannotResumeWhenRunning() (gas: 15305)
+[PASS] test_guardian_onlyOwnerCanStop() (gas: 10984)
+[PASS] test_guardian_ownershipMovesOnlyThroughTheTwoStepHandshake() (gas: 92802)
+[PASS] test_guardian_refreshReportsTheStopAndFreezesTheLastPriceWhileClosed() (gas: 362549)
+[PASS] test_guardian_requestResumeRestartsTheDelay() (gas: 80320)
+[PASS] test_guardian_resumeClearsAnOutageOfTheSameSession() (gas: 2711799)
+[PASS] test_guardian_resumeClearsTheStopTheRequestAndTheOutage() (gas: 354877)
+[PASS] test_guardian_resumeOnARunningGateRevertsNotStopped() (gas: 76840)
+[PASS] test_guardian_stopCancelsAPendingResume() (gas: 53191)
+[PASS] test_guardian_stopDuringRecoveryResetsAdmission() (gas: 294962)
+[PASS] test_guardian_stopIsImmediateAndResumeWaits24Hours() (gas: 442504)
+[PASS] test_guardian_stopTouchesOnlyTheStopFields() (gas: 479461)
+[PASS] test_quote_checksSequencerUptimeWhenConfigured() (gas: 2426530)
+[PASS] test_quote_convertsThroughLoanFeed() (gas: 2377340)
+[PASS] test_quote_failsClosedWhenRequiredPauseFlagIsMissing() (gas: 4681821)
+[PASS] test_quote_failsClosedWithoutMultiplierGetters() (gas: 3993350)
+[PASS] test_quote_flagsChangedFeedDecimals() (gas: 2378329)
+[PASS] test_quote_honoursIssuerPause() (gas: 102284)
+[PASS] test_quote_ignoresAPriorSessionOutageBeforeAnyRefresh() (gas: 402616)
+[PASS] test_quote_largeMoveBelowBoundIsNotInvalid() (gas: 137979)
+[PASS] test_quote_rejectsBadStockAnswers() (gas: 251635)
+[PASS] test_quote_rejectsBrokenLoanConversion() (gas: 2493691)
+[PASS] test_quote_rejectsFutureAndStaleStockTimestamps() (gas: 107881)
+[PASS] test_quote_rejectsZeroTimestampAndUnavailableFeed() (gas: 2326647)
+[PASS] test_quote_sequencerSlotIsOptional() (gas: 89587)
+[PASS] test_quote_valuesTheWorkedExampleAtGoldenValues() (gas: 120823)
+[PASS] test_quote_waitsForTheFeedAfterAMultiplierChange() (gas: 237825)
+[PASS] test_refresh_aFutureStampEndsTheGraceButAdmitsNothing() (gas: 182364)
+[PASS] test_refresh_aRevertingCallerLeavesNoRecord() (gas: 461257)
+[PASS] test_refresh_admitsAPriceStampedExactlyAtOpenPlusOneMinute() (gas: 2139258)
+[PASS] test_refresh_admitsAtOpenPlusFiveWithAFreshPrice() (gas: 366640)
+[PASS] test_refresh_admitsOncePerSession() (gas: 283350)
+[PASS] test_refresh_anEndedGraceClearsOnAnInvalidQuoteAndTheOutageReturns() (gas: 500666)
+[PASS] test_refresh_anOutageInsideTheGraceExtendsIt() (gas: 651151)
+[PASS] test_refresh_creditAtIsTheExactBoundaryBetweenResetAndOutage() (gas: 714062)
+[PASS] test_refresh_doesNotFabricateAnUnobservedOutage() (gas: 352236)
+[PASS] test_refresh_eachSessionNeedsItsOwnAdmission() (gas: 354639)
+[PASS] test_refresh_graceNeedsAQuoteNewerThanTheCheckpoint() (gas: 2262414)
+[PASS] test_refresh_interruptedRecoveryRestartsAdmission() (gas: 346967)
+[PASS] test_refresh_keepsTheLastUsablePriceOnly() (gas: 230763)
+[PASS] test_refresh_midSessionOutageNeedsCheckpointAndGrace() (gas: 583877)
+[PASS] test_refresh_neverAdmitsAPriorSessionQuote() (gas: 2323296)
+[PASS] test_refresh_neverAdmitsInTheUncoveredLastSession() (gas: 1034182)
+[PASS] test_refresh_noAdmissionWhileAResumeCheckpointIsPending() (gas: 446549)
+[PASS] test_refresh_noLastPriceDuringAnOutageOrAGrace() (gas: 778156)
+[PASS] test_refresh_outageDetectedOncePerOutage() (gas: 455365)
+[PASS] test_refresh_outageDoesNotCarryIntoTheNextSession() (gas: 408390)
+[PASS] test_refresh_outagePersistsThroughTheCloseAndLapsesAtTheNextOpen() (gas: 543356)
+[PASS] test_refresh_recordsNothingWhileClosed() (gas: 243928)
+[PASS] test_refresh_recordsTheFeedStampAndTheClockTimeOfTheLastPrice() (gas: 272601)
+[PASS] test_resume_newCreditNeedsAFreshAdmission() (gas: 976423)
+[PASS] test_sources_areReadOnlyThroughStaticCalls() (gas: 3018224)
+[PASS] test_storage_eachEntryPointWritesOnlyItsOwnFields() (gas: 1824745)
+Suite result: ok. 78 passed; 0 failed; 0 skipped; finished in 68.53s (68.57s CPU time)
+
+Ran 33 test suites in 68.54s (364.24s CPU time): 531 tests passed, 0 failed, 0 skipped (531 total tests)
+exit 0

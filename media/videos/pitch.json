@@ -20,13 +20,13 @@
     },
     {
       "id": "q2",
-      "question": "What's the problem?",
+      "question": "What breaks when Wall Street closes?",
       "speaker": "Aryan",
       "phrases": [
-        "About a third of Tesla's price movement",
-        "happens while its market is closed.",
-        "Over five years it opened at least five percent away",
-        "from Friday's close on one Monday in sixteen."
+        "When Nasdaq closes on Friday, Tesla's real price stops until Monday,",
+        "but every loan backed by Tesla tokens stays open.",
+        "One Monday in sixteen opens five percent or more away from Friday,",
+        "so a loan can be underwater before anyone is able to act."
       ]
     },
     {

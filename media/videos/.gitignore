@@ -3,3 +3,4 @@ out/
 public/music-*.wav
 public/voice/*
 !public/voice/.gitkeep
+public/rec/*/

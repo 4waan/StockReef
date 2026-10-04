@@ -1,0 +1,155 @@
+{
+ "chainId": 46630,
+ "recorded": "2026-10-04",
+ "app": "https://stock-reef.vercel.app",
+ "note": "The demo video's live run on the public Robinhood Chain testnet. Every hash below is a confirmed transaction; 'signed in the app' ones were sent by clicking the deployed app's buttons on camera.",
+ "accounts": {
+  "borrower": "0x05802c4E1921b24854D603A46951864ca97b8DAf",
+  "lenderAndOperator": "0x8A60820Ebbf9643F7b0B560a2FE6AFE666c2A87a",
+  "liquidator": "0xD41ECc5dd9993B0F67d15dCD0916E73E03bEaA67",
+  "treasury": "0x0c9f591275F2a15662CE2B7db10654BaB5f5E388",
+  "ava": "0x87F430F05748543894496EcaC66F254336393431",
+  "ben": "0x11286a7523005D642761ABcD1880af4895FF3FC4",
+  "cleo": "0xE12713d47Cb71E5edC94bd4cE12c0E0c44BA8F89"
+ },
+ "transactions": [
+  {
+   "chapter": "prepare",
+   "action": "Friday 09:35: fresh price",
+   "hash": "0x1d6a9d5de594a00e4305bd6fbc22add772c258374fed9c1fa85ff716d54f03c0",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x1d6a9d5de594a00e4305bd6fbc22add772c258374fed9c1fa85ff716d54f03c0"
+  },
+  {
+   "chapter": "prepare",
+   "action": "Friday 09:35: admit the reopening",
+   "hash": "0x9e156e1a6f36c3e94dbc2d29fbc2ea403a52d5d5707dec2d5c8756a7db2ab2d2",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x9e156e1a6f36c3e94dbc2d29fbc2ea403a52d5d5707dec2d5c8756a7db2ab2d2"
+  },
+  {
+   "chapter": "prepare",
+   "action": "Friday 09:46: credit open",
+   "hash": "0x4eeed0b817cbf3fc779106572cd70962f5efa3ff5bf8fb3b0f250b242fefb8d8",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x4eeed0b817cbf3fc779106572cd70962f5efa3ff5bf8fb3b0f250b242fefb8d8"
+  },
+  {
+   "chapter": "prepare",
+   "action": "Borrower: authorize 65% buffer plan",
+   "hash": "0xe0d8ae7635fa53b21758243fed15dae91665ab3982d52742e8ab2ae095f1fc9b",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0xe0d8ae7635fa53b21758243fed15dae91665ab3982d52742e8ab2ae095f1fc9b"
+  },
+  {
+   "chapter": "prepare",
+   "action": "Friday 13:00: open at 400.00",
+   "hash": "0xa94c7910e0ab35edc02c31e971b273e29e22b7ab2336c6994b93f343fd447f70",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0xa94c7910e0ab35edc02c31e971b273e29e22b7ab2336c6994b93f343fd447f70"
+  },
+  {
+   "chapter": "book",
+   "action": "Treasury: deposit 140 USDG",
+   "hash": "0xf2a2325618ac5707eb1a0a848c67d1f4cdb6b9aa26914633f6f18435ebdad8e3",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0xf2a2325618ac5707eb1a0a848c67d1f4cdb6b9aa26914633f6f18435ebdad8e3"
+  },
+  {
+   "chapter": "book",
+   "action": "Ava: deposit 0.30 TSLA",
+   "hash": "0x4544904641da3f26e9017a103c4a1d9ad97d9533274295f95a3cfefe99ffe69c",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x4544904641da3f26e9017a103c4a1d9ad97d9533274295f95a3cfefe99ffe69c"
+  },
+  {
+   "chapter": "book",
+   "action": "Ava: borrow 66 USDG",
+   "hash": "0x32696d198df4fbfcecb494c2e409cd13dbbb196db500ddba09d52bf2301dba5e",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x32696d198df4fbfcecb494c2e409cd13dbbb196db500ddba09d52bf2301dba5e"
+  },
+  {
+   "chapter": "book",
+   "action": "Ben: deposit 0.10 TSLA",
+   "hash": "0x6eba5694e8a4d662c448ded7d536d0a549f1b6f25ce6a6a6a107a049d336c56a",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x6eba5694e8a4d662c448ded7d536d0a549f1b6f25ce6a6a6a107a049d336c56a"
+  },
+  {
+   "chapter": "book",
+   "action": "Ben: borrow 29.60 USDG",
+   "hash": "0xc6ba907e621d025900708b2a2a5d433c88f68cb786deaeab8ab33be8d32d6fda",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0xc6ba907e621d025900708b2a2a5d433c88f68cb786deaeab8ab33be8d32d6fda"
+  },
+  {
+   "chapter": "book",
+   "action": "Cleo: deposit 0.10 TSLA",
+   "hash": "0xa994caacd84be917efc823ba5d26cdf68bbe595a2153a7bbe306319092294253",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0xa994caacd84be917efc823ba5d26cdf68bbe595a2153a7bbe306319092294253"
+  },
+  {
+   "chapter": "book",
+   "action": "Cleo: borrow 27 USDG",
+   "hash": "0x3f4593920bf935fd52f27b03dd9a50b935152667de32b282f705f67042100993",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x3f4593920bf935fd52f27b03dd9a50b935152667de32b282f705f67042100993"
+  },
+  {
+   "chapter": "countdown",
+   "action": "Testnet to Friday 15:15 (398.40)",
+   "hash": "0x66a82f77add3f5eb33ba574aa6067d5dd726a9b6970726c2af0c5c0d78ba20ea",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x66a82f77add3f5eb33ba574aa6067d5dd726a9b6970726c2af0c5c0d78ba20ea"
+  },
+  {
+   "chapter": "paydown",
+   "action": "Borrower's funded buffer runs: debt 72.08 -> 65.08 (signed in the app)",
+   "hash": "0x4c3711ce9da287cb889b9d8482aff6e37985cd3fb37cc5f7e53fb8656b3921fe",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x4c3711ce9da287cb889b9d8482aff6e37985cd3fb37cc5f7e53fb8656b3921fe"
+  },
+  {
+   "chapter": "trim",
+   "action": "Liquidator: exact USDG approval (signed in the app)",
+   "hash": "0xfcef51ac427de60e7bcbc204e662deea91206635a8adf646df6c319c8a7cd0c2",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0xfcef51ac427de60e7bcbc204e662deea91206635a8adf646df6c319c8a7cd0c2"
+  },
+  {
+   "chapter": "trim",
+   "action": "Liquidator trims Ben: 10.99 USDG for 0.0281 TSLA, LTV 74.3% -> 65.0% (signed in the app)",
+   "hash": "0x83ec266caab015186650d3ac96336d0dbd3cf0a29d3753dc5c3aac011fce4793",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x83ec266caab015186650d3ac96336d0dbd3cf0a29d3753dc5c3aac011fce4793"
+  },
+  {
+   "chapter": "weekend",
+   "action": "Testnet to Friday 16:00 close (397.20)",
+   "hash": "0x0b97c7e04ab5a2570cfdad80dae588eba28134865237d08974ed834e8713206a",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x0b97c7e04ab5a2570cfdad80dae588eba28134865237d08974ed834e8713206a"
+  },
+  {
+   "chapter": "weekend",
+   "action": "Borrower: exact 1 USDG approval while closed (signed in the app)",
+   "hash": "0x47a21bc42ab95e7fefc3fd35a31871891da915d5297cbaccfbbcc11fda092aba",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x47a21bc42ab95e7fefc3fd35a31871891da915d5297cbaccfbbcc11fda092aba"
+  },
+  {
+   "chapter": "weekend",
+   "action": "Borrower repays 1 USDG while closed: 65.08 -> 64.08 (signed in the app)",
+   "hash": "0x1c1b3981daee6f3a2649e442775ae7f9aca5ae7dbb83fd49d4fc3f83ca6d8e74",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x1c1b3981daee6f3a2649e442775ae7f9aca5ae7dbb83fd49d4fc3f83ca6d8e74"
+  },
+  {
+   "chapter": "monday",
+   "action": "Monday 09:35: admit the fresh 376.00 price",
+   "hash": "0xa2b01b6ba5dc2bf857fd4b92633a49409c2aedd499eab48943a68652d8d2d3ce",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0xa2b01b6ba5dc2bf857fd4b92633a49409c2aedd499eab48943a68652d8d2d3ce"
+  },
+  {
+   "chapter": "recovery",
+   "action": "Liquidator: exact USDG approval (signed in the app)",
+   "hash": "0xa4784bdc9431f21177a0a9ee4dbb9db16e421ec27fdf4119d9f4b46098675f5d",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0xa4784bdc9431f21177a0a9ee4dbb9db16e421ec27fdf4119d9f4b46098675f5d"
+  },
+  {
+   "chapter": "recovery",
+   "action": "Liquidator's recovery trim of Cleo: 8.13 USDG for 0.0227 TSLA at the 5% recovery bonus (signed in the app)",
+   "hash": "0x855d5856da9565d80aa92a3c852480fe3952eb3fd147f3f54ef1cc89841190da",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x855d5856da9565d80aa92a3c852480fe3952eb3fd147f3f54ef1cc89841190da"
+  },
+  {
+   "chapter": "failure",
+   "action": "Testnet to Monday 09:45 credit (377.10); then 150 s without a price, the borrow is refused in preflight and nothing is sent",
+   "hash": "0x213d1baf26a904d9105f67b8142398ff581348e0bcde3e3ab8485a564a77532d",
+   "explorer": "https://explorer.testnet.chain.robinhood.com/tx/0x213d1baf26a904d9105f67b8142398ff581348e0bcde3e3ab8485a564a77532d"
+  }
+ ]
+}
