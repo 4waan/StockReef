@@ -1,0 +1,27 @@
+{
+	"name": "trade-stale",
+	"url": "stock-reef.vercel.app/trade?step=credit",
+	"width": 1600,
+	"height": 900,
+	"scale": 2,
+	"boxes": {
+		"alert": {
+			"x": 1277,
+			"y": 529,
+			"w": 307,
+			"h": 66
+		},
+		"ticket": {
+			"x": 0,
+			"y": 0,
+			"w": 212,
+			"h": 900
+		},
+		"pill": {
+			"x": 1302.34375,
+			"y": 866,
+			"w": 150.09375,
+			"h": 26
+		}
+	}
+}

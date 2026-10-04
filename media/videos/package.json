@@ -1,0 +1,28 @@
+{
+  "name": "stockreef-submission-videos",
+  "private": true,
+  "description": "The StockReef pitch and demo videos, as one Remotion project. Not part of the app build.",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "prepare:pitch": "node scripts/timeline.mjs pitch && node scripts/music.mjs pitch",
+    "render:pitch": "npm run prepare:pitch && remotion render src/index.ts Pitch out/stockreef-pitch-music-only.mp4",
+    "render:pitch-guide": "npm run prepare:pitch && remotion render src/index.ts PitchGuide out/stockreef-pitch-guide.mp4",
+    "prepare:demo": "node scripts/timeline.mjs demo && node scripts/music.mjs demo",
+    "render:demo": "npm run prepare:demo && remotion render src/index.ts Demo out/stockreef-demo-music-only.mp4",
+    "render:demo-guide": "npm run prepare:demo && remotion render src/index.ts DemoGuide out/stockreef-demo-guide.mp4",
+    "capture": "node capture/pages.mjs",
+    "stills": "node scripts/stills.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.532",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "remotion": "4.0.532"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "playwright-core": "^1.56.1",
+    "typescript": "5.9.2"
+  }
+}

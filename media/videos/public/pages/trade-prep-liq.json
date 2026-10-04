@@ -1,0 +1,27 @@
+{
+	"name": "trade-prep-liq",
+	"url": "stock-reef.vercel.app/trade?step=prep",
+	"width": 1600,
+	"height": 900,
+	"scale": 2,
+	"boxes": {
+		"tile": {
+			"x": 998,
+			"y": 48,
+			"w": 262,
+			"h": 76
+		},
+		"pop": {
+			"x": 998,
+			"y": 132,
+			"w": 440,
+			"h": 168.21875
+		},
+		"close": {
+			"x": 212,
+			"y": 48,
+			"w": 261,
+			"h": 76
+		}
+	}
+}

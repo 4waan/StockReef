@@ -1,0 +1,27 @@
+{
+	"name": "trade-prep-after",
+	"url": "stock-reef.vercel.app/trade?step=prep",
+	"width": 1600,
+	"height": 900,
+	"scale": 2,
+	"boxes": {
+		"chart": {
+			"x": 212,
+			"y": 187,
+			"w": 1048,
+			"h": 320
+		},
+		"buffer": {
+			"x": 736,
+			"y": 48,
+			"w": 261,
+			"h": 76
+		},
+		"state": {
+			"x": 1261,
+			"y": 506,
+			"w": 339,
+			"h": 182
+		}
+	}
+}

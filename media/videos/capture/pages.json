@@ -1,0 +1,49 @@
+[
+  {
+    "name": "trade-prep",
+    "url": "$APP/trade?step=prep",
+    "height": 900,
+    "targets": {
+      "tiles": "css:main .grid.divide-x",
+      "close": "up2:Before the close",
+      "threshold": "up2:Threshold",
+      "buffer": "up2:Funded buffer",
+      "trim": "up2:Liquidation",
+      "chart": "css:main svg[role=img]",
+      "ticket": "css:aside",
+      "phase": "Preparing for the close"
+    }
+  },
+  {
+    "name": "trade-prep-after",
+    "url": "$APP/trade?step=prep",
+    "height": 900,
+    "targets": {
+      "chart": "css:main svg[role=img]",
+      "buffer": "up2:Funded buffer",
+      "state": "css:[aria-label='Last state change']"
+    }
+  },
+  {
+    "name": "tsla",
+    "url": "$APP/markets/tsla?step=admit",
+    "height": 1400,
+    "targets": {
+      "identity": "css:main header",
+      "chart": "css:main svg[role=img]",
+      "token": "up3:Contract",
+      "market": "up2:Market"
+    }
+  },
+  {
+    "name": "evidence",
+    "url": "$APP/evidence",
+    "height": 1400,
+    "targets": {
+      "tests": "up1:Test entry points",
+      "fork": "up1:Mainnet fork block",
+      "deploy": "up1:Chain 46630 deployment",
+      "policy": "Contract risk policy"
+    }
+  }
+]

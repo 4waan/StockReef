@@ -1,0 +1,27 @@
+{
+	"name": "trade-wait",
+	"url": "stock-reef.vercel.app/trade?step=wait",
+	"width": 1600,
+	"height": 900,
+	"scale": 2,
+	"boxes": {
+		"tile": {
+			"x": 474,
+			"y": 48,
+			"w": 261,
+			"h": 76
+		},
+		"pop": {
+			"x": 474,
+			"y": 132,
+			"w": 440,
+			"h": 132.796875
+		},
+		"chart": {
+			"x": 212,
+			"y": 187,
+			"w": 1048,
+			"h": 320
+		}
+	}
+}

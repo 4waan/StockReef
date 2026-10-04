@@ -1,0 +1,83 @@
+{
+  "fps": 30,
+  "wordsPerSecond": 2.45,
+  "introSeconds": 9,
+  "questionSeconds": 2.1,
+  "answerPadSeconds": 1.0,
+  "outroSeconds": 5,
+  "segments": [
+    {"id": "d1", "question": "What's the problem?", "speaker": "Aryan", "phrases": [
+      "A tokenized stock trades all weekend,",
+      "but its real price stops on Friday at four.",
+      "Over five years Tesla opened at least five percent away",
+      "from Friday's close on one Monday in sixteen."]},
+    {"id": "d2", "question": "Who has it?", "speaker": "Aryan", "phrases": [
+      "Our first user holds Tesla and borrows USDG against it",
+      "at about seventy two percent.",
+      "That's healthy on a Friday afternoon,",
+      "and it's exactly the loan a weekend gap hurts."]},
+    {"id": "d3", "question": "What's missing today?", "speaker": "Aryan", "phrases": [
+      "Lending markets treat stocks like crypto that never stops trading.",
+      "A borrowing lock stops a loan from growing over the weekend,",
+      "but it never makes the debt smaller."]},
+    {"id": "d4", "question": "What's our insight?", "speaker": "Aryan", "phrases": [
+      "Reduce the debt before the close, while a usable price still exists.",
+      "So the threshold falls through the afternoon,",
+      "and the borrower sees an amount and a deadline."]},
+    {"id": "d5", "question": "Why on chain, why Robinhood Chain?", "speaker": "Awaan", "phrases": [
+      "A rule a lender can rely on has to be enforced by the contract,",
+      "not by a server.",
+      "And Robinhood Chain is where the Tesla token and Paxos USDG already live."]},
+    {"id": "d6", "question": "What does the borrower see at 15:15?", "speaker": "Awaan", "phrases": [
+      "At 15:15 the threshold is down to seventy one point seven percent,",
+      "and the loan sits just above it.",
+      "The terminal turns that into one instruction,",
+      "repay seven dollars thirty four by 15:30."]},
+    {"id": "d7", "question": "Show the transaction", "speaker": "Awaan", "phrases": [
+      "This borrower funded a repayment buffer in advance,",
+      "so anyone can execute it now.",
+      "We run it and sign,",
+      "and no stock is sold and no bonus is paid."]},
+    {"id": "d8", "question": "Show the state change", "speaker": "Awaan", "phrases": [
+      "The debt drops from seventy two to sixty five dollars,",
+      "and the loan moves back under the falling threshold.",
+      "The receipt sits on the chart where it happened."]},
+    {"id": "d9", "question": "What if nothing had executed?", "speaker": "Awaan", "phrases": [
+      "Without the buffer, a liquidator could trim twenty one dollars of debt",
+      "at a two percent bonus.",
+      "The loan stays open, but the borrower pays for waiting."]},
+    {"id": "d10", "question": "What happens over the weekend?", "speaker": "Aryan", "phrases": [
+      "From 15:30 there's no new borrowing, and at four the market closes.",
+      "Repaying and adding collateral still work,",
+      "but the loan can only get smaller."]},
+    {"id": "d11", "question": "How does Monday reopen?", "speaker": "Awaan", "phrases": [
+      "On Monday a fresh price of three seventy six arrives,",
+      "but nothing runs on it until it's admitted five minutes after the open.",
+      "Valued at that price this loan sits just under the seventy percent limit,",
+      "because the buffer already ran."]},
+    {"id": "d12", "question": "Who carries a loss?", "speaker": "Aryan", "phrases": [
+      "Lenders see every loan valued at what it can actually recover.",
+      "If Tesla fell to two twenty, this loan would leave a twelve dollar shortfall,",
+      "and share value would drop to eighty five cents,",
+      "so no lender can exit ahead of the loss."]},
+    {"id": "d13", "question": "What happens when something goes wrong?", "speaker": "Awaan", "phrases": [
+      "Here the price feed stops, and we try to borrow two minutes later.",
+      "The contract refuses the stale price,",
+      "so the wallet never even opens."]},
+    {"id": "d14", "question": "Is it durable?", "speaker": "Aryan", "phrases": [
+      "Five hundred thirty five tests cover the risky paths,",
+      "including fork tests on the real Tesla token.",
+      "And every number in this app matches the contract's own view, field by field."]},
+    {"id": "d15", "question": "What roadblocks did we overcome?", "speaker": "Awaan", "phrases": [
+      "A stale demo price made every screen read zero,",
+      "so the contracts now value a scripted session directly.",
+      "And MetaMask warned on unlimited approvals,",
+      "so every approval is now exact and checked before signing."]},
+    {"id": "d16", "question": "What did we trade off, and what's next?", "speaker": "Aryan", "phrases": [
+      "On testnet the operator sets the price and clock,",
+      "so we can show a weekend on demand.",
+      "Next we calibrate the limits against real gaps and add more stocks,",
+      "then get audited and launch on Robinhood Chain mainnet.",
+      "StockReef reduces stock-backed debt before the market closes."]}
+  ]
+}

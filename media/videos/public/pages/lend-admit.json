@@ -1,0 +1,27 @@
+{
+	"name": "lend-admit",
+	"url": "stock-reef.vercel.app/earn?step=admit",
+	"width": 1600,
+	"height": 900,
+	"scale": 2,
+	"boxes": {
+		"book": {
+			"x": 251,
+			"y": 145.25,
+			"w": 934,
+			"h": 12
+		},
+		"loss": {
+			"x": 236,
+			"y": 212.25,
+			"w": 964,
+			"h": 148.75
+		},
+		"loans": {
+			"x": 237,
+			"y": 378,
+			"w": 962,
+			"h": 28.5
+		}
+	}
+}

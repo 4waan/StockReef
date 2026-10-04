@@ -1,0 +1,33 @@
+{
+	"name": "evidence",
+	"url": "stock-reef.vercel.app/evidence",
+	"width": 1600,
+	"height": 1400,
+	"scale": 2,
+	"boxes": {
+		"tests": {
+			"x": 232,
+			"y": 56,
+			"w": 306,
+			"h": 91
+		},
+		"fork": {
+			"x": 579,
+			"y": 56,
+			"w": 306,
+			"h": 91
+		},
+		"deploy": {
+			"x": 1273,
+			"y": 56,
+			"w": 307,
+			"h": 75
+		},
+		"policy": {
+			"x": 232,
+			"y": 180,
+			"w": 169.078125,
+			"h": 28
+		}
+	}
+}

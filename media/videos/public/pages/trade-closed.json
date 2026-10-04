@@ -1,0 +1,33 @@
+{
+	"name": "trade-closed",
+	"url": "stock-reef.vercel.app/trade?step=closed",
+	"width": 1600,
+	"height": 900,
+	"scale": 2,
+	"boxes": {
+		"tile": {
+			"x": 212,
+			"y": 48,
+			"w": 261,
+			"h": 76
+		},
+		"pop": {
+			"x": 212,
+			"y": 132,
+			"w": 440,
+			"h": 116.140625
+		},
+		"ticket": {
+			"x": 0,
+			"y": 0,
+			"w": 212,
+			"h": 900
+		},
+		"chart": {
+			"x": 212,
+			"y": 187,
+			"w": 1048,
+			"h": 320
+		}
+	}
+}

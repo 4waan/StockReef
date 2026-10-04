@@ -1,0 +1,27 @@
+{
+	"name": "trade-open",
+	"url": "stock-reef.vercel.app/trade?step=open",
+	"width": 1600,
+	"height": 900,
+	"scale": 2,
+	"boxes": {
+		"tiles": {
+			"x": 212,
+			"y": 48,
+			"w": 1048,
+			"h": 77
+		},
+		"row": {
+			"x": 212,
+			"y": 579.203125,
+			"w": 1048,
+			"h": 36.5
+		},
+		"chart": {
+			"x": 212,
+			"y": 187,
+			"w": 1048,
+			"h": 320
+		}
+	}
+}

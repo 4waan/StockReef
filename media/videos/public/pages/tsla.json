@@ -1,0 +1,33 @@
+{
+	"name": "tsla",
+	"url": "stock-reef.vercel.app/markets/tsla?step=admit",
+	"width": 1600,
+	"height": 1194,
+	"scale": 2,
+	"boxes": {
+		"identity": {
+			"x": 236,
+			"y": 16,
+			"w": 1340,
+			"h": 56
+		},
+		"chart": {
+			"x": 237,
+			"y": 160,
+			"w": 982,
+			"h": 360
+		},
+		"token": {
+			"x": 1236,
+			"y": 84,
+			"w": 340,
+			"h": 437
+		},
+		"market": {
+			"x": 237,
+			"y": 534,
+			"w": 886,
+			"h": 28.5
+		}
+	}
+}
