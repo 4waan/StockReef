@@ -1,5 +1,5 @@
 import { Suspense, type ReactNode } from 'react'
-import { StatusBar } from '@/components/terminal/StatusBar'
+import { ModeFooter } from '@/components/terminal/ModeFooter'
 import { TopBar } from '@/components/terminal/TopBar'
 import { ViewingProvider } from '@/lib/viewing'
 
@@ -11,7 +11,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         <ViewingProvider>
           <TopBar />
           <main className="flex flex-1 flex-col">{children}</main>
-          <StatusBar />
+          <ModeFooter />
         </ViewingProvider>
       </Suspense>
     </div>

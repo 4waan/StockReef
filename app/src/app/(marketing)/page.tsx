@@ -24,11 +24,11 @@ export default function Landing() {
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link href="/earn" className="rounded-md bg-brand px-6 py-3 text-lg font-semibold text-white hover:bg-[#a74f23] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">Lend USDG ↗</Link>
-            <Link href="/trade" className="rounded-md border-2 border-brand px-6 py-3 text-lg font-semibold text-brand hover:bg-brand hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">Borrow against TSLA ↗</Link>
+            <Link href="/trade" className="rounded-md bg-brand px-6 py-3 text-lg font-semibold text-white hover:bg-[#a74f23] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">Borrow against TSLA ↗</Link>
             <Link href="/demo" className="self-center px-3 py-3 text-sm font-semibold text-brand underline underline-offset-4 hover:text-charcoal">Guided demo ↗</Link>
           </div>
           <p className="mt-6 max-w-3xl text-sm leading-relaxed text-charcoal/65">
-            On Robinhood Chain 46630, the market uses Paxos USDG, faucet TSLA, and an operator-set stock price and market clock. Balances and transactions in the app come from the deployed contracts.
+            On Robinhood Chain testnet, the market uses Paxos USDG and faucet TSLA. The guided app views show a coordinated example. Switch to Live testnet inside the app for deployed contract balances, transactions, and MetaMask actions.
           </p>
         </section>
 

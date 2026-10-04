@@ -1,6 +1,6 @@
 # StockReef video plan
 
-Draft for narration and screen timing. The guided interface is a staged scenario. Explorer receipts and MetaMask confirmations are separate, real Robinhood Chain testnet transactions.
+Draft for narration and screen timing. Trade, Earn, Portfolio, and Operations open in a shared staged scenario. The Live testnet switch on each page shows contract reads and real MetaMask actions. Explorer receipts and MetaMask confirmations are real Robinhood Chain testnet transactions.
 
 ## One-minute pitch
 

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from 'wagmi'
 import { chain, demoAccounts } from '@/lib/chain'
 import { short } from '@/lib/format'
@@ -19,6 +19,9 @@ const NAV = [
 
 export function TopBar() {
   const path = usePathname()
+  const live = useSearchParams().get('live') === '1'
+  const guided = path !== '/evidence' && !live
+  const navHref = (href: string) => live && href !== '/evidence' ? `${href}?live=1` : href
   return (
     <header className="relative z-30 flex min-w-0 flex-wrap items-center gap-x-5 gap-y-2 border-b border-dk-line px-4 py-2 lg:px-5">
       <Link href="/" className="flex shrink-0 items-center" aria-label="StockReef home">
@@ -28,21 +31,22 @@ export function TopBar() {
         {NAV.map(n => {
           const active = path === n.href || path.startsWith(`${n.href}/`)
           return (
-            <Link key={n.href} href={n.href} aria-current={active ? 'page' : undefined} className={`border-b-2 py-1 whitespace-nowrap ${active ? 'border-dk-up text-dk-ink' : 'border-transparent text-dk-muted hover:text-dk-ink'}`}>
+            <Link key={n.href} href={navHref(n.href)} aria-current={active ? 'page' : undefined} className={`border-b-2 py-1 whitespace-nowrap ${active ? 'border-dk-up text-dk-ink' : 'border-transparent text-dk-muted hover:text-dk-ink'}`}>
               {n.label}
             </Link>
           )
         })}
       </nav>
       <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2 text-sm lg:gap-4">
-        <ProfileMenu />
+        {guided ? <span className="rounded border border-brand/50 px-2 py-1 text-xs font-semibold text-[#e4a07a]">Guided scenario</span> : <ProfileMenu />}
+        {path !== '/evidence' && <Link href={live ? path : `${path}?live=1`} className="whitespace-nowrap rounded border border-dk-line px-2 py-1 text-xs text-dk-ink hover:border-dk-muted">{live ? 'Guided view' : 'Live testnet'}</Link>}
         <Network />
         <span className="hidden h-6 w-px bg-dk-line sm:block" />
         <Wallet />
         <details className="relative xl:hidden">
           <summary className="flex cursor-pointer list-none items-center rounded-md border border-dk-line px-3 py-2 font-medium">Menu <Chevron /></summary>
           <nav aria-label="Main menu" className="absolute right-0 top-full z-40 mt-2 w-56 rounded-lg border border-dk-line bg-dk-panel p-2 shadow-xl">
-            {NAV.map(n => <Link key={n.href} href={n.href} aria-current={path === n.href ? 'page' : undefined} className={`block rounded-md px-4 py-3 ${path === n.href ? 'bg-dk-raised text-dk-up' : 'text-dk-ink hover:bg-dk-raised'}`}>{n.label}</Link>)}
+            {NAV.map(n => <Link key={n.href} href={navHref(n.href)} aria-current={path === n.href ? 'page' : undefined} className={`block rounded-md px-4 py-3 ${path === n.href ? 'bg-dk-raised text-dk-up' : 'text-dk-ink hover:bg-dk-raised'}`}>{n.label}</Link>)}
           </nav>
         </details>
       </div>
@@ -98,7 +102,7 @@ function Wallet() {
         onClick={() => connect({ connector: connectors[0], chainId: chain.id })}
         className="rounded-md border border-dk-up px-3 py-1 text-[15px] text-dk-up disabled:opacity-40"
       >
-        {connectors.length === 0 ? 'No wallet found' : 'Connect wallet'}
+        {connectors.length === 0 ? 'Install MetaMask' : 'Connect MetaMask'}
       </button>
     )
   }

@@ -20,6 +20,8 @@ StockReef helps reduce TSLA-backed debt before market closures and controls when
 
 The current implementation includes a TSLA/USDG lending market, a keeper, and a web app. The keeper submits permissionless transactions; the contracts enforce the rules on every call.
 
+Trade, Earn, Portfolio, and Operations open on a coordinated guided scenario. Its moving price, balances, and session clock are modeled for the presentation. Use **Live testnet** in the app header to inspect deployed contract state, connect MetaMask, submit transactions, and open real explorer receipts. The public landing page's Market now panel also reads the contracts.
+
 ```mermaid
 flowchart LR
     A[Before close<br/>Funded repayment or eligible partial trim] --> B[While trading is closed<br/>New borrowing locked]
