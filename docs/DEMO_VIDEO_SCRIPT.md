@@ -3,7 +3,7 @@
 Two videos, built the way the Lemma submission videos were:
 
 - **Visuals:** generated, not filmed. App stills are captured with Playwright, and the camera pans and zooms into one labelled element at a time.
-- **Sound:** a very light music bed, with a two-voice voice-over (**A** and **B**) recorded on top.
+- **Sound:** a very light music bed, with a two-voice voice-over recorded on top: **Aryan Singh Rathore** and **Awaan Mustafa Siddiqui**, co-founders. As in the Lemma videos, Aryan opens with the problem and the business case, and Awaan carries the product and the proof.
 - **Structure:** every section opens with its question on screen, then the answer, one sentence at a time.
 
 | | Pitch | Demo |
@@ -40,18 +40,18 @@ Intro, 0:00–0:05, music only: the coral mark draws itself, then "StockReef", t
 
 | # | Question on screen | Voice | Say | Show |
 |---|---|---|---|---|
-| Q1 | What's changing? | A | Stocks now live on chain as tokens that you can hold, move and borrow against at any hour. But the stock market still closes every evening and every weekend. | TSLA asset page, then a zoom on "Stock token · Robinhood Chain" |
-| Q2 | What's the problem? | A | When the market closes the price stops, and on Monday it can open far away. A loan that was safe on Friday can be underwater before anyone can act. | TSLA chart, Friday + reopening: the line stops at 397.20 and reopens at 376.00 |
-| Q3 | Who feels it first? | A | Holders of tokenized stocks who want dollars without selling, and the lenders who fund them. Lenders take the loss when a gap lands on a loan nobody reduced. | Portfolio health card, then the Lend page |
-| Q4 | What is StockReef? | B | StockReef is a lending market that reduces stock-backed debt before the close, while a real price still exists. Then it locks new credit through the closure and reopens it carefully. | Terminal at 15:15: the four tiles, then the falling amber line |
-| Q5 | Why now, and why Robinhood Chain? | B | Robinhood Chain brings real stock tokens and Paxos USDG to an Arbitrum chain. So the collateral, the dollars and the rules can finally live in one place. | TSLA token card: contract, issuer, price index |
-| Q6 | How does it make money? | A | Borrowers pay a fixed rate that flows to lenders. **[Team to confirm the protocol fee before recording.]** | Market pop-up: rate and utilization |
-| Q7 | How does it grow? | A | We start with Tesla against USDG and add stocks one market at a time. Every calendar of holidays and early closes is already built into the contracts. | TSLA page session schedule table |
-| Q8 | What's real today? | B | StockReef is live on Robinhood Chain testnet with a funded public market. It's backed by five hundred thirty five tests, including fork tests against the real TSLA token and feeds. | Evidence page: 535 · mainnet fork block · 6 contracts |
-| Q9 | Who's building it? | B | **[Team names and one line each.]** | Two founder cards |
-| Q10 | What do we need? | A | **[The ask, for example Founder House and the path to Robinhood Chain mainnet.]** StockReef reduces stock-backed debt before the market closes. | Ask lines, then the closing line in large type |
+| Q1 | What's changing? | Aryan | Stocks now live on chain as tokens you can hold and borrow against at any hour. But the stock market behind them still closes every evening and every weekend. | TSLA asset page, then a zoom on "Stock token · Robinhood Chain" |
+| Q2 | What's the problem? | Aryan | About a third of Tesla's price movement happens while its market is closed. Over five years it opened at least five percent away from Friday's close on one Monday in sixteen. | TSLA chart, Friday + reopening. Two stat cards: "33% of TSLA price variance happens while the market is closed" and "1 in 16 Mondays opens ≥ 5% from Friday's close". Caption: Yahoo Finance daily data, Oct 2021 to Oct 2026 |
+| Q3 | Who feels it first? | Aryan | Holders of tokenized stocks who want dollars without selling, and the lenders who fund them. To stay safe through closures, lenders today keep stock loans at about half the collateral or less. | Portfolio health card, then the Lend page |
+| Q4 | What is StockReef? | Awaan | StockReef lends up to seventy five percent and reduces the debt before the close, while a real price still exists. Then it locks new credit through the closure and reopens it carefully. | Terminal at 15:15: the four tiles, then the falling amber line |
+| Q5 | Why now, and why Robinhood Chain? | Awaan | Robinhood Chain went live on mainnet in July with stock tokens and USDG side by side. Tokenized stocks have passed three billion dollars, but lending against them is still tiny. | TSLA token card. Stat cards: "Robinhood Chain mainnet · 1 Jul 2026", "$3.21B tokenized stocks", "≈$53M stock lending on Solana, the busiest market" |
+| Q6 | How does it make money? | Aryan | Lenders earn the borrower's fixed rate, and StockReef will keep ten percent of that interest. It also keeps ten percent of each liquidation bonus, the same shares Aave takes. And the vault's USDG can earn Global Dollar partner rewards on top. | Card with three rows: "10% of borrower interest" (Aave USDC 10%), "10% of each liquidation bonus" (Aave WETH and WBTC 10%), "USDG partner rewards" (upside, terms by agreement). Then the Market pop-up: rate and utilization |
+| Q7 | How does it grow? | Aryan | We start with Tesla against USDG and add stocks one market at a time. Every closure on the exchange calendar, holidays and early closes included, is already in the contracts. | TSLA page session schedule table |
+| Q8 | What's real today? | Awaan | StockReef runs on Robinhood Chain testnet with a funded public market and real receipts. It's backed by five hundred thirty five tests, including fork tests against the live TSLA token. | Evidence page: 535 · mainnet fork block · 6 contracts |
+| Q9 | Who's building it? | Awaan | Aryan and I built StockReef during this buildathon, from the contracts to the app. | Two founder cards: "Aryan Singh Rathore · Co-founder" and "Awaan Mustafa Siddiqui · Co-founder". Pill: "First commit 1 Oct 2026" |
+| Q10 | What do we need? | Aryan | At Founder House we want an audit and our first lenders on Robinhood Chain mainnet. We also want a market maker for TSLA and a Global Dollar partnership for the vault. StockReef reduces stock-backed debt before the market closes. | Three ask lines tick in, then the closing line in large type |
 
-Outro, 5 seconds: logo, closing line, `stock-reef.vercel.app` · `github.com/4waan/StockReef`.
+Outro, 5 seconds: logo, closing line, `stock-reef.vercel.app` · `github.com/4waan/StockReef` · "Aryan Singh Rathore · Awaan Mustafa Siddiqui".
 
 ---
 
@@ -59,67 +59,67 @@ Outro, 5 seconds: logo, closing line, `stock-reef.vercel.app` · `github.com/4wa
 
 Intro, 0:00–0:05: the mark, then "StockReef", then "the demo, in fifteen questions". Pills: "Live on Robinhood Chain testnet 46630" and "Scripted price and clock · live contracts".
 
-### d1 · What's the problem? · A
-**Say.** A tokenized stock trades all weekend, but its real price stops on Friday at four. Any loan against it carries the whole weekend gap into Monday.
+### d1 · What's the problem? · Aryan
+**Say.** A tokenized stock trades all weekend, but its real price stops on Friday at four. Over five years Tesla opened at least five percent away on one Monday in sixteen.
 **Show.** `tsla-admit.png`, Friday + reopening chart. Zoom on the weekend band, then on the drop from 397.20 to 376.00.
 
-### d2 · Who has it? · A
+### d2 · Who has it? · Aryan
 **Say.** Our first user holds TSLA and borrows USDG against it at about seventy two percent. That's healthy on a Friday afternoon, and it's exactly the loan a weekend gap hurts.
 **Show.** `trade-open.png`. Zoom on the market bar, then the Position row: 0.25 TSLA, 72.08 USDG debt, 72% LTV.
 
-### d3 · What's missing today? · A
+### d3 · What's missing today? · Aryan
 **Say.** Lending markets treat stocks like crypto that never stops trading. A borrowing lock stops a loan from growing over the weekend, but it never makes the debt smaller.
 **Show.** Comparison card (built in the video): Fixed-limit market / Borrowing lock / StockReef, with rows "Acts before the close", "Shrinks existing debt" and "Controlled reopening".
 
-### d4 · What's our insight? · A
+### d4 · What's our insight? · Aryan
 **Say.** Reduce the debt before the close while a usable price still exists. So the threshold falls through the afternoon, and the borrower sees an amount and a deadline.
 **Show.** `trade-open-threshold.png`, then `trade-prep.png`. The amber line falls from 80% to 70%, and the tile reads 71.66% → 70%.
 
-### d5 · Why on chain, why Robinhood Chain? · B
+### d5 · Why on chain, why Robinhood Chain? · Awaan
 **Say.** A rule a lender can rely on has to be enforced by the contract, not by a server. And Robinhood Chain is where the TSLA token and Paxos USDG already live.
 **Show.** TSLA token card (contract link), then the oracle pill pop-up: price, age, "usable for 120 s".
 
-### d6 · What does the borrower see at 15:15? · B
+### d6 · What does the borrower see at 15:15? · Awaan
 **Say.** At 15:15 the threshold is down to seventy one point seven percent and the loan sits above it. The terminal turns that into one instruction: repay seven dollars thirty four by 15:30.
 **Show.** `trade-prep-before-the-close.png` (Repay 7.34), then `trade-prep-liquidation.png` (Eligible · 21.79 · buffer first).
 
-### d7 · Show the transaction · B
+### d7 · Show the transaction · Awaan
 **Say.** This borrower funded a repayment buffer in advance, so anyone can execute it now. We run it and sign, and no stock is sold and no bonus is paid.
 **Show.** Click the **Funded buffer** tile. The pop-up shows Funded 7.00, Plan 65%, Runs now 7.00, then "✓ Testnet check passed" and **Run buffer · 7.00 USDG**. Sign in MetaMask, then show **Confirmed · receipt** and cut to the Blockscout transaction.
 
-### d8 · Show the state change · B
+### d8 · Show the state change · Awaan
 **Say.** The debt drops from seventy two to sixty five dollars, and the loan moves back under the falling threshold. The receipt is on the chart where it happened.
 **Show.** `trade-prep-last-state-change.png`: Debt 72.08 → 65.08, LTV 72.4% → 65.3%. Then the full chart, zoomed on the drop at the **Buffer repaid 7.00** marker. The Liquidation tile now reads **Not eligible**.
 
-### d9 · What if nothing had executed? · B
+### d9 · What if nothing had executed? · Awaan
 **Say.** Without the buffer, a liquidator could trim twenty one dollars of debt at a two percent bonus. The loan would stay open, but the borrower would pay for waiting.
 **Show.** `trade-prep-liquidation.png` before the buffer ran: Debt cut 21.79, TSLA taken 0.0558, Bonus 2%, LTV after 65.0%.
 
-### d10 · What happens over the weekend? · A
+### d10 · What happens over the weekend? · Aryan
 **Say.** From 15:30 no new borrowing, and at four the market closes. Repaying and adding collateral still work, but the loan can only get smaller.
 **Show.** `trade-closed-protection.png`. Repay and Add TSLA are available. Borrow, Withdraw, Buffer, Trim and Lend are locked.
 
-### d11 · How does Monday reopen? · B
+### d11 · How does Monday reopen? · Awaan
 **Say.** On Monday a fresh price of three seventy six arrives, but nothing runs on it until it's admitted five minutes after the open. Valued at that price this loan sits just under the seventy percent limit, because the buffer already ran.
 **Show.** `trade-wait-reopening.png` (Awaiting price), then `trade-admit.png`: Admitted 09:35, Credit 09:45. The Monday LTV line sits just under the amber line at 69.3%.
 
-### d12 · What happens when something goes wrong? · B
+### d12 · What happens when something goes wrong? · Awaan
 **Say.** Here we stop the price feed and try to borrow two minutes later. The contract refuses the stale price, so the wallet never even opens.
 **Show.** Monday 09:45, Borrow tab, 1 USDG. The red card reads **Rejected by the contract · NotAllowedNow · Guarded · stock price stale**, and the oracle pill turns red: "stale". (To capture it, stop `price --watch` and wait 2 minutes.)
 
-### d13 · Is it durable? · A
+### d13 · Is it durable? · Aryan
 **Say.** Five hundred thirty five tests cover the risky paths, including fork tests on the real TSLA token. And every number in this app matches the contract's own view field by field.
 **Show.** Evidence page, then a terminal replay of `npm run check-scenario -- admit`: twenty "same" lines.
 
-### d14 · What roadblocks did we overcome? · B
+### d14 · What roadblocks did we overcome? · Awaan
 **Say.** A stale demo price made every screen read zero, so the contracts now value a scripted session directly. And MetaMask warned on unlimited approvals, so every approval is now exact and checked before signing.
 **Show.** Two rows, each a red "✗ STUCK" card → arrow → green "✓ WHAT WE DID":
 - "Stale oracle, empty screens" → "Contracts value the scripted step" · `lib/scenario.ts`
 - "Unlimited approval warning" → "Exact approval + preflight" · `useTx`
 
-### d15 · What did we trade off, and what's next? · A
-**Say.** On testnet the operator sets the price and clock, so we can show a weekend on demand. Next we calibrate the limits against real gaps, add more stocks, get audited and launch on Robinhood Chain. StockReef reduces stock-backed debt before the market closes.
-**Show.** Card "We chose / So that / Later": operator-set price and clock / show a weekend on demand / live stock feeds, already read in the fork tests. Then a four-phase roadmap (Calibrate thresholds → More stocks → Audit → Robinhood Chain mainnet), and the closing line.
+### d15 · What did we trade off, and what's next? · Aryan
+**Say.** On testnet the operator sets the price and clock, so we can show a weekend on demand. Next we calibrate the limits against real gaps, add more stocks, get audited and launch on Robinhood Chain mainnet. StockReef reduces stock-backed debt before the market closes.
+**Show.** Card "We chose / So that / Later": operator-set price and clock / show a weekend on demand / live stock feeds, already read in the fork tests. Then a four-phase roadmap: Calibrate thresholds against real gaps → More stocks → Audit → Robinhood Chain mainnet, with fees switched on (10% of interest and of liquidation bonuses). Then the closing line.
 
 Outro, 5 seconds: the same as the pitch.
 
@@ -134,3 +134,41 @@ Outro, 5 seconds: the same as the pitch.
 | Red "Rejected by the contract" | The contracts would refuse it at the testnet's current state | Read the reason; sync the step or refresh the price |
 | Funded buffer tile "Expired" | The plan ended before this weekend | `npm run demo -- prepare` resets and re-authorizes it |
 | "already past …" from `demo step` | The testnet clock never moves backwards | `npm run demo -- prepare` moves to the next weekend; press **Restart** in the session bar's ⓘ |
+
+---
+
+## Sources for the pitch numbers
+
+These were checked on 4 Oct 2026. Read each figure off the source again on recording day.
+
+**TSLA gaps**
+- Yahoo Finance daily TSLA data, 2,955 sessions from 2 Jan 2015 to 2 Oct 2026, split-adjusted. Gap = open ÷ previous close − 1.
+- Last five years (275 weekend or holiday closures, 225 of them Friday to Monday):
+  - 14 of 225 Mondays opened at least 5% from Friday's close (6.2%, about 1 in 16). After ordinary weeknights the rate was 3.3%.
+  - 33% of daily price variance came from the market-closed periods.
+- Breaches at the reopen, from the same data:
+  - A 72% loan passes 80% after a down-gap of more than 10%. That happened on 1 of 275 closures (5 Aug 2024, −10.8%).
+  - At the 75% maximum it needs more than 6.25%, which happened on 3 of 275.
+  - The worst weekend gap since 2015 was −14.9% (8 Sep 2020).
+
+**Market**
+- Tokenized stocks: $3.21B distributed value, from https://app.rwa.xyz/stocks (4 Oct 2026).
+- Stock lending on Solana: an all-time high of about $53M, with Kamino at $31M, from https://solanacompass.com/news/kamino-lend-holds-826-of-solanas-tokenized-stock-lending-market-at-53m (11 Aug 2026).
+- Kamino xStocks max LTV of about 35–50%. This comes from a secondary source, https://www.onchaintimes.com/stocks-arriving-on-chain/, so treat it as indicative.
+- Robinhood Chain mainnet on 1 Jul 2026, with lending through Morpho and USDG liquidity, from https://forum.arbitrum.foundation/t/arbitrumdao-factsheet-robinhood-chain-mainnet-launch/31041 (6 Jul 2026).
+
+**Fees**
+- Aave v3 Ethereum, read on-chain on 4 Oct 2026:
+  - reserve factor 10% on USDC and 15% on WETH;
+  - liquidation protocol fee 10% on WETH and WBTC, 20% on USDC.
+- Euler v2 default interest fee 10%, from https://docs.euler.finance/concepts/financial/interest-rates/.
+- Morpho fee switch capped at 25%, not switched on, from https://docs.morpho.org/learn/governance/organization/.
+- USDG Global Dollar Network partners receive up to 100% of reserve rewards, on terms set by agreement, from https://globaldollar.com/newsroom/150-partners (21 Jul 2026).
+
+**Founder House Singapore**
+- 23–25 Oct 2026, up to $300K in USDG.
+- The prizes include a $60K Robinhood Chain Founder-in-Residence and a $30K Robinhood Chain Innovation Award.
+- Winners join an 8-week mentorship with Robinhood Chain.
+- Source: https://blog.arbitrum.foundation/founder-house-singapore-apply-now-to-launch-products-on-arbitrum-one-robinhood-chain/
+
+The fees are a plan: the deployed contracts send all interest to lenders today. The pitch says "will" for that reason.
